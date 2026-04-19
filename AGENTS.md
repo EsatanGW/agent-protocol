@@ -132,6 +132,7 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 15. `docs/phase-gate-discipline.md` — per-phase gate, ROADMAP tracking artifact, commit-at-gate, read-spec-before-plan
 16. `docs/automation-contract.md` — what a validator must guarantee (structural / cross-reference / drift layers; waiver protocol; offline operability)
 17. `docs/automation-contract-algorithm.md` — normative tool-neutral algorithm, layer-by-layer with rule IDs and exit codes; the bridge from capability contract to executable validator
+17b. `docs/runtime-hook-contract.md` — capability contract for agent-runtime event-driven hooks (pre-tool-use / post-tool-use / pre-commit / on-stop); four categories (phase-gate / evidence / drift / completion-audit); shares exit-code semantics with the automation contract
 18. `docs/adoption-strategy.md` — staged adoption, anti-metrics, decay intervention playbook
 19. `docs/glossary.md` — canonical term definitions
 

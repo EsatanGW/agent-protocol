@@ -232,6 +232,7 @@ See [`AGENTS.md`](./AGENTS.md) "Recommended reading order".
 - Team / org-scale concerns (consumer registry, deprecation queue) → [`docs/team-org-disciplines.md`](./docs/team-org-disciplines.md)
 - Long-lived session or cross-session work → [`docs/ai-project-memory.md`](./docs/ai-project-memory.md)
 - Writing a validator / CI gate for this methodology → [`docs/automation-contract.md`](./docs/automation-contract.md) (capability spec) + [`docs/automation-contract-algorithm.md`](./docs/automation-contract-algorithm.md) (normative algorithm) + [`reference-implementations/`](./reference-implementations/) (non-normative example validators)
+- Writing agent-runtime hooks (pre-tool-use, pre-commit, on-stop) → [`docs/runtime-hook-contract.md`](./docs/runtime-hook-contract.md) (four hook categories + I/O contract + exit-code semantics) + [`reference-implementations/hooks-claude-code/`](./reference-implementations/hooks-claude-code/) (non-normative Claude Code bridge)
 
 ### Execution layer
 

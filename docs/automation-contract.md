@@ -169,7 +169,8 @@ Bridge-level implementations **may** name specific tools (that is precisely why 
 
 ## Relationship to other documents
 
-- `ci-cd-integration-hooks.md` — describes hook points and triggers (this document is their semantic spec).
+- `ci-cd-integration-hooks.md` — describes CI/CD hook points and triggers (this document is their semantic spec).
+- `runtime-hook-contract.md` — the agent-runtime counterpart for event-driven hooks (pre-tool-use, post-tool-use, pre-commit, on-stop). Shares the same exit-code semantics (`0 = pass`, `1 = fail`, `2 = warn`) so rules defined here can be re-used as runtime hooks.
 - `schemas/change-manifest.schema.yaml` — the actual tier-1 schema.
 - `ai-operating-contract.md` §5 — escalation protocol when AI hits an L3 failure.
 - `adoption-strategy.md` — counter-metric monitoring (bypass rate, waiver expiration rate, etc.).

@@ -1,0 +1,57 @@
+{
+  "_comment": "Illustrative hook wiring for Claude Code, per docs/runtime-hook-contract.md. Paths assume the hooks bundle is at ${CLAUDE_CONFIG_DIR}/agent-protocol-hooks/hooks/. Adjust to project-local hooks by changing the prefix to ${CLAUDE_PROJECT_DIR}/.claude/hooks/. Hook event names (preCommit, postToolUse, stop) are Claude Code conventions; other runtimes use their own names.",
+  "hooks": {
+    "preCommit": [
+      {
+        "type": "command",
+        "command": "sh ${CLAUDE_CONFIG_DIR}/agent-protocol-hooks/hooks/manifest-required.sh",
+        "description": "Category A (phase-gate): block non-trivial commits without a Change Manifest",
+        "agentProtocol": {
+          "category": "phase-gate",
+          "level": "block",
+          "ruleIds": ["phase-gate.manifest-required"]
+        }
+      },
+      {
+        "type": "command",
+        "command": "sh ${CLAUDE_CONFIG_DIR}/agent-protocol-hooks/hooks/evidence-artifact-exists.sh",
+        "description": "Category B (evidence): block commits where evidence artifact paths are missing",
+        "agentProtocol": {
+          "category": "evidence",
+          "level": "block",
+          "ruleIds": ["evidence.artifact-exists"]
+        }
+      }
+    ],
+    "postToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "type": "command",
+        "command": "sh ${CLAUDE_CONFIG_DIR}/agent-protocol-hooks/hooks/sot-drift-check.sh",
+        "description": "Category C (drift): warn when SoT declared in manifest is not being touched",
+        "agentProtocol": {
+          "category": "drift",
+          "level": "warn",
+          "ruleIds": ["drift.sot-file-must-move"]
+        }
+      }
+    ],
+    "stop": [
+      {
+        "type": "command",
+        "command": "sh ${CLAUDE_CONFIG_DIR}/agent-protocol-hooks/hooks/completion-audit.sh",
+        "description": "Category D (completion-audit): block end-of-turn when manifest says 'done' dishonestly",
+        "agentProtocol": {
+          "category": "completion-audit",
+          "level": "block",
+          "ruleIds": [
+            "completion.evidence-complete",
+            "completion.unaccepted-risk",
+            "completion.unresolved-escalation",
+            "completion.observe-needs-narrative"
+          ]
+        }
+      }
+    ]
+  }
+}

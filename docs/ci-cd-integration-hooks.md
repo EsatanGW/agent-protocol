@@ -200,3 +200,9 @@ Do not wire everything in at once. Suggested order:
 | Hook 5 | Phase 6 | Phase 6 sign-off requirements |
 | Hook 6 | Phase 7 | Phase 7 delivery requirements |
 | Hook 7 | Phase 8 | `docs/post-delivery-observation.md` |
+
+---
+
+## Relationship to runtime-layer hooks
+
+This document defines **CI/CD-platform** hooks (fire on PR events, merge events). Its sibling, [`runtime-hook-contract.md`](./runtime-hook-contract.md), defines **agent-runtime** hooks (fire on tool use, response completion, commit). The two share the exit-code contract (`0 = pass`, `1 = fail`, `2 = warn`), so a rule implemented as a runtime hook can be lifted into a CI hook — and vice versa — with only the event-payload translation rewritten. Use the runtime contract when you want guardrails to fire *inside* the agent loop (pre-commit blocking, drift warnings on edit); use the CI contract when you want them to fire *after* the change leaves the agent (PR review, pre-merge).

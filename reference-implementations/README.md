@@ -31,6 +31,7 @@ Think of this as the runnable counterpart to the stack bridges: bridges map the 
 | Directory | Toolchain | Status | Notes |
 |-----------|-----------|--------|-------|
 | `validator-posix-shell/` | POSIX shell + `yq` + `git` | reference | Minimal Layer 1 + 2 + 3 implementation; useful for CI in any container with these tools. Does NOT include JSON Schema validation of deeply nested conditionals — those require either a real JSON Schema validator binary or a host-language implementation. |
+| `hooks-claude-code/` | POSIX shell + `yq` + Claude Code hook wiring | reference | Four agent-runtime hooks covering all four categories (phase-gate / evidence / drift / completion-audit) from `docs/runtime-hook-contract.md`, plus a `settings.example.json` showing how to register them. Scripts parse the manifest with `yq` and emit the contract-compliant exit codes; bundle is plug-and-play for Claude Code, portable to other runtimes via their own event-registration mechanism. |
 
 Teams publishing their own bridges are encouraged to contribute implementations in their preferred language and open PRs. The contract + algorithm are the canonical source; implementations just need to match them.
 
