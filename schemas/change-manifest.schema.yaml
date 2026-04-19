@@ -109,6 +109,51 @@ properties:
       Parent initiative / epic id. Purely descriptive aggregation, not a
       dependency relation.
 
+  strategic_parent:
+    type: object
+    description: |
+      Optional link to an external strategic artifact (ADR / RFC / OKR /
+      design-doc / external ticket) that motivates this change. Unlike
+      `part_of` (which is an internal epic ID), this field points OUTSIDE
+      the Change Manifest world — to a document that agent-protocol does
+      not define the format of. Use it when a change is a slice of a larger
+      strategic initiative that has its own decision document.
+
+      See docs/strategic-artifacts.md for scope (what this field is for)
+      and non-scope (what agent-protocol deliberately does not define).
+    additionalProperties: false
+    required: [kind, location]
+    properties:
+      kind:
+        type: string
+        enum:
+          - adr
+          - rfc
+          - okr
+          - design_doc
+          - external_ticket
+          - other
+        description: |
+          Category of the strategic artifact. Use 'other' + free-form location
+          when the artifact is internal to an org-specific system.
+      location:
+        type: string
+        description: |
+          Path to the artifact (repo-relative or absolute) or URL. Must be
+          resolvable so a verifier can confirm the parent exists.
+      summary:
+        type: string
+        maxLength: 400
+        description: |
+          Short human-readable description of WHAT the strategic parent
+          requires of this change. Not a link text — a motivation sentence.
+      initiative_id:
+        type: string
+        description: |
+          Optional stable identifier shared across all Change Manifests
+          that serve the same strategic parent. Enables machine aggregation
+          ("show me every manifest under INITIATIVE-AUTH-REWRITE-2026Q2").
+
   # ─── Surfaces ──────────────────────────────────────────────────────────
 
   surfaces_touched:

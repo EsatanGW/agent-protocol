@@ -371,6 +371,30 @@ part_of:
 
 Already present in older versions; complementary to the four fields above. `supersedes` says "this manifest replaces the prior one"; the other fields say "this manifest coexists with other manifests."
 
+### `strategic_parent` (pointer to external decision artifact)
+
+Maps to `docs/strategic-artifacts.md`.
+
+When a change is a slice of a larger initiative whose motivation lives in an **external authoritative document** (ADR, RFC, OKR, design doc, external ticket), use `strategic_parent` to anchor the manifest to that artifact. Agent-protocol deliberately does not define ADR/RFC formats — it only defines the anchor.
+
+```yaml
+strategic_parent:
+  kind: adr              # enum: adr | rfc | okr | design_doc | external_ticket | other
+  location: docs/adr/0042-auth-compliance-rewrite.md
+  summary: >
+    Comply with 2026 audit requirements by rewriting session-token storage
+    off legacy in-memory cache onto an audited KV store. This manifest
+    covers the token-store slice only.
+  initiative_id: AUTH-REWRITE-2026Q2
+```
+
+- **When to set it:** the change is a slice of a larger initiative, the initiative has its own authoritative document, and motivation is *not* self-contained in the manifest.
+- **Required fields:** `kind` + `location`. `summary` (≤ 400 chars on what the parent requires of this change) and `initiative_id` (stable identifier shared across sibling manifests) are optional but recommended.
+- **Relationship to `part_of`:** `part_of` identifies an internal epic; `strategic_parent` identifies the external decision document. They are complementary — a manifest may have both. Use `part_of` alone for self-documenting internal epics; use `strategic_parent` alone when the external decision is the only scaffolding.
+- **Not a container.** The anchor points out — consumers open the parent doc to read its contents. Automation verifies `location` is resolvable; it does not inspect what the parent says.
+
+See `docs/strategic-artifacts.md` for field semantics, aggregation patterns, and anti-patterns.
+
 ---
 
 ## Per-phase note fields
@@ -597,6 +621,7 @@ A downstream agent (implement agent) uses that manifest as both context and a co
 | `post-delivery-observation.md` | `post_delivery`, `handoff_narrative` |
 | `change-decomposition.md`       | `depends_on`, `blocks`, `co_required`, `part_of` |
 | `concurrent-changes.md`         | `depends_on`, `co_required` |
+| `strategic-artifacts.md`        | `strategic_parent` |
 | `automation-contract-algorithm.md` | Source of truth for every conditional rule above. |
 
 ---

@@ -41,6 +41,84 @@ _(none active)_
 
 ## Closed initiatives
 
+## multi-agent-layering-bridge — ship 3-agent Planner/Implementer/Reviewer layering as a Claude Code bridge
+
+- **Opened:** 2026-04-19
+- **Driver:** User review of the NYCU-Chung/my-claude-devteam plugin (P7/P9/P10 + PUA high-pressure mode + 12-agent team) surfaced the question of whether agent-protocol should adopt hierarchical agent layering. Recommendation landed on a 3-role responsibility-based layering (not job-title) aligned with the existing Planner / Implementer / Reviewer roles in `docs/multi-agent-handoff.md`. User accepted.
+- **Status:** closed
+- **Target version:** 1.2.0
+- **Phases:** table below
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Decide layering shape (role-count + enforcement mechanism): whether to copy hierarchical P-levels or to formalize the existing 3-role split with tool-permission enforcement | Conversation decision + scope agreed with user | User accepted 3-role (not P7/P9/P10), responsibility-based (not job-title), tool-permission matrix as enforcement layer, single-agent anti-collusion rule | ✅ passed | _(pre-commit)_ | Hierarchical model rejected — would contradict tool-agnostic / stack-neutral design invariants and over-specify for a generic workflow plugin |
+| P1 | Normative layering: add tool-permission matrix and anti-collusion rule to canonical docs | `docs/multi-agent-handoff.md` two new sections (Tool-permission matrix + Single-agent anti-collusion rule); `AGENTS.md` new §7 carrying the same matrix + rule runtime-neutrally | Matrix uses capability categories (file read / code search / file write / shell read-only / shell state-changing / shell verification-only / network fetch / sub-agent delegation), not tool names; rule forbids Implementer ≡ Reviewer outright and permits Planner ≡ Implementer only in Lean mode | ✅ passed | `909fc33` | Reviewer intentionally lacks edit/write — "single most important row" per the matrix |
+| P2 | Claude Code bridge: three sub-agent definitions carrying the tool-permission envelopes | `.claude-plugin/agents/planner.md` (tools: Read/Grep/Glob/WebFetch/Task, model: opus); `.claude-plugin/agents/implementer.md` (tools: Read/Grep/Glob/Edit/Write/Bash/WebFetch, model: sonnet); `.claude-plugin/agents/reviewer.md` (tools: Read/Grep/Glob/Bash/WebFetch, model: opus) | Each definition's tools field matches the matrix row for its role; Implementer explicitly has no `Task` (cannot spawn a reviewer of itself); Reviewer explicitly has no Edit/Write | ✅ passed | `909fc33` | Bridge is one of several possible runtime mappings — AGENTS.md carries the runtime-neutral rule |
+| P3 | Wire other runtime bridges + surface in index files | `GEMINI.md` / `.windsurfrules` / `.cursor/rules/engineering-workflow.mdc` each gain a "Multi-agent role separation (Full mode)" summary with cross-ref to canonical doc; `README.md` adds bullet 6 and directory-layout entry for `.claude-plugin/agents/` | Every entry point references the same canonical source (`docs/multi-agent-handoff.md`) — no divergent definitions; cross-cutting-term discipline per `CLAUDE.md §5` | ✅ passed | `909fc33` | Bridge files are thin pointers, canonical content stays in AGENTS.md + docs |
+
+### Phase log
+
+- P0 rejected the NYCU-Chung P7/P9/P10 hierarchical model for agent-protocol because (a) hierarchy encodes corporate-ladder vocabulary that is culture-specific and breaks the tool-agnostic invariant (cf. CHANGELOG 1.0.0 "Design invariants") and (b) the existing `docs/multi-agent-handoff.md` already defined Planner / Implementer / Reviewer as canonical responsibility-based roles — we needed enforcement, not a new hierarchy.
+- The enforcement mechanism is the tool-permission matrix itself: a Reviewer sub-agent that *cannot* call Edit or Write cannot rewrite the change it is reviewing, which mechanically blocks the self-review anti-pattern that prose rules fail to prevent. Anti-collusion rule closes the remaining gap (same identity playing two roles serially).
+- Lean-mode exception — Planner ≡ Implementer — explicitly allowed because Lean mode by definition is a single-agent workflow for trivial changes (typo, small config, doc edit). Implementer ≡ Reviewer has no Lean-mode exception because "review your own code" is the failure mode the contract exists to prevent.
+- Implementer model is `sonnet` (cost-efficient on straightforward execution); Planner and Reviewer are `opus` (higher-leverage judgment tasks where step-back cost of the better model is highest).
+- No changes to `skills/`, `schemas/`, or methodology semantics. This is an additive bridge on top of existing roles.
+
+---
+
+## runtime-hook-contract — define runtime-layer hook contract + ship Claude Code reference hook bundle
+
+- **Opened:** 2026-04-19
+- **Driver:** Agent-protocol had `docs/ci-cd-integration-hooks.md` for CI-layer gating but no specification for *runtime* hooks (agent-lifecycle events: pre-commit, post-tool-use, on-stop). User accepted that formalizing the runtime-layer contract is a methodology gap to close and that a Claude Code reference implementation demonstrates it concretely.
+- **Status:** closed
+- **Target version:** 1.2.0
+- **Phases:** table below
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Decide whether a runtime-layer hook contract should be defined separately from `ci-cd-integration-hooks.md` or fold into it; decide the category taxonomy | Conversation decision + scope agreed with user | User accepted separate doc (`docs/runtime-hook-contract.md`); 4 categories (phase-gate / evidence / drift / completion-audit) mapped directly to manifest fields; shared exit-code semantics with `automation-contract.md` (0 pass / 1 block / 2 warn) | ✅ passed | _(pre-commit)_ | Separate doc chosen because runtime and CI layers differ in trigger point, latency budget, and side-effect envelope — folding would blur those distinctions |
+| P1 | Write the contract | `docs/runtime-hook-contract.md` (~190 lines) covering: four categories, JSON-over-stdin event schema, exit-code semantics, latency budgets (< 500 ms phase-gate + evidence; < 2 s drift), non-functional requirements (offline / deterministic / no side effects / no model-in-hook), bridge requirements (event mapping, stdin convention, exit-code handling, registration format, ≥ 1 reference hook per A / D) | Contract is tool-agnostic (no Claude Code specifics in the contract itself); cross-refs to `automation-contract.md` and `ci-cd-integration-hooks.md` both bidirectional | ✅ passed | `36b2506` | Tool-agnostic invariant preserved — the contract defines the shape, bridges fill in runtime specifics |
+| P2 | Reference implementation: Claude Code hook bundle | `reference-implementations/hooks-claude-code/` with README, DEVIATIONS, `settings.example.json`, and four executable POSIX-sh scripts (`manifest-required.sh`, `evidence-artifact-exists.sh`, `sot-drift-check.sh`, `completion-audit.sh`) | Scripts syntax-clean (`sh -n` pass); empty-repo smoke-test exits 0; absent-`yq` path returns exit 2 with `TOOL_ERROR` per contract; `chmod +x` applied to all scripts | ✅ passed | `36b2506` | Bundle covers all four A/B/C/D categories; portable to other runtimes via their own event-registration mechanism (scripts are POSIX-sh + yq only, no Node/Python dependency) |
+| P3 | Wire into index + cross-ref existing docs | `docs/ci-cd-integration-hooks.md` new "Relationship to runtime-layer hooks" section; `docs/automation-contract.md` cross-ref; `AGENTS.md` reading-list entry 17b; `README.md` "When your situation matches" entry; `reference-implementations/README.md` catalog row for `hooks-claude-code/` | Bidirectional cross-refs between CI-hook doc and runtime-hook doc; AGENTS.md reading list in documented order; README bullet added under the right section | ✅ passed | `36b2506` | `validator-posix-shell/` row preserved alongside new hooks row in reference-implementations catalog |
+
+### Phase log
+
+- P0 explicitly framed runtime vs CI as **sibling layers**, not competing layers. Runtime hooks fire during the agent's own tool-call lifecycle (pre-commit, post-tool-use, on-stop). CI hooks fire after the branch/PR reaches shared infrastructure. The same manifest rule can be enforced at both layers — what differs is the blast radius and rollback cost if the rule fires late.
+- Category taxonomy (A phase-gate / B evidence / C drift / D completion-audit) mirrors the manifest's own validation layers from `automation-contract-algorithm.md`. This keeps runtime enforcement semantically consistent with CI enforcement — a rule has the same meaning whether it fires in-session or in-pipeline.
+- Latency budgets (< 500 ms for A/B, < 2 s for C) are deliberate: runtime hooks block the agent's loop, so slow hooks become productivity taxes. CI hooks have no such budget because they run out-of-band.
+- "No model-in-hook" rule is deliberate: hooks must be deterministic so the same manifest + same repo state always produces the same verdict. A hook that calls an LLM is itself a new agent and must be governed by the multi-agent-handoff contract, not by the hook contract.
+- Reference bundle uses POSIX-sh + `yq` + `git` only (no Node, no Python, no Claude Code SDK dependency). Portability: the same scripts can be re-registered under a different runtime's event mechanism by only re-writing the settings-file shape — the script bodies stay stack-neutral.
+- `sot-drift-check.sh` is postToolUse + matcher `Edit|Write|MultiEdit` — this is the only category that cares about per-tool-call granularity; the other three run at commit / stop boundaries.
+- Completion-audit (category D) is the highest-leverage category — it blocks the agent from surfacing "done" when the manifest's `evidence_plan` / `residual_risks.accepted_by` / `escalations.resolved_at` / `phase: observe` narrative are still materially incomplete. This is the single rule set that catches the "dishonest completion" failure mode most directly.
+
+---
+
+## strategic-parent-extension — add external-artifact anchor to Change Manifest schema
+
+- **Opened:** 2026-04-19
+- **Driver:** Methodology had `part_of` for internal-epic linkage but no way to anchor a manifest to an external strategic document (ADR / RFC / OKR / design doc / external ticket). User weighed two options — "Phase -1 strategy" ceremony vs. `strategic_parent` schema extension — and chose the schema extension because it stays on the existing manifest's output contract rather than adding a new phase.
+- **Status:** closed
+- **Target version:** 1.2.0
+- **Phases:** table below
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Decide: invent Phase -1 "Strategic scope" ceremony OR extend Change Manifest with `strategic_parent` field | Conversation recommendation + user decision | User accepted schema-extension path; Phase -1 rejected because strategic deliberation runs on a different cadence (quarters, committees, human-only review) and does not benefit from phase-gate artifacts | ✅ passed | _(pre-commit)_ | The anchor is a pointer, not a container — agent-protocol deliberately does not define ADR/RFC formats (existing mature standards cover those) |
+| P1 | Add optional `strategic_parent` object to the schema | `schemas/change-manifest.schema.yaml` new top-level object after `part_of`; required fields `kind` (enum: adr / rfc / okr / design_doc / external_ticket / other) + `location`; optional `summary` (maxLength 400) + `initiative_id` | Additive change — existing manifests remain valid (field is optional); `additionalProperties: false` on the object; matches SemVer minor-bump policy per `VERSIONING.md` | ✅ passed | _(this change)_ | No retrofitting of the 4 existing example manifests — none of them has a real external strategic parent, and injecting synthetic ones would misrepresent the anchor's intent |
+| P2 | Write the explanation doc | `docs/strategic-artifacts.md` (~130 lines): TL;DR, What this is, What this is NOT (no ADR/RFC format definition, no Phase -1 ceremony, no parent-content validation), field semantics table, aggregation patterns, `part_of` vs `strategic_parent` relationship, anti-patterns | Doc is explicit on what agent-protocol does and does not define; cross-refs to `schemas/change-manifest.schema.yaml`, `docs/change-manifest-spec.md`, `docs/change-decomposition.md`, `docs/team-org-disciplines.md`, `docs/phase-gate-discipline.md` | ✅ passed | _(this change)_ | "The anchor is a pointer, not a container" is the doc's thesis sentence |
+| P3 | Wire into index + cross-ref existing docs | `docs/change-manifest-spec.md` new `strategic_parent` subsection under Decomposition-relationship fields (after `supersedes`); Relationship-to-other-methodology-documents table gains `strategic-artifacts.md` row | Spec doc cross-refs the dedicated doc; Decomposition section now covers the full field family (`depends_on` / `blocks` / `co_required` / `part_of` / `supersedes` / `strategic_parent`) | ✅ passed | _(this change)_ | `strategic_parent` and `part_of` are explicitly complementary, not alternatives |
+
+### Phase log
+
+- P0 rejected Phase -1 "Strategic scope" for two reasons: (a) the existing Phase 0–8 framework covers implementation-level work, and strategic deliberation runs on a **different timescale** (quarters, committees) that phase-gate artifacts would not help; (b) adding a phase creates a new ceremony with its own template / minimum requirements / gate rule, which is scope creep for a methodology that already has nine phases. The anchor approach achieves the same traceability (manifest points at the decision) without inventing a new ceremony.
+- Schema field is **additive** (optional). Existing manifests validate unchanged. Per `VERSIONING.md`, this is a minor-bump-compatible change.
+- `kind` enum deliberately covers the five most common artifact types (ADR / RFC / OKR / design_doc / external_ticket) plus `other` as an escape hatch. We do **not** define the format of any of these — ADRs are still ADRs whether your org calls them "Decision Records" or "Tech Notes."
+- `initiative_id` (optional) enables aggregation queries across multiple manifests that share the same strategic parent (e.g., "show all manifests under `AUTH-REWRITE-2026Q2`"). Aggregation tooling is out of scope for this methodology layer — any tool that reads the schema can build it.
+- Deliberately **did not retrofit** the four existing example manifests (`change-manifest.example-{crud,mobile-offline,game-gacha,multi-agent-handoff}.yaml`). None of them has a genuine external strategic parent; injecting a synthetic ADR / RFC path would model the anchor for readers as "always present," contradicting the doc's position that the field is only for changes where external motivation is not self-contained.
+- Cross-ref `part_of` vs `strategic_parent` captured in both the dedicated doc and the manifest spec: internal-epic-ID vs external-decision-document, **complementary, not alternatives**. A manifest may set both (internal epic implementing an external decision).
+
+---
+
 ## ktor-graphql-overlay — add GraphQL parallel-IDL overlay to Ktor bridge
 
 - **Opened:** 2026-04-19
