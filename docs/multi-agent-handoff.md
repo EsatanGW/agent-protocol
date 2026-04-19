@@ -112,6 +112,61 @@ If there is disagreement: **open a new manifest + `supersedes`**, not overwrite 
 
 ---
 
+## Tool-permission matrix
+
+Field ownership (above) declares *which manifest fields* each role may write. This matrix declares *which capability categories* the host runtime must grant each role. It is the enforcement layer that makes role separation real rather than advisory — a Reviewer without write permission cannot "rubber-stamp then quietly patch," and a Planner without write permission cannot quietly drift into coding.
+
+Capability categories are drawn from the contract in `AGENTS.md` ("file read, code search, shell execution, sub-agent delegation"); each runtime maps them to its own tool names via a bridge (see `/how-to-use-this-plugin-in-different-runtimes` in `AGENTS.md`).
+
+| Capability category | Planner | Implementer | Reviewer |
+|---|---|---|---|
+| File read | ✅ | ✅ | ✅ |
+| Code search (grep / glob) | ✅ | ✅ | ✅ |
+| File write / edit | ❌ | ✅ | ❌ |
+| Shell execution — read-only (status, list, query) | ✅ | ✅ | ✅ |
+| Shell execution — state-changing (install, migrate, deploy) | ❌ | ✅ | ❌ |
+| Shell execution — verification-only (run tests, build, lint) | ✅ (optional) | ✅ | ✅ |
+| Network fetch (docs lookup, API spec) | ✅ | ✅ | ✅ |
+| Sub-agent delegation (spawn downstream role) | ✅ (may spawn Implementers) | ❌ | ❌ |
+
+**Why each row is shaped this way:**
+
+- **Planner has no write tools** — forces the Planner output into the manifest (fields + Task Prompt), not into code. If the Planner could edit, the temptation to "just fix this small thing" would collapse the Plan/Implement handoff.
+- **Reviewer has no write tools** — forces the Reviewer output into `review_notes` + `approvals`, not into code. If the Reviewer could edit, it would become its own Implementer and "self-approve" its fix — nullifying the external-review property. This is the single most important rule in the table.
+- **Reviewer may run verification-only shell** — tests / builds / linters are non-mutating and are what the Reviewer is reviewing. Read-only shell (`git log`, `ls`, `kubectl get`) is also allowed.
+- **Only Planner may spawn sub-agents** — keeps the execution tree flat. Implementers do not recurse into further Implementers; if decomposition is needed, return to Plan.
+- **File read / code search / network fetch are universal** — every role needs to understand reality; read capabilities are never the bottleneck.
+
+**Runtime enforcement**: each runtime bridge (Claude Code, Cursor, Gemini CLI, Windsurf, Codex, …) is expected to translate this matrix into that runtime's agent / permission mechanism. See `/how-to-use-this-plugin-in-different-runtimes` in `AGENTS.md`. Where a runtime cannot enforce a column mechanically, the bridge must document the gap and fall back to prose-only enforcement; the methodology still holds, the enforcement guarantee weakens.
+
+---
+
+## Single-agent anti-collusion rule
+
+**Rule.** Within a single change, the *same* agent identity (same model invocation, same sub-agent spawn, same human account) must not play more than one of `{Planner, Implementer, Reviewer}`.
+
+Specifically forbidden combinations, in order of risk:
+
+1. **Implementer == Reviewer** (highest risk). An agent reviewing its own implementation has no external-review property; it is self-certification. This is the combination the tool-permission matrix exists to block.
+2. **Planner == Implementer**. Allowed only in Lean mode (trivial single-surface changes, typo fixes, inline comment updates) where the Planner/Implementer distinction collapses into a single short step. In Full mode, the Planner must hand off to a separate Implementer invocation — even if "separate" means spawning a fresh sub-agent with its own context.
+3. **Planner == Reviewer**. Allowed only when the Reviewer is auditing scope / plan coherence rather than implementation evidence; the risk here is circular justification rather than self-patching.
+
+**How to satisfy the rule in practice:**
+
+- In runtimes with sub-agents (Claude Code `Agent` tool, Gemini CLI sub-agents, Cursor agent mode), spawn each role as a distinct sub-agent invocation. The sub-agent's tool permissions are set per the tool-permission matrix above.
+- In runtimes without sub-agents, satisfy the rule across sessions or across human/AI pairings (e.g. AI produces the plan; a human — or a different AI session — implements; a third party reviews).
+- A human can freely play all three roles sequentially — the rule binds AI agents specifically, because AI self-review is the failure mode the methodology is designed against.
+
+**Rule exceptions — when one agent *may* legitimately wear multiple hats:**
+
+- **Lean mode, single-surface, L0 change** — Planner + Implementer collapse is explicitly permitted (see `skills/engineering-workflow/references/mode-decision-tree.md`).
+- **Human operator** — humans are not AI; the anti-collusion rule targets AI self-review failure modes, not human judgment.
+- **Emergency hotfix** — exceptions must be recorded in `waivers` with a human approver and an expiry; the next non-emergency change re-applies the rule.
+
+Violation of this rule during Full-mode changes is a Tier-2 escalation per the Conflict-resolution section: the manifest must be returned to the appropriate upstream phase and re-executed with a fresh agent identity for the downstream role.
+
+---
+
 ## Manifest progression phases
 
 A manifest moves from birth to delivery through the following stages, each with a **minimum field threshold**:

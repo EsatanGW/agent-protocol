@@ -21,6 +21,16 @@ This repository ships a tool-agnostic engineering workflow plugin. The runtime o
 
 The skill names **capability categories** (file read, code search, shell execution, sub-agent delegation). Map each category to whatever Gemini CLI provides at runtime. Do not assume specific tool names.
 
+## Multi-agent role separation (Full mode)
+
+For non-trivial changes, `AGENTS.md` §7 defines three role identities with enforced tool-permission matrices:
+
+- **Planner** — read-only + spawn; no write/edit tools.
+- **Implementer** — read + write + shell; no sub-agent spawn.
+- **Reviewer** — read + verification-only shell; **no write/edit tools** (enforced; self-review is the failure mode the methodology is designed against).
+
+When Gemini CLI is acting in Full mode, use its sub-agent / session-isolation mechanism to satisfy this matrix. Full contract: `docs/multi-agent-handoff.md`.
+
 ## Before producing code
 
 Answer these in order, per `skills/engineering-workflow/SKILL.md` "First 60 seconds":

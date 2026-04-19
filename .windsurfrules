@@ -21,6 +21,16 @@ This repository provides a tool-agnostic engineering workflow plugin. The runtim
 
 This plugin names **capability categories** (file read, code search, shell execution, sub-agent delegation). Map each to whatever Windsurf provides at runtime.
 
+## Multi-agent role separation (Full mode)
+
+For non-trivial changes, `AGENTS.md` §7 defines three role identities with enforced tool-permission matrices:
+
+- **Planner** — read-only + spawn; no write/edit.
+- **Implementer** — read + write + shell; no sub-agent spawn.
+- **Reviewer** — read + verification-only shell; **no write/edit**.
+
+Anti-collusion rule: the same agent identity must not play more than one role in a single change. Full contract: `docs/multi-agent-handoff.md`.
+
 ## Stop conditions
 
 Stop and ask when:

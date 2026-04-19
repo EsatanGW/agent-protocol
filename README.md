@@ -32,6 +32,9 @@ Install once; it works across Claude Code, Cursor, Gemini CLI, Windsurf, Codex, 
 5. **Stack bridges (optional, opt-in)** — [`docs/bridges/`](./docs/bridges/)
    The only place where specific framework / tool / language names appear. Bridges map the tool-agnostic methodology onto a given stack (Flutter, Android Kotlin + XML, Android Jetpack Compose, Ktor, Unity 3D). Add more bridges for your own stack by copying [`docs/stack-bridge-template.md`](./docs/stack-bridge-template.md).
 
+6. **Multi-agent bridge (Claude Code)** — [`.claude-plugin/agents/`](./.claude-plugin/agents/)
+   Three role-bound sub-agents — `planner`, `implementer`, `reviewer` — with tool-permission matrices that enforce the multi-agent-handoff contract mechanically (Reviewer has no write tools; Planner has no edit tools; Implementer cannot spawn further sub-agents). See [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) §tool-permission-matrix. Other runtimes apply the same matrix using their own agent mechanism (see `AGENTS.md` §7).
+
 ---
 
 ## Install
@@ -105,9 +108,13 @@ agent-protocol/
 ├── .windsurfrules              # Windsurf bridge
 ├── .cursor/rules/              # Cursor bridge
 │   └── engineering-workflow.mdc
-├── .claude-plugin/             # Claude Code plugin manifest
+├── .claude-plugin/             # Claude Code plugin manifest + agents
 │   ├── plugin.json
-│   └── marketplace.json
+│   ├── marketplace.json
+│   └── agents/                 # Role-bound sub-agents (Planner / Implementer / Reviewer)
+│       ├── planner.md
+│       ├── implementer.md
+│       └── reviewer.md
 ├── skills/                     # Workflow execution layer
 │   └── engineering-workflow/
 │       ├── SKILL.md

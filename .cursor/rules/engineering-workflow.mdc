@@ -26,6 +26,16 @@ This repository provides a tool-agnostic engineering workflow plugin. The runtim
 
 The skill names **capability categories** (file read, code search, shell execution, sub-agent delegation). Map each to the Cursor runtime equivalent. Do not hardcode tool names.
 
+## Multi-agent role separation (Full mode)
+
+For non-trivial changes, `AGENTS.md` §7 defines three role identities with enforced tool-permission matrices:
+
+- **Planner** — read-only + spawn; no write/edit.
+- **Implementer** — read + write + shell; no sub-agent spawn.
+- **Reviewer** — read + verification-only shell; **no write/edit**.
+
+Anti-collusion rule: one identity must not play more than one role per change. Full contract: `docs/multi-agent-handoff.md`.
+
 ## First 60 seconds on any task
 
 Answer these before editing:

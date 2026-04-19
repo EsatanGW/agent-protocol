@@ -76,7 +76,26 @@ Every phase of a multi-phase initiative ends with an **explicit, named check** t
 
 Full spec: `docs/phase-gate-discipline.md`. Trivial single-phase tasks (Lean-mode bugfixes, typos) are exempt from the ROADMAP rule but still subject to evidence-before-completion.
 
-### 7. Change Manifest as structured output
+### 7. Multi-agent role separation (when the runtime supports sub-agents)
+
+When a change is non-trivial (Full mode), and the host runtime provides a sub-agent / agent-spawn mechanism, separate the work across three role-bound identities:
+
+| Role | May do | May not do | Permission-category enforcement |
+|---|---|---|---|
+| **Planner** | Read, search, network fetch; produce manifest front-half + Task Prompt; spawn Implementer | Write or edit code | No write / shell-mutation tools |
+| **Implementer** | Everything needed to execute the plan + collect evidence | Re-classify surfaces / change `breaking_change.level`; spawn further sub-agents; self-review | No `Task`-style sub-agent tool |
+| **Reviewer** | Read, search, verification-only shell (tests / builds / lint / git-log); produce `review_notes` + `approvals` | Edit code; self-approve a change it implemented | **No write / edit tools — this is the single most important row** |
+
+**Anti-collusion rule:** within one Full-mode change, the same AI identity must not play more than one of `{Planner, Implementer, Reviewer}`. Implementer ≡ Reviewer is the highest-risk combination and is forbidden outright.
+
+Runtime bridges translate this matrix into runtime-specific agent configuration:
+
+- Claude Code: `.claude-plugin/agents/{planner,implementer,reviewer}.md` (ships with this plugin)
+- Cursor / Gemini CLI / Windsurf / Codex: follow the matrix using each runtime's native agent / permission mechanism
+
+Full contract: `docs/multi-agent-handoff.md` §tool-permission-matrix + §single-agent-anti-collusion-rule. Lean mode (trivial single-surface changes) exempts Planner ≡ Implementer collapse.
+
+### 8. Change Manifest as structured output
 
 For non-trivial changes (2+ surfaces, SoT trade-off, breaking change, or rollback considerations), produce or update a **Change Manifest** (YAML, conforming to `schemas/change-manifest.schema.yaml`).
 
