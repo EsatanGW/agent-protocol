@@ -30,7 +30,7 @@ Install once; it works across Claude Code, Cursor, Gemini CLI, Windsurf, Codex, 
    Change Manifest JSON Schema and worked example manifests (CRUD, mobile offline, game live-ops, multi-agent handoff progression).
 
 5. **Stack bridges (optional, opt-in)** — [`docs/bridges/`](./docs/bridges/)
-   The only place where specific framework / tool / language names appear. Bridges map the tool-agnostic methodology onto a given stack (Flutter, Android Kotlin + XML, Ktor, Unity 3D). Add more bridges for your own stack by copying [`docs/stack-bridge-template.md`](./docs/stack-bridge-template.md).
+   The only place where specific framework / tool / language names appear. Bridges map the tool-agnostic methodology onto a given stack (Flutter, Android Kotlin + XML, Android Jetpack Compose, Ktor, Unity 3D). Add more bridges for your own stack by copying [`docs/stack-bridge-template.md`](./docs/stack-bridge-template.md).
 
 ---
 

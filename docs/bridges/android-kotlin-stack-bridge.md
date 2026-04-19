@@ -7,7 +7,7 @@
 ## Scope
 
 **Applies to:** Native Android apps written in Kotlin with XML-based layouts (ViewBinding / DataBinding), targeting API levels set by the team, using Gradle (Kotlin DSL or Groovy) and a standard Jetpack stack.
-**Compose-first projects:** see a separate (future) `android-compose-stack-bridge.md`; this document assumes XML layouts with optional Compose interop.
+**Compose-first projects:** see the companion [`android-compose-stack-bridge.md`](./android-compose-stack-bridge.md); this document assumes XML layouts with optional Compose interop. The Compose bridge inherits Room / WorkManager / FCM / runtime-permission / vendor-fork / deep-link / ProGuard-R8 sections from here and overlays Compose-specific deltas.
 
 ---
 
@@ -183,17 +183,16 @@ Weekly on `main`:
 
 ---
 
-## Reference worked example outline
+## Reference worked example
 
-*(A full worked example will live at `docs/examples/android-kotlin-example.md` in a future update. Until then, follow this structure.)*
+See `docs/examples/android-kotlin-example.md` — "Add offline draft-saving to a form." Exercises:
 
-**Example:** Add offline draft-saving to a form.
-- User surface: form Fragment + ViewBinding + restore state
-- System interface: sync endpoint (resumable upload)
-- Information surface: Room entity `DraftEntity` + migration
-- Operational surface: WorkManager sync chain, metrics for sync success rate
-- SoT: DraftEntity as schema-defined; sync state as transition-defined; local-before-synced as temporal-local
-- Rollback: mode 2 (shipped APK cannot downgrade)
+- User surface: form Fragment + ViewBinding + restore-from-process-death banner
+- System interface: Retrofit `Idempotency-Key` header for retry safety
+- Information surface: Room entity `DraftEntity` + forward-only migration v7→v8 + exported schema JSON
+- Operational surface: WorkManager sync chain with enforced unique-work name, analytics events, vendor-fork observability
+- SoT: `DraftEntity` as schema-defined (pattern 1); sync state as transition-defined (pattern 6); local-before-synced as temporal-local (pattern 7); WorkManager unique names as enum (pattern 3); entity class ↔ exported schema JSON as dual-representation (pattern 8)
+- Rollback: UI behind remote flag (mode 1); APK forward-fix (mode 2); Room migration forward-only (mode 2)
 
 ---
 
@@ -298,6 +297,106 @@ For each deep link pattern, maintain:
 
 ---
 
+## Kotlin Multiplatform Mobile (KMM) shared-code SoT
+
+KMM projects split code across `commonMain`, `androidMain`, `iosMain` (and optionally `jvmMain`, `jsMain`, etc.). The shared code is a SoT consumed by N platform-specific consumers — the same methodological pattern as a federated plugin in Flutter, but the boundary runs through the Kotlin type system.
+
+### KMM SoT pattern mapping
+
+| Aspect | Pattern |
+|---|---|
+| `expect class` / `expect fun` in `commonMain` | Pattern 4 (Contract) — the IDL between shared code and each target |
+| `actual` implementations per target | Pattern 4 + Pattern 8 (dual representation: `expect` declaration ↔ each `actual`) |
+| Shared domain model / DTO | Pattern 1 (Schema-Defined) — `@Serializable` data class lives in `commonMain`, consumed by both platforms |
+| Per-target dependency injection | Pattern 4a (Pipeline-Order) — each platform's DI container resolves `actual` implementations in a specific order |
+| Binary artifact (Android AAR, iOS XCFramework) | Pattern 8 (build-time dual representation: `commonMain` sources ↔ per-target compiled artifact) |
+
+### Required manifest fields when touching KMM shared code
+
+- `surfaces_touched` must list every consuming target separately (e.g., `android_app`, `ios_app`). A change to `expect fun foo()` without updating every `actual` is a compile-time block on one target and a silent missing-symbol at link on the other.
+- `breaking_change.affected_consumers` is **per-target** for any change to `commonMain` public API — adding an `expect` method is L2+ until every `actual` is shipped.
+- `evidence_plan` must include at least one build per target, not just `:shared:assembleDebug`.
+
+### KMM-specific drift checks
+
+- [ ] Every `expect` declaration in `commonMain` has a matching `actual` in every target's source set. A CI job runs `./gradlew :shared:compileKotlinAndroid :shared:compileKotlinIosArm64` (etc.) — not only the JVM default.
+- [ ] XCFramework / AAR version bump: if the shared module's version constant advances, the iOS Podfile / Swift Package and the Android `implementation project(":shared")` consumers are all updated in the same change.
+- [ ] Cross-platform serialization: `@Serializable` classes in `commonMain` produce identical JSON on both targets (test with the same input through both Android and iOS code paths).
+
+### KMM anti-patterns
+
+- ❌ Using `actual typealias` to a platform-specific class that has a different public API on iOS vs Android → the shared consumer accidentally binds to platform-specific API without the type system flagging it.
+- ❌ Putting mutable singletons in `commonMain` without thread-safety treatment — iOS Kotlin/Native has different memory model rules than Android JVM (the new memory model is default now but older projects still carry the old-model assumptions).
+- ❌ Shipping a shared module where the Android target uses JVM-resolved `java.time.*` and the iOS target uses `kotlinx-datetime`; behavior drifts on DST boundaries.
+
+---
+
+## Play Feature Delivery (on-demand modules)
+
+Play Feature Delivery (dynamic feature modules, install-time modules, on-demand modules) splits an app binary into multiple sub-APKs delivered through the store. Rollback asymmetry is no longer two-track — it becomes multi-track, one per dynamic module.
+
+### Dynamic-module SoT pattern mapping
+
+| Module type | Rollback characteristic |
+|---|---|
+| **Install-time module** | Same rollback as the base APK — ships together, rolls back together (mode 2) |
+| **Conditional module** (device meets criteria) | Mode 2 per-condition cohort; users on devices that no longer match criteria see the module disappear at next install |
+| **On-demand module** | Mode 2 for the module itself, but the **request path** (user-triggered download) has mode-3 characteristics: a user who already triggered and cached an old module may run it offline long after a rollback |
+| **Instant-app module** | Same as on-demand, plus Google Play-specific cache TTL |
+
+### Required manifest fields when touching dynamic modules
+
+- `surfaces_touched` must list each dynamic module as an independent operational-surface deliverable (they have independent signing, independent release notes, independent rollout staging).
+- `rollback.per_surface_modes` must call out the module-cache scenario: a user who downloaded a buggy on-demand module still runs it until they explicitly retry the download (ticket: "cache-invalidation behavior after store rollback is platform-specific and time-bounded").
+- `uncontrolled_interfaces` adds the SplitInstallManager download reliability — module fetch can fail for reasons unrelated to your code (disk full, network class restriction, Play Services version on the device).
+
+### Dynamic-module drift checks
+
+- [ ] Every module declared in `build.gradle` `dynamicFeatures` has a matching `com.android.dynamic-feature` module that builds in isolation; CI runs `./gradlew :featureModule:assembleDebug` per module, not only the base.
+- [ ] Resource merge: duplicate string / resource IDs across modules silently take the base-module value; a naming convention (module-prefix every resource) is an enforceable lint rule.
+- [ ] On-demand module missing at runtime: every entry point goes through `SplitInstallManager.isInstalled()` before invocation, or has a user-facing "this feature is not installed" path.
+
+### Play-Console operational-surface additions
+
+- Staged rollout percentage per module (base and dynamic modules roll out independently).
+- Per-module crash rate monitoring (Play Vitals separates by module but the default dashboard may not).
+- "Halt rollout" on a dynamic module does not downgrade already-downloaded copies; a kill-switch server flag is the only immediate mitigation.
+
+---
+
+## Instrumented-test OS-API version discipline
+
+Instrumented tests (`androidTest`) run against a specific emulator or device whose API level silently gates which tests execute and which skip. Several anti-patterns slip past code review:
+
+### What the test runner does silently
+
+| Scenario | Runner behavior |
+|---|---|
+| Test uses an API ≥ `minSdk` but > emulator API level | Test **skips** silently, reported as "not executed" (not a failure) |
+| Test uses `@SdkSuppress(minSdkVersion = N)` | Skips on emulators below N, runs above — explicit opt-in |
+| Test uses `@RequiresApi(N)` on the method | Compile-time check only; runtime does NOT gate the test |
+| Mockable API behavior differs across API levels | Test passes on the CI emulator API level; ships a bug on others |
+
+### Required manifest fields when adding an instrumented test
+
+- `evidence_plan` must name the emulator API levels the test was verified on. `"emulator API 34"` alone is not evidence of `minSdk 24..targetSdk 34` coverage.
+- `surfaces_touched` includes a `verification` surface entry if the test suite gains new conditional skips.
+
+### Instrumented-test discipline
+
+- [ ] CI runs instrumented tests on at least **min, mid, max** API levels of the declared support range, not only the latest.
+- [ ] `@SdkSuppress` usage is audited: each occurrence names the API-level boundary and justifies why the behavior differs there (OS version note, not just convenience).
+- [ ] Tests that touch `PackageManager`, `NotificationManager`, background-execution policy, or any Jetpack library with per-API-level behavior are explicitly marked with the tested API-level range.
+- [ ] Silent-skip detection: the CI dashboard flags tests with execution count < (expected matrix size) — an always-skipped test is no test.
+
+### Instrumented-test anti-patterns
+
+- ❌ Adding a `@Test` method and verifying it on the default emulator only; the test silently skips on lower-API CI runs and the author never sees the skip.
+- ❌ Using `@RequiresApi(N)` as a substitute for `@SdkSuppress(N)` — the compiler is happy; the runtime skips only at the method body, which can produce flaky pass/fail depending on execution path.
+- ❌ Treating "passed on API 34" as evidence of coverage for `minSdk 24` — this is the most common gap that ships in otherwise-disciplined test suites.
+
+---
+
 ## Validating this bridge against your project
 
 ### Self-test checklist (beyond the stock drift reproductions)
@@ -313,11 +412,10 @@ For each deep link pattern, maintain:
 
 ### Known limitations of this bridge
 
-- **Jetpack Compose**-based apps have different state ownership and rendering semantics; this bridge targets XML + ViewBinding. A separate Compose bridge is recommended if you're mid-migration.
-- **Kotlin Multiplatform Mobile (KMM)** — this bridge does not cover the shared-code SoT story. Add a project-local addendum.
-- **Instrumented-test dependency on specific OS APIs** — APIs that require API ≥ N silently skip on lower emulators; this is a testability gap not fully covered here.
-- **Modular / on-demand delivery (Play Feature Delivery)** introduces additional rollback complexity (feature module download can fail independently of base APK rollout).
-- **Play-Console-level controls** (staged rollout, internal testing track, managed publishing) are operational-surface concerns that this bridge references only lightly.
+- **Jetpack Compose**-based apps have different state ownership and rendering semantics; this bridge targets XML + ViewBinding. Use the companion `docs/bridges/android-compose-stack-bridge.md` for Compose-first projects; it inherits Room / WorkManager / FCM / permission / vendor-fork / deep-link sections from this bridge and adds Compose-specific deltas.
+- **KMM internals beyond the shared-code SoT section** — Kotlin/Native memory model edge cases, iOS framework export granularity, and Swift interop naming rules evolve quickly; the section above establishes the discipline, but per-project specifics belong in a local addendum.
+- **Play Feature Delivery internals beyond the rollback table** — `SplitInstallManager` install-time-error code matrix, `PlayCore` library version compatibility, and instant-app-specific entry points are documented by Google and change per Play services version; project-local addendum recommended.
+- **Play-Console-level controls** (staged rollout, internal testing track, managed publishing) are operational-surface concerns that this bridge references in sections above but does not fully enumerate — treat each control as a `uncontrolled_interfaces` entry with Google Play release-notes as the monitoring channel.
 
 ---
 

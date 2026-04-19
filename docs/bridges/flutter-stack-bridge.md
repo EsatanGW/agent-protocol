@@ -173,14 +173,155 @@ Weekly `main` branch scan:
 
 ## Reference worked example
 
-See `docs/examples/mobile-offline-feature-example.md` — the offline ledger feature example in the main methodology uses patterns (Temporal-Local + Transition + Dual-Representation) that directly apply to Flutter. Specifically:
+**Primary:** `docs/examples/flutter-app-example.md` — "Save & Share" action across iOS / Android / Web / Desktop. Exercises platform-channel two-sided contract (SoT pattern 4 + 8), per-target rollback asymmetry (mobile mode-2, Web mode-1, desktop mode-2), and `@freezed` dual-representation.
 
-- `@JsonSerializable` model ↔ `.g.dart` dual-representation
+**Supplementary:** `docs/examples/mobile-offline-feature-example.md` — the offline ledger feature in the main methodology uses patterns (Temporal-Local + Transition + Dual-Representation) that directly apply to Flutter offline work. Specifically:
+
+- `@JsonSerializable` / `@freezed` model ↔ `.g.dart` / `.freezed.dart` dual-representation
 - Local `drift` DB as temporary truth until sync
 - `sealed class` state transitions guarded at Bloc level
 - Forward-fix rollback only (shipped binary)
 
-Follow that example's structure for Flutter offline features.
+Follow the platform-channel example for multi-target features; follow the offline example for sync-heavy features.
+
+---
+
+## Flutter Web target discipline
+
+Flutter Web is not a second-class port of the mobile story — several core assumptions shift:
+
+### What changes on Web vs. mobile
+
+| Concern | Mobile target | Web target |
+|---|---|---|
+| Build pipeline | AOT via Dart native | `dart2js` (JS) or `dart2wasm` (WASM, opt-in) — different tree-shaking, different reflection story |
+| Rollback | Shipped binary = mode 2 | CDN deploy behind a flag = mode 1 (closest to server rollback semantics) |
+| Storage | SQLite / secure storage | IndexedDB / `localStorage` / browser cookies — no OS keychain equivalent |
+| Platform channels | iOS / Android native handlers | Re-implement as JS-interop via `dart:js_interop` / `dart:js_util`; feature-detect on-demand |
+| User surface caching | App binary is the whole surface | Service worker can serve a stale app shell for hours after deploy |
+| Reflection | IL2CPP-style stripping rare in debug, active in release | `dart2js` aggressive tree-shaking; `@pragma('vm:entry-point')` not available — annotate with `@JS()`/`@staticInterop` as needed |
+
+### Web-specific SoT additions
+
+| Pattern | Web instance |
+|---|---|
+| 4a Pipeline-Order | **Service-worker cache strategy** — `workbox`-style precache vs runtime cache ordering; a wrong order ships stale UI for hours. `flutter build web` emits `flutter_service_worker.js` with a hashed asset manifest — treat the manifest as the Pattern 1 schema. |
+| 4 Contract-Defined | **Web-specific browser APIs** (`navigator.share`, `navigator.clipboard`, `Notification.requestPermission`) are uncontrolled interfaces; feature-detect, never user-agent-sniff. |
+| 7 Temporal-Local | IndexedDB is the Web equivalent of SQLite; schema migrations are forward-only the same way, but the user can wipe site data from browser UI — assume that's always possible. |
+
+### Web-specific drift checks
+
+- [ ] `flutter build web --release` tree-shakes unreferenced reflective targets. Grep for `dart:mirrors` (already forbidden on Web) and any `@JS()` annotation whose target is only referenced via a string literal — these need explicit preservation.
+- [ ] Service-worker update strategy: after deploy, confirm the client fetches the new `flutter_service_worker.js` within one session (default behavior is aggressive; custom strategies silently extend staleness).
+- [ ] CSP headers cover `wasm-unsafe-eval` if `dart2wasm` is used; otherwise the app fails at runtime with a silent Content-Security-Policy violation.
+
+### Web rollback
+
+| Layer | Default mode |
+|---|---|
+| Dart/JS behind a CDN + feature flag | Mode 1 (canonical reversible deploy; closest Flutter comes to classic server rollback) |
+| Service worker already installed on users' browsers | Mode 2 — you cannot force-evict a service worker; you can only ship a new one with a bumped version string and hope users reload |
+| IndexedDB schema migrated in a user's browser | Irreversible per-user (like shipped save files) |
+
+---
+
+## Flutter Desktop target discipline
+
+Flutter Desktop (macOS / Windows / Linux) sits between mobile and Web in every dimension:
+
+### What changes on Desktop vs. mobile
+
+| Concern | Desktop answer |
+|---|---|
+| Distribution | App Store + DMG (macOS), MSIX + EXE installer (Windows), snap / flatpak / AppImage / deb / rpm (Linux) — each channel has distinct update semantics |
+| Signing / notarization | macOS: App Store Connect for App Store, otherwise developer-ID signing + Apple notarization (blocking on first-run otherwise). Windows: EV certificate preferred, SmartScreen reputation builds slowly. Linux: GPG signing per package manager. |
+| File system | Direct file system access (unlike mobile sandboxes); path-handling is a first-class Information-surface concern |
+| Platform channels | Native C++/Objective-C++/Swift (macOS), C++/C# (Windows via WinRT), C++ (Linux via GTK/Qt) |
+| Window / menu | `desktop_window` / native menu integration is a new User-surface concept not present on mobile |
+| Rollback | Shipped installer = mode 2 in practice; store-distributed = mode 2 with store-review lag; self-distributed = mode 2 but you control the update cadence |
+
+### Desktop-specific drift checks
+
+- [ ] Release build with macOS notarization: `xcrun altool --notarization-info` output archived as evidence. Debug builds pass where notarized-release would fail (Gatekeeper rejects unsigned file writes to privileged paths).
+- [ ] Windows installer: SmartScreen reputation score checked per release; a new signing cert drops reputation to near-zero, re-earned over weeks.
+- [ ] Linux: confirm the app works under Wayland and X11 (IME behavior, clipboard scope, display scaling differ).
+- [ ] File-path assumptions: every hard-coded path is either `path_provider`-derived or platform-guarded.
+
+### Desktop uncontrolled-interface additions
+
+- macOS: Apple notarization policy, hardened-runtime entitlements, minimum macOS version support window.
+- Windows: WinRT API availability per Windows version, SmartScreen reputation building.
+- Linux: per-distribution libc versions, desktop environment (GNOME / KDE / others) quirks, package manager gating.
+
+---
+
+## Federated plugin lifecycle
+
+Federated plugins (plugins split into `package`, `package_platform_interface`, `package_<platform>` sub-packages) are the canonical case where one feature is spread across N `pubspec.yaml` files, each with independent version cadence.
+
+### Federated plugin SoT pattern
+
+| Aspect | Pattern |
+|---|---|
+| Platform-interface abstract class | Pattern 4 (Contract) — the single IDL between app and per-platform implementation |
+| Per-platform implementation | Pattern 4 + Pattern 8 (platform interface ↔ platform implementation registered via `pluginClass` in pubspec) |
+| Plugin registration | Pattern 4a (Pipeline-Order) — registered plugins run in pubspec-resolved order; shadowing matters when two plugins register the same interface |
+| Version resolution | Pattern 1 (Schema) + supply-chain — `pubspec.lock` for the app pins transitively-resolved per-platform packages |
+
+### Required manifest fields when touching a federated plugin
+
+- `sot_map` entry for the platform interface **must name every per-platform implementation it depends on**, since bumping the interface without bumping each implementation is a breaking change per platform independently.
+- `uncontrolled_interfaces` must include any platform implementation whose maintainer is external (most community Flutter plugins).
+- `breaking_change.affected_consumers` is per-platform; a method added to the interface is additive in Dart but L2+ in Swift/Kotlin until every implementation has a stub.
+
+### Federated plugin drift checks
+
+- [ ] `pubspec.yaml` platform-interface version vs. each per-platform implementation version: if the app pins an interface version that no per-platform implementation supports, resolution picks the newest compatible — silently — and the mismatch only surfaces at method-missing runtime.
+- [ ] Every platform interface method has a matching implementation in every registered per-platform package, or an explicit `throw UnimplementedError(...)` with a TODO.
+
+---
+
+## Code push / dynamic delivery
+
+Flutter does not ship a first-party code-push story, but several third-party options exist (Shorebird is the most prominent; Instabug/CodePush-style providers for Dart exist but are less common). Independent of vendor, the methodology implications are:
+
+### Why code push changes the rollback-mode table
+
+| Track | Default mode without code push | With code push |
+|---|---|---|
+| Shipped binary | Mode 2 (forward-fix only) | **Mode 1** for Dart code (can revert a patch) + Mode 2 for the native shell |
+| Native code changes (platform channels, Objective-C/Swift, Kotlin/Java) | Mode 2 | **Still Mode 2** — code push cannot touch native code; this is an Apple App Review constraint, not a vendor limitation |
+| Asset changes | Mode 2 | **Mode 1** if the asset is part of the pushed Dart bundle |
+
+### Apple-platform constraint
+
+Apple's App Review Guidelines permit hot-loading compiled JS (historically) and compiled Dart (Shorebird's current position) only when the functionality does not change the app's primary purpose. **This is a policy interface, not a technical one** — track it in `uncontrolled_interfaces`, because an Apple policy change can invalidate the entire strategy overnight.
+
+### Code-push manifest fields
+
+- `rollback.per_surface_modes` must split between "Dart code (mode 1 via code push)" and "native code (mode 2 via store release)" — a single mode-1 claim is a category error.
+- `uncontrolled_interfaces` adds the code-push provider's backend + Apple/Google store policy (for the subset of policy that touches dynamic delivery).
+- `evidence_plan` must include a rollback drill: actually deploy and revert a Dart-side change end-to-end before shipping the feature behind code push.
+
+---
+
+## State management library pipeline-order
+
+Bloc, Riverpod, Provider, and GetX are not interchangeable pipeline-order wise; the bridge covers the conceptual pattern, but each library binds it differently. Document your choice in a project-local addendum — the summary below is the minimum ruleset per library.
+
+| Library | Pipeline-order contract to preserve |
+|---|---|
+| **Bloc / Cubit** | `BlocProvider` / `MultiBlocProvider` nesting order = ancestor-first dependency order. A dependent Bloc listed before its dependency silently receives a default-instance or a `ProviderNotFoundException`. |
+| **Riverpod** | Provider override order in `ProviderScope(overrides: [...])` resolves last-wins; a forgotten override in a test shell ships a real network client into unit tests. Declarations vs. consumers are decoupled — order matters for overrides, not for declarations. |
+| **Provider** | `MultiProvider` children are built top-down; a `ProxyProvider` that reads a sibling must come after it. Silent fallback to `Provider.of<T>(context, listen: false)` with a stale value otherwise. |
+| **GetX** | `Get.put` / `Get.lazyPut` call order determines instantiation timing; `permanent: true` bypasses normal lifecycle — treat as a pipeline-order SoT exception that must be justified per call site. |
+
+### State-management drift checks
+
+- [ ] Project-local addendum exists naming the chosen library and its pipeline-order discipline.
+- [ ] For Bloc-based projects: a lint rule (or grep) ensures no `BlocProvider` sits above its dependency in the tree.
+- [ ] For Riverpod-based projects: test overrides are symmetric (every production provider has a test override, or is explicitly documented as safe to hit real).
+- [ ] State-management library upgrade bumps (Bloc major, Riverpod major) are classified as `uncontrolled_interfaces` drift requiring re-audit.
 
 ---
 
@@ -202,11 +343,10 @@ If any item fails, record the gap in a project-local `docs/bridges-local-deviati
 
 ### Known limitations of this bridge
 
-- **State management library-specific patterns not covered.** Bloc / Riverpod / Provider / GetX each have their own pipeline-order discipline. This bridge covers the conceptual pattern; add a project-local section for your specific library.
-- **Platform-channel two-sided contract** is only lightly covered. If your app has heavy platform-native integration, write a companion `flutter-platform-channel-addendum.md` that treats channel messages as IDL → stub pattern (SoT pattern 4 + 8).
-- **Federated plugin lifecycle** (plugins with per-platform implementations) has unique SoT complications; not yet covered here.
-- **Code push / dynamic delivery** (if used) has additional rollback implications beyond the binary-rollback mode-1 assumption.
-- **Web and desktop targets** — this bridge is mobile-first; Web target has different `dart2js` build-time characteristics (different tree-shaking, different reflection story).
+- **State management library-specific internals.** The sections above summarize Bloc / Riverpod / Provider / GetX pipeline-order rules, but library-major-version migrations (e.g., Riverpod 2→3 generator changes) need a project-local addendum with the exact codegen + lint story.
+- **Code-push provider specifics.** The section above covers methodology implications; per-vendor specifics (Shorebird config, staged-rollout semantics, enterprise MDM interaction) belong in a project-local addendum keyed to your chosen provider.
+- **Mobile-first framing remains in subtle places.** `user surface` tables above assume a touch-first interaction model; keyboard / pointer / large-screen layouts on desktop & Web tablet need extra care in project-local UX guidelines beyond what this bridge prescribes.
+- **Linux distribution fragmentation.** The Desktop section names the major package managers but does not enumerate per-distro quirks (libc version spread, desktop-environment IME behavior) — add a project-local deviations entry if you ship broad Linux support.
 
 ---
 

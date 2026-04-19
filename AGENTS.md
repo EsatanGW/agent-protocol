@@ -134,8 +134,11 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 **Worked examples across domains:**
 
 - `docs/examples/bugfix-example.md` / `refactor-example.md` / `migration-rollout-example.md`
-- `docs/examples/game-dev-example.md` / `game-liveops-example.md`
+- `docs/examples/game-dev-example.md` / `game-liveops-example.md` / `unity-game-example.md`
 - `docs/examples/mobile-offline-feature-example.md`
+- `docs/examples/flutter-app-example.md` — multi-platform "Save & Share" with platform-channel two-sided contract
+- `docs/examples/android-kotlin-example.md` — offline draft-saving with Room migration + WorkManager + ViewBinding
+- `docs/examples/ktor-server-example.md` — order-lifecycle enum addition with migration + plugin install order + mixed rollback modes
 - `docs/examples/ml-model-training-example.md` — ML retrain / rollout with dataset+weights+config SoT
 - `docs/examples/data-pipeline-example.md` — schema extension with warehouse / feature store / compliance consumers
 - `docs/examples/embedded-firmware-example.md` — OTA across HW versions, long-tail offline devices, three-mode rollback coexistence
@@ -149,6 +152,7 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 
 - `docs/bridges/flutter-stack-bridge.md`
 - `docs/bridges/android-kotlin-stack-bridge.md`
+- `docs/bridges/android-compose-stack-bridge.md` — companion to the Kotlin + XML bridge; inherits Room / WorkManager / FCM / permission / vendor-fork / deep-link sections, adds Compose-specific state-ownership, effect-API, and recomposition deltas
 - `docs/bridges/ktor-stack-bridge.md`
 - `docs/bridges/unity-stack-bridge.md`
 - Template for new stacks: `docs/stack-bridge-template.md`

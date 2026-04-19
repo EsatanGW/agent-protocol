@@ -6,8 +6,8 @@
 
 ## Scope
 
-**Applies to:** Unity projects using the classic GameObject/Component model with C#, URP or HDRP, Addressables for asset management, and a live-ops capable distribution channel (mobile stores / PC / console).
-**Out of scope for this bridge:** pure DOTS/ECS projects (warrant a separate bridge), cloud build pipelines (reference, not prescription).
+**Applies to:** Unity projects using the classic GameObject/Component model with C#, URP or HDRP or built-in RP, Addressables for asset management, and a live-ops capable distribution channel (mobile stores / PC / console). DOTS/ECS, render-pipeline variants, and custom engine forks are covered as overlays below.
+**Out of scope for this bridge:** cloud build pipeline vendor specifics (reference, not prescription).
 
 ---
 
@@ -191,10 +191,11 @@ Weekly on `main`:
 
 ## Reference worked examples
 
-Two in-methodology examples already apply directly — follow them:
+Three Unity examples, each exercising a different angle:
 
-- `docs/examples/game-dev-example.md` — in-game shop purchase (asset / experience / performance-budget surfaces combined)
-- `docs/examples/game-liveops-example.md` — limited-time event with binary/asset/config three-track strategy, compensation rollback, playtest discipline
+- `docs/examples/game-dev-example.md` — in-game shop purchase (asset / experience / performance-budget surfaces combined).
+- `docs/examples/game-liveops-example.md` — limited-time event with binary/asset/config three-track strategy, compensation rollback, playtest discipline.
+- `docs/examples/unity-game-example.md` — save-data format migration for a new progression system. Exercises save-schema versioning (SoT pattern 1), editor-asset ↔ runtime-object dual representation (pattern 8), IL2CPP / AOT build-time risk, and the full three-track rollback asymmetry (server-config mode 1, Addressables mode 1/2, shipped binary mode 2, on-disk save irreversible).
 
 ---
 
@@ -362,6 +363,150 @@ Unity targets are not homogeneous. The base bridge covers 2D/3D game patterns; t
 - **Compliance** often dominates: training simulators used for certification must match specifications with audit trails.
 - **Determinism** becomes a first-class requirement — shared with netcode but for a different reason.
 
+### DOTS / ECS overlay
+
+> ⚠️ **API stability caveat.** The core `Entities` package is GA (1.x since 2023); public types like `IComponentData` / `ISystem` / `[UpdateInGroup]` have been stable across multiple minor versions. However, companion subpackages (Entities Graphics, DOTS Animation, Unity Physics for ECS, Netcode for Entities) each have their own release cadence and some remain in preview / experimental channels. Treat this overlay as *pattern-level* — the pattern bindings (Pattern 1 for `IComponentData`, Pattern 4a for `[UpdateInGroup]`) are stable; specific API names in companion subpackages should be pinned in your project's `packages-lock.json` with a project-local note citing the exact subpackage versions verified.
+
+DOTS (Data-Oriented Tech Stack) / ECS (Entity Component System) inverts several ownership assumptions the base bridge makes. GameObject/MonoBehaviour ownership is replaced by **archetype-based component storage + system execution graph**, which changes how Pattern 1 (Schema-Defined), Pattern 4a (Pipeline-Order), and Pattern 8 (Dual-Representation) bind.
+
+#### Surface remapping for ECS
+
+| Base-bridge concept | ECS remapping |
+|---|---|
+| ScriptableObject state container | Pure `IComponentData` + optional `IBufferElementData` — data-only; no methods |
+| MonoBehaviour lifecycle | `SystemBase` / `ISystem` with `OnCreate` / `OnUpdate` / `OnDestroy` |
+| Prefab | Subscene baking → baked Entity + components; authoring prefab is editor-only |
+| Script Execution Order | `[UpdateInGroup]` / `[UpdateBefore]` / `[UpdateAfter]` attributes on systems |
+| Physics / Animator | Unity Physics (ECS) and DOTS Animation (separate subpackages) — NOT classic Physics or Animator |
+
+#### SoT pattern bindings (ECS-specific)
+
+| Pattern | ECS instance |
+|---|---|
+| 1 Schema-Defined | `IComponentData` struct field layout ↔ baked entity in subscene ↔ archetype storage — **three-way dual-representation** |
+| **4a Pipeline-Order** | **System update order** via `[UpdateInGroup(typeof(X))]` attribute graph — this replaces ScriptExecutionOrder and is *the* canonical ECS SoT risk |
+| 6 Transition-Defined | State transitions via tag components (adding / removing component = state change) — exhaustive-query discipline is the check |
+| 8 Dual-Representation | Authoring GameObject hierarchy → Baker → Entity world; the Baker is the explicit sync step |
+
+#### Build-time risk amplification
+
+DOTS amplifies IL2CPP / AOT risk because:
+
+- Burst-compiled jobs (`[BurstCompile]`) have their own subset of C# — runtime-only validation that editor won't catch
+- Generic system queries require concrete type registration for AOT targets (similar to generic-value-type issue but with ECS types)
+- Source generators (for `ISystem` codegen) must be compatible with the specific Entities package version
+
+Add to manifest for any ECS-adjacent change:
+
+- `cross_cutting.build_time_risk.burst_compile_verified: true` — a Burst-specific compile pass, not just a regular IL2CPP build
+- `cross_cutting.build_time_risk.ecs_baker_reverified: true` — subscene bake output reproduced identically across two clean builds
+
+#### ECS-specific drift checks
+
+- [ ] System update-order graph (`[UpdateInGroup]` + `[UpdateBefore/After]`) changes require an explicit `pipeline_order` entry in the manifest — swapping system order is behavioral (L1) minimum.
+- [ ] Adding a new `IComponentData` field without updating the authoring Baker → baked entities silently omit the field. A baker-roundtrip test must cover every authoring type.
+- [ ] Generic job types with new type parameters at AOT targets — add a concrete-instantiation attribute or a dummy reference site.
+- [ ] Mixing GameObject and ECS code paths is an anti-pattern to audit; hybrid conversion adds *more* dual-representation, not less.
+
+#### ECS anti-patterns
+
+- ❌ Calling `SystemAPI.Query` without an exhaustive component-archetype discipline — silent entity misses in production.
+- ❌ Storing managed references (class, string) in `IComponentData` — breaks Burst; use `FixedString*` or blob assets.
+- ❌ Relying on ScriptExecutionOrder for ECS systems — SEO does not control ECS system ordering.
+- ❌ Upgrading the Entities package without re-running the full Baker + Burst + IL2CPP matrix.
+
+---
+
+## Render pipeline variant discipline
+
+URP / HDRP / built-in RP differ materially enough that shader / material / lighting assets are **pipeline-specific** in ways that break the base bridge's asset-identity assumptions. A project is effectively **one** render pipeline at a time; pipeline switches are a migration event, not a config toggle.
+
+### Pipeline as an uncontrolled-interface-adjacent concern
+
+| Pipeline | Shader authoring | Lighting model | Asset compatibility |
+|---|---|---|---|
+| Built-in RP | Legacy `.shader` + Surface Shaders | Forward / Deferred legacy paths | Most store / tutorial assets default here |
+| URP | Shader Graph (URP target) or `.shader` with URP pragmas | Forward+ | Built-in-RP shaders render pink; migration or shader rewrite required |
+| HDRP | Shader Graph (HDRP target) or `.shader` with HDRP pragmas | Physically-based forward + compute-heavy | URP content needs retargeting; cross-platform support narrower |
+
+### SoT implications
+
+- **Shader asset** is Pattern 1 (Schema-Defined) with pipeline as an implicit *target* field; migrating a project's pipeline is a migration across every shader asset — L3 by default on the asset surface.
+- **Lit / Unlit material swaps** when switching pipelines are dual-representation (Pattern 8) drift events — the `.mat` file's referenced shader GUID changes meaning under a new pipeline.
+- **Quality / tier settings** (`UniversalRenderPipelineAsset`, `HDRenderPipelineAsset`) are Pattern 2 (Config-Defined) — each asset is a config surface; per-tier fan-out must be declared.
+
+### Per-pipeline manifest requirements
+
+When a change touches shaders, materials, lighting, post-processing, or camera setup:
+
+- `surfaces_touched.asset` must declare the render pipeline as a qualifying context
+- `cross_cutting.build_time_risk.shader_variant_count_verified: true` — shader variants explode quickly with URP/HDRP keyword sets; a variant-count regression is a build-size / runtime-compile-stall risk
+- Performance-budget surface evidence must be captured **on the target pipeline**, not switched mid-capture (compiled shader variants differ)
+
+### Pipeline-migration as a separate event
+
+Switching a project's render pipeline (built-in → URP, URP → HDRP) is a multi-week migration, not a PR:
+
+- Dedicated `migration-rollout` change (see `docs/change-decomposition.md`)
+- Freeze new shader / material authoring during migration (to avoid authoring in the old target)
+- Asset conversion tooling (URP `2D Renderer Converter`, HDRP `Wizard`) is an adapter, not a ground truth — manual review of every converted asset
+- Rollback: mode 3 compensation on the asset surface (converted-back assets are not byte-identical)
+
+### Render-pipeline drift checks
+
+- [ ] Every `.shader` / Shader Graph asset declares its target pipeline; CI fails on a shader with ambiguous or mismatched target.
+- [ ] Shader variant count checked in release-build artifacts — exceeding the declared budget is build-time risk.
+- [ ] `.mat` files referencing shaders from a non-project pipeline are flagged (copy-paste from asset store is the common cause).
+- [ ] Per-platform pipeline assets (mobile URP vs. desktop HDRP in a dual-target project) must have matching feature sets or the mismatch is declared.
+
+---
+
+## Custom engine fork discipline
+
+Teams maintaining a **modified Unity engine** (either via source-access license or via binary patching) inherit an extra SoT layer that the base bridge's Pattern 8 (Dual-Representation) does not account for.
+
+### The fork SoT layer
+
+A custom fork adds a new authoritative axis: *this project's Unity* is not the same as *vanilla Unity x.y.z*. Every piece of behavior that the base bridge attributes to "Unity" must be disambiguated:
+
+| Concern | Vanilla Unity | Custom fork |
+|---|---|---|
+| `.meta` GUID ownership | Unity editor owns the format | Fork may add per-fork metadata fields → compatibility break if upstreamed |
+| `.unity` / `.prefab` YAML serialization | Unity-version-specific schema | Fork-version-specific schema; two forks of the same base version may have divergent dialects |
+| Asset import pipeline | Unity's AssetImportContext | May be hooked / replaced; a base-version upgrade may require re-doing the hook |
+| Editor scripting API | Stable-ish across Unity minors | Fork may add or remove APIs; upstream sync breaks call sites |
+
+### Fork-specific SoT patterns
+
+| SoT pattern | Fork-specific instance |
+|---|---|
+| 1 Schema-Defined | Engine source tree + patch set + build config |
+| 2 Config-Defined | Fork-specific build flags (e.g., stripped features, added subsystems) |
+| 4 Contract-Defined | Fork patch set as a contract with upstream — rebase onto new Unity version is the sync step |
+| supply-chain (extension) | Upstream Unity release tags are an uncontrolled interface from the fork's perspective; patch re-applicability is the drift metric |
+
+### Required manifest fields for fork-impacting changes
+
+- `uncontrolled_interfaces` entry: `unity-upstream`, with `monitoring_channel` pointing to Unity's release notes for the pinned base version
+- `sot_map` entry for any custom engine subsystem, with `source.location` naming both the fork branch/tag AND the patch file set
+- `cross_cutting.build_time_risk`:
+  - `engine_build_reverified: true` — editor build + player build of the fork both reproduced
+  - `patch_apply_status` — clean / manual-resolution / conflict-in-vendor-directory
+
+### Fork-maintenance drift
+
+- [ ] Fork has a `UPSTREAM.md` or equivalent naming the exact upstream tag / commit — not just "Unity 2022.3"
+- [ ] Patch set is version-controlled as an explicit list, not an accumulated diff — each patch has a reason and an owner
+- [ ] Rebase-onto-new-upstream is a tracked change (migration-rollout type); cadence declared (e.g., "rebase every LTS minor")
+- [ ] `.meta` / `.unity` / `.prefab` serialized files in the project repo must be tagged with the fork version that produced them — migrating a project across fork versions is its own change
+
+### Fork anti-patterns
+
+- ❌ "We fixed it in our engine" without a patch entry — that fix lives only in whoever pressed the button, and disappears on next upstream rebase.
+- ❌ Sharing assets between a fork-project and a vanilla-Unity project without a compatibility test — silent serialization drift.
+- ❌ Treating upstream Unity upgrades as routine when the fork has hooked asset pipelines or serialization — upgrade is an overlay migration.
+- ❌ Letting fork deviation grow without a "give up and return to vanilla" deprecation plan — every fork needs an exit strategy on record.
+
 ---
 
 ## Validating this bridge against your project
@@ -378,11 +523,11 @@ Unity targets are not homogeneous. The base bridge covers 2D/3D game patterns; t
 
 ### Known limitations of this bridge
 
-- **Specific ECS / DOTS patterns** not deeply covered — they invert several ownership assumptions this bridge makes.
-- **Custom engine forks** (heavily-modified Unity) may break some SoT assumptions about `.meta` and `.unity` file ownership.
-- **URP vs HDRP vs built-in RP** — rendering-pipeline-specific shader/asset pipelines differ materially.
-- **Mixed Unity + native frameworks** (Flutter / React Native hosting a Unity view) introduce interop-boundary SoT issues not covered here.
-- **Cloud save / cross-progression across stores** has authorization-layer complexity beyond this bridge's scope.
+- **Specific DOTS / ECS API drift** — the DOTS/ECS overlay captures pattern-level bindings; concrete `Entities` / `Burst` / `Jobs` package API names shift between minor versions and are pinned in your project's `packages-lock.json` with a project-local note.
+- **Mixed Unity + native frameworks** (Flutter / React Native hosting a Unity view, Unity embedded in a native host app) introduce interop-boundary SoT issues not covered here — those sit at the intersection of this bridge and the hosting platform's bridge.
+- **Cloud save / cross-progression across stores** has authorization-layer complexity (identity federation, account merging, regional data-residency) that is platform-specific and left project-local.
+- **Shader / asset-store vendor compatibility matrices** — the render-pipeline overlay covers pipeline targeting; per-asset-vendor (e.g., specific Asset Store pack) compatibility matrices are project-local.
+- **Fork-specific tooling ecosystems** — the custom-fork overlay covers the SoT and drift discipline. Fork-specific internal tooling (custom editor extensions, asset importers) inherits its own documentation requirement beyond this bridge's scope.
 
 ---
 

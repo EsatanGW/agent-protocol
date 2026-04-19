@@ -42,6 +42,7 @@
 **You pick one when relevant to your stack:**
 - `docs/bridges/flutter-stack-bridge.md`
 - `docs/bridges/android-kotlin-stack-bridge.md`
+- `docs/bridges/android-compose-stack-bridge.md`
 - `docs/bridges/ktor-stack-bridge.md`
 - `docs/bridges/unity-stack-bridge.md`
 
@@ -200,6 +201,7 @@ Canonical doc list, ordered by when you'll typically read it.
 - `docs/stack-bridge-template.md` — template for new bridges. *English TL;DR.*
 - `docs/bridges/flutter-stack-bridge.md`
 - `docs/bridges/android-kotlin-stack-bridge.md`
+- `docs/bridges/android-compose-stack-bridge.md`
 - `docs/bridges/ktor-stack-bridge.md`
 - `docs/bridges/unity-stack-bridge.md`
 
