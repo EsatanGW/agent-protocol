@@ -176,20 +176,40 @@ Each runtime has its own registration mechanism; the contract only requires that
 2. Its **trigger event** (from the `trigger` enum).
 3. Its **enforcement level** (`block` = exit-1 stops execution; `warn` = exit-2 only surfaces a message; `advisory` = even exit-1 is downgraded to a warning).
 
-Runtime bridges map this to their native configuration. Example (Claude Code):
+Runtime bridges map this to their native configuration. Example (Claude Code — uses native PascalCase events `PreToolUse` / `PostToolUse` / `Stop`, grouped by `matcher`):
 
 ```json
 {
   "hooks": {
-    "pre-commit": [
-      {"script": "hooks/phase-gate/manifest-required.sh", "category": "phase-gate", "level": "block"}
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh hooks/phase-gate/manifest-required.sh",
+            "agentProtocol": {"category": "phase-gate", "level": "block"}
+          }
+        ]
+      }
     ],
-    "post-tool-use:Edit": [
-      {"script": "hooks/drift/sot-consumer-check.js", "category": "drift", "level": "warn"}
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node hooks/drift/sot-consumer-check.js",
+            "agentProtocol": {"category": "drift", "level": "warn"}
+          }
+        ]
+      }
     ]
   }
 }
 ```
+
+Note the mapping: the contract's abstract `pre-commit` trigger maps to `PreToolUse` with `matcher: "Bash(git commit*)"` (so exit code 1 blocks the Bash invocation before the commit is written); the contract's `post-tool-use:Edit` maps to `PostToolUse` with `matcher: "Edit|Write|MultiEdit"`. Each bridge is free to pick the native event that best preserves blocking semantics.
 
 ---
 

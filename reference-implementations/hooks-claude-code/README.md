@@ -8,12 +8,14 @@ These hooks are deliberately **shell scripts with zero runtime dependencies** (P
 
 ## What's here
 
-| Hook | Category | Trigger | Enforcement |
-|------|----------|---------|-------------|
-| [`hooks/manifest-required.sh`](./hooks/manifest-required.sh) | A: phase-gate | `pre-commit` | block |
-| [`hooks/evidence-artifact-exists.sh`](./hooks/evidence-artifact-exists.sh) | B: evidence | `post-tool-use:Edit`, `pre-commit` | block |
-| [`hooks/sot-drift-check.sh`](./hooks/sot-drift-check.sh) | C: drift | `post-tool-use:Edit` | warn |
-| [`hooks/completion-audit.sh`](./hooks/completion-audit.sh) | D: completion-audit | `on-stop` | block |
+| Hook | Category | Contract trigger | Claude Code event + matcher | Enforcement |
+|------|----------|------------------|-----------------------------|-------------|
+| [`hooks/manifest-required.sh`](./hooks/manifest-required.sh) | A: phase-gate | `pre-commit` | `PreToolUse` + `matcher: "Bash(git commit*)"` | block (exit 1) |
+| [`hooks/evidence-artifact-exists.sh`](./hooks/evidence-artifact-exists.sh) | B: evidence | `pre-commit` | `PreToolUse` + `matcher: "Bash(git commit*)"` | block (exit 1) |
+| [`hooks/sot-drift-check.sh`](./hooks/sot-drift-check.sh) | C: drift | `post-tool-use:Edit` | `PostToolUse` + `matcher: "Edit\|Write\|MultiEdit"` | warn (exit 2) |
+| [`hooks/completion-audit.sh`](./hooks/completion-audit.sh) | D: completion-audit | `on-stop` | `Stop` (no matcher) | block (exit 1) |
+
+**Why `PreToolUse` and not `PostToolUse` for commit gating:** Claude Code's `PreToolUse` runs *before* the Bash tool invokes `git commit`; exit code 1 cancels the tool call. `PostToolUse` would fire *after* the commit was already written, giving the hook no blocking power. Use `PreToolUse` for any hook whose purpose is to prevent an action.
 
 All four follow the I/O contract from `docs/runtime-hook-contract.md`: JSON event on stdin, exit code `0 / 1 / 2`, human-readable stderr message on non-zero, optional structured stdout JSON. Each script begins with a contract-stamp header comment that references the category, trigger, and rule IDs it implements.
 

@@ -6,6 +6,17 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-04-20
+
+### Fixed
+
+- **Claude Code hook wiring** — `reference-implementations/hooks-claude-code/settings.example.json` used invented event names (`preCommit` / `postToolUse` / `stop`) that Claude Code silently ignores, so hooks never fired. Rewrote the file to use the actual native events (`PreToolUse` / `PostToolUse` / `Stop`, PascalCase) with the correct matcher-grouped structure. `pre-commit` semantics now map to `PreToolUse` with `matcher: "Bash(git commit*)"` — this fires **before** the Bash tool runs `git commit`, so exit code 1 actually cancels the commit (the 1.2.0 `postToolUse` mapping would have fired after the commit, giving the hook no blocking power). `docs/runtime-hook-contract.md` registration example updated to match. `reference-implementations/hooks-claude-code/DEVIATIONS.md` notes the historical mismatch.
+
+### Added
+
+- **Agent-runtime hooks section in `README.md`** — new top-level section covering: what runtime hooks are (vs. CI hooks), the four reference hooks + their checks + block/warn levels, Claude Code install steps (copy the bundle + merge `settings.example.json`), contract-trigger-to-native-event mapping table, configuration environment variables (`AGENT_PROTOCOL_MANIFEST_PATH` / `MIN_EVIDENCE_PER_PRIMARY` / `LEAN_SKIP_MANIFEST` / `STRUCTURED_OUTPUT`), an adoption-ramp recommendation (weeks 1-4, observe → gate → evidence → completion), and guidance on writing custom hooks. Bullet 7 added to the "What you get" section at the top of the README.
+- **Correct install-path guidance** in `reference-implementations/hooks-claude-code/README.md` — the "What's here" table now shows both the abstract contract trigger and the concrete Claude Code event + matcher for each of the four hooks; a new note explains why `PreToolUse` (not `PostToolUse`) is the right choice for commit-gating hooks.
+
 ## [1.2.0] - 2026-04-19
 
 ### Added

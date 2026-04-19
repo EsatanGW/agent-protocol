@@ -26,6 +26,10 @@ The contract defines a JSON input schema on stdin. Claude Code's actual event pa
 
 **Impact:** low for the four hooks shipped. Higher for hooks that need precise trigger provenance (e.g. distinguishing a `post-tool-use:Edit` from `post-tool-use:MultiEdit`).
 
+### 2.1 Historical note (resolved in 1.2.1)
+
+v1.2.0's `settings.example.json` used invented event names (`preCommit` / `postToolUse` / `stop`) that do not exist in Claude Code's hook runtime. The correct native events are `PreToolUse` / `PostToolUse` / `Stop` (PascalCase), grouped by matcher per Claude Code's hooks schema. 1.2.1 rewrote the example file and the `docs/runtime-hook-contract.md` example to use the real format. Teams that hand-copied the 1.2.0 example need to re-copy from 1.2.1 — the old keys were silently ignored by Claude Code, so the hooks never actually fired.
+
 ---
 
 ## 3. Structured stdout is opt-in, not default

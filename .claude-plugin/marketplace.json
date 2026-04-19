@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Tool-agnostic engineering workflow plugin usable by any AI agent (Claude Code, Cursor, Gemini CLI, Windsurf, Codex, etc.).",
-    "version": "1.2.0"
+    "version": "1.2.1"
   },
   "plugins": [
     {
