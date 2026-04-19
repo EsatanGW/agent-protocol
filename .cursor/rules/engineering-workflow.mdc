@@ -1,0 +1,50 @@
+---
+description: Tool-agnostic engineering workflow rules. Surface-first analysis, source-of-truth discipline, Lean/Full modes, evidence-driven delivery.
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Engineering Workflow Rules
+
+This repository provides a tool-agnostic engineering workflow plugin. The runtime operating contract lives in `AGENTS.md` at repo root and applies to all AI agents, including Cursor.
+
+## Required reading before any non-trivial task
+
+1. `AGENTS.md` — operating contract (honest reporting, scope discipline, SoT, surface-first, evidence, Change Manifest)
+2. `skills/engineering-workflow/SKILL.md` — workflow execution layer
+
+## Core contract (summary)
+
+- **Honest reporting**: never claim completion without verification evidence. Separate analysis from implementation.
+- **Scope discipline**: touch only what the task requires; no opportunistic cleanup. Get confirmation before modifying shared contracts or components.
+- **Source of truth first**: identify the SoT pattern (see `docs/source-of-truth-patterns.md`) before patching any consumer.
+- **Surface-first analysis**: mark affected surfaces (user / system-interface / information / operational) before choosing verification. See `docs/surfaces.md`.
+- **Evidence before completion**: verification type is chosen by affected surfaces — build/test, browser/interaction, API/contract, query/migration, logs/docs.
+- **Change Manifest**: for 2+ surface changes, SoT trade-offs, breaking changes, or rollback needs, produce YAML per `schemas/change-manifest.schema.yaml`.
+
+## Capability mapping
+
+The skill names **capability categories** (file read, code search, shell execution, sub-agent delegation). Map each to the Cursor runtime equivalent. Do not hardcode tool names.
+
+## First 60 seconds on any task
+
+Answer these before editing:
+1. Task kind (feature / bugfix / refactor / migration / investigation)
+2. Affected surfaces
+3. Source of truth
+4. Main consumers
+5. Public behavior impact
+6. Lean or Full mode
+7. Minimum artifact set
+8. Required evidence before completion
+
+If any answer is uncertain → stop, state the blocker, ask.
+
+## Hard rules (never)
+
+- Never fabricate file paths, APIs, or library behavior.
+- Never bypass CI, signing, or hooks without explicit authorization.
+- Never commit secrets, credentials, or local developer config.
+- Never expand scope silently.
+
+Full detail: `docs/ai-operating-contract.md`.

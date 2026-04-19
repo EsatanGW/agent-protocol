@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Local Claude Code settings (per-developer)
+.claude/settings.local.json
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node (in case contributors use JS tooling locally)
+node_modules/
+
+# OS / temp
+Thumbs.db
+*.log

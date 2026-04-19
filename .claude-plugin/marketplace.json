@@ -1,0 +1,17 @@
+{
+  "name": "agent-protocol",
+  "owner": {
+    "name": "agent-protocol contributors"
+  },
+  "metadata": {
+    "description": "Tool-agnostic engineering workflow plugin usable by any AI agent (Claude Code, Cursor, Gemini CLI, Windsurf, Codex, etc.).",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "agent-protocol",
+      "description": "Surface-first change analysis, SoT discipline, Lean/Full workflow, evidence-driven delivery. Ships with bridge files for multiple AI agent runtimes.",
+      "source": "./"
+    }
+  ]
+}

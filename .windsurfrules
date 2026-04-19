@@ -1,0 +1,31 @@
+# Windsurf Rules
+
+This repository provides a tool-agnostic engineering workflow plugin. The runtime operating contract lives in `AGENTS.md` and applies to all AI agents, including Windsurf.
+
+## Required reading before any non-trivial task
+
+1. `AGENTS.md` — operating contract (honest reporting, scope discipline, source-of-truth, surface-first analysis, evidence, Change Manifest)
+2. `skills/engineering-workflow/SKILL.md` — workflow execution layer (Lean / Full modes, phase minimums, templates)
+
+## Core rules (summary — full version in AGENTS.md)
+
+- Never claim completion without verification evidence.
+- Do not bundle opportunistic cleanup. Touch only what the task requires.
+- Identify source of truth before patching consumers.
+- Mark affected surfaces (user / system-interface / information / operational) before choosing verification.
+- Produce a Change Manifest (`schemas/change-manifest.schema.yaml`) for changes touching 2+ surfaces, with SoT trade-offs, breaking changes, or rollback considerations.
+- Never fabricate file paths, APIs, or library behavior.
+- Never bypass CI, signing, or hooks without explicit authorization.
+
+## Tool capability mapping
+
+This plugin names **capability categories** (file read, code search, shell execution, sub-agent delegation). Map each to whatever Windsurf provides at runtime.
+
+## Stop conditions
+
+Stop and ask when:
+- Source of truth is unclear.
+- Affected surfaces cannot be enumerated.
+- A breaking change has no identified migration path.
+- Rollback strategy is unknown for a change that needs one.
+- Verification evidence cannot be produced.

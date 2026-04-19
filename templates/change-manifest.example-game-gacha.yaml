@@ -1,0 +1,315 @@
+# yaml-language-server: $schema=../schemas/change-manifest.schema.yaml
+#
+# Example 3 — Game live-ops gacha rate adjustment.
+#
+# Scenario:
+#   A mobile game's SSR (rarest tier) drop rate is being increased from 1.0% to
+#   1.5% for a two-week event. Players pull from this gacha with real currency.
+#   Some rewards are already distributed (past pulls are final).
+#
+# What this example exercises:
+#   - Extension surfaces: experience, real_world
+#   - SoT pattern 2 (Config-Defined — drop rate config)
+#   - SoT pattern 9 (Variant Resolution — rates may differ per region / device tier)
+#   - Playtest (required because experience surface is touched)
+#   - Breaking change L1 (behavioral)
+#   - Rollback mode 3 (compensation only — granted items cannot be revoked)
+#   - Multiple escalations (irreversible, rollback_mode_3)
+#   - post_delivery tracking
+
+change_id: "2026-04-17-ssr-rate-event-q2"
+title: "Q2 event: SSR drop rate 1.0% -> 1.5% for two weeks"
+phase: implement
+status: accepted
+
+authors:
+  - { name: "abel",             role: human }
+  - { name: "game-design-lead", role: human }
+  - { name: "claude-opus-4-7",  role: ai, identifier: "claude-opus-4-7" }
+
+last_updated: "2026-04-17T12:15:00Z"
+
+# ─── Surfaces ────────────────────────────────────────────────────────────
+surfaces_touched:
+  - surface: experience
+    role: primary
+    notes: "Pull feedback pacing remains same; rate change affects reward cadence."
+  - surface: user
+    role: primary
+    notes: "Event banner, new rates displayed per legal requirement."
+  - surface: information
+    role: primary
+    notes: "gacha_rate_config.json updated with event entry keyed by date range."
+  - surface: real_world
+    role: primary
+    notes: "Items granted to players are final; cannot revoke after server ack."
+  - surface: operational
+    role: primary
+    notes: "Rate audit log + regulator disclosure package updated."
+  - surface: compliance
+    role: consumer
+    notes: "JP/KR/CN regions have posted-rate requirements; disclosure must match config."
+
+# ─── SoT Map ────────────────────────────────────────────────────────────
+sot_map:
+
+  - info_name: "gacha SSR base rate"
+    pattern: 2                                    # Config-Defined
+    source: "server/config/gacha/gacha_rate_config.json (git-tracked + signed)"
+    consumers:
+      - { name: "server PullService",          kind: code,          sync_lag: synchronous }
+      - { name: "client rate display sheet",   kind: code,          sync_lag: batch }
+      - { name: "regulator disclosure PDF",    kind: documentation, sync_lag: manual }
+      - { name: "analytics rate dashboard",    kind: data_pipeline, sync_lag: near_real_time }
+    sync_mechanism: "Server reads from config on hot reload; client fetches on session start."
+    desync_risk: high
+    notes: "Desync between config and disclosure PDF is a compliance incident."
+
+  - info_name: "rarity tier enum"
+    pattern: 3                                    # Enum/Status-Defined
+    source: "shared/contracts/rarity.yaml"
+    consumers:
+      - { name: "server Rarity enum",    kind: code, sync_lag: batch }
+      - { name: "client Rarity enum",    kind: code, sync_lag: batch }
+      - { name: "localization strings",  kind: data_pipeline, sync_lag: batch }
+    sync_mechanism: "Not changed for this event; re-verified."
+    desync_risk: low
+
+  - info_name: "displayed SSR rate (by region)"
+    pattern: 9                                    # Resolved/Variant
+    source: "client fetches effective rate from server; server resolves by region+event+tier"
+    consumers:
+      - { name: "rate display sheet",          kind: code,          sync_lag: synchronous }
+      - { name: "region-specific disclosure",  kind: documentation, sync_lag: manual }
+    sync_mechanism: "Server resolution; client displays resolved value verbatim."
+    desync_risk: high
+    variant_resolution:
+      candidates:
+        - "global base 1.0%"
+        - "Q2 event 1.5% (2026-04-20 ~ 2026-05-03)"
+        - "JP region baseline (unchanged, regulator-constrained)"
+      resolution_rule: "region override > event window > base"
+      override_layers:
+        - "region_override (JP locked by regulator)"
+        - "event_window"
+        - "base_rate"
+
+  - info_name: "pull event contract"
+    pattern: 4                                    # Contract-Defined
+    source: "api/gacha/pull.proto"
+    consumers:
+      - { name: "client PullClient",   kind: code,           sync_lag: batch }
+      - { name: "server PullService",  kind: code,           sync_lag: synchronous }
+      - { name: "audit log pipeline",  kind: data_pipeline,  sync_lag: near_real_time }
+    sync_mechanism: "protobuf gen; CI enforces version bump on breaking changes."
+    desync_risk: low
+
+# ─── Cross-Cutting ──────────────────────────────────────────────────────
+cross_cutting:
+
+  security:
+    impact: medium
+    notes: "Rate config signed + server-validated; client-side rate display is informational only, not trusted for pull outcome."
+    checklist_items_touched:
+      - "config-signature-verified"
+      - "audit-log-tamper-evident"
+
+  performance:
+    impact: low
+    notes: "No additional compute per pull; server rate lookup is a hashmap read."
+    budget:
+      pull_p95_latency_ms: 120
+
+  observability:
+    impact: high
+    new_events:
+      - "gacha_rate_config_loaded"
+      - "gacha_disclosure_mismatch_detected"
+    new_dashboards:
+      - "ssr-event-q2 (actual SSR rate vs configured, by region)"
+
+  testability:
+    impact: high
+    test_levels: [unit, integration, e2e, playtest, load]
+
+  error_handling:
+    impact: medium
+    classification_updated: true                  # new RateConfigMismatch error
+    cancellation_propagation_reviewed: false
+
+  build_time_risk:
+    impact: medium
+    codegen_touched: true                         # protobuf regeneration
+    codegen_artifacts_committed: true
+    minification_rules_touched: false
+    asset_pipeline_touched: false
+    release_build_verified: true
+    determinism_considerations: [random_seed]
+    notes: "Pull RNG seed source documented; rate change must be tested with deterministic seed."
+
+# ─── Breaking Change ────────────────────────────────────────────────────
+breaking_change:
+  level: L1                                       # Behavioral — output distribution changes
+  self_assessed_vs_worst_case: matches
+  affected_consumers:
+    - { category: first_party_client, identifier: "game client v5.8+", notes: "Displays resolved rate from server — no client release required." }
+    - { category: data_downstream,     identifier: "analytics pipeline", notes: "Rate baseline updates in dashboards for event window." }
+    - { category: human_process,       identifier: "regulator disclosure team" }
+    - { category: third_party_external, identifier: "JP/KR regulators",  notes: "Disclosure filed before event start." }
+  migration_path: parallel_switch
+  migration_plan: |
+    Config change takes effect at event start timestamp; server reloads on config
+    push. Old client versions read resolved rate from server — no client migration.
+    Regulator disclosure filed 7 days before event start per jurisdiction SLA.
+
+# ─── Rollback ───────────────────────────────────────────────────────────
+rollback:
+  overall_mode: 3                                 # Compensation only
+  per_surface_modes:
+    - { surface: information,   mode: 1, rationale: "Rate config can be reverted via signed config push." }
+    - { surface: user,          mode: 1, rationale: "Banner hidden via CMS flag." }
+    - { surface: real_world,    mode: 3, rationale: "Items granted to players cannot be revoked." }
+    - { surface: operational,   mode: 2, rationale: "Audit log is append-only." }
+    - { surface: compliance,    mode: 3, rationale: "Filed disclosure cannot be withdrawn; requires amendment filing." }
+  long_lived_client_notes: |
+    Client versions <5.8 display cached rates for up to 15 minutes. If we pull
+    the event early, some users may see the higher rate briefly. Accepted risk.
+  kill_switch:
+    available: true
+    mechanism: "config flag 'gacha_event_q2_enabled' (server-side)"
+    tested: true
+  compensation_plan: |
+    Scenarios:
+      1. Rate misconfigured higher than intended — honor all pulls, file amended
+         disclosure within 24h, engineering incident retro.
+      2. Rate misconfigured lower than intended — identify affected pulls,
+         grant make-good pulls at intended rate via mail system.
+      3. Config never took effect — honor base rate pulls, communicate via in-game
+         mail, file "event delayed" disclosure.
+    Runbook: docs/runbooks/gacha-rate-misconfig.md
+
+# ─── Evidence ───────────────────────────────────────────────────────────
+evidence_plan:
+
+  - type: contract_test
+    surface: system_interface
+    status: collected
+    artifact_location: "ci/reports/pull-proto-contract-2026-04-16.html"
+    validated_by: "github-actions/contract-test"
+    collected_at: "2026-04-16T14:00:00Z"
+
+  - type: integration_test
+    surface: information
+    status: collected
+    artifact_location: "ci/reports/rate-config-resolution-2026-04-16.log"
+    summary: "Verified variant resolution for 6 regions x 3 event windows."
+    validated_by: "github-actions/integration"
+    collected_at: "2026-04-16T15:00:00Z"
+
+  - type: load_test
+    surface: operational
+    status: collected
+    artifact_location: "perf/reports/pull-service-2026-04-17.html"
+    summary: "10k pulls/sec for 30 min; p95 latency 95ms; no rate drift observed."
+    validated_by: "perf-team"
+    collected_at: "2026-04-17T09:00:00Z"
+
+  - type: playtest_result
+    surface: experience
+    status: collected
+    artifact_location: "playtest/ssr-event-q2-L2.md"
+    summary: "L2 playtest, 6 participants, rubric pass. See playtest section."
+    validated_by: "game-design"
+    collected_at: "2026-04-16T18:00:00Z"
+
+  - type: reconciliation_report
+    surface: compliance
+    status: planned
+    summary: "Post-event: actual SSR rate vs configured vs disclosed, per region."
+
+  - type: runbook_update
+    surface: operational
+    status: collected
+    artifact_location: "docs/runbooks/gacha-rate-misconfig.md"
+    validated_by: "ops-lead"
+    collected_at: "2026-04-17T10:00:00Z"
+
+# ─── Playtest (required: experience surface) ────────────────────────────
+playtest:
+  level: L2                                       # Feature-level event
+  sample:
+    size: 6
+    composition: "3 daily players, 2 weekly players, 1 lapsed returner. iOS + Android. Japanese + English locales."
+  rubric:
+    session_minimum_runs: 5
+    dimensions:
+      - { name: "comprehension (rate display)",              pass_threshold: "median >= 4" }
+      - { name: "feedback clarity (SSR pull feedback)",       pass_threshold: "median >= 4, no score <= 2" }
+      - { name: "pacing (event pacing over 2 weeks)",         pass_threshold: "median >= 3, no score <= 2" }
+      - { name: "meets expectation (1.5% feels different)",   pass_threshold: "median >= 3" }
+      - { name: "anticipation (desire to pull again)",        pass_threshold: "median >= 3" }
+      - { name: "payoff (SSR hit satisfaction)",              pass_threshold: "median >= 4" }
+      - { name: "consolation (non-SSR pull comfort)",         pass_threshold: "median >= 3" }
+  baseline:
+    type: previous_release
+    reference: "Q1 event (same banner format, base 1.0% rate), build 5.7.2"
+    rubric_diff:
+      - { dimension: "anticipation", delta: +0.6, verdict: improved }
+      - { dimension: "payoff",       delta: +0.2, verdict: noise }
+      - { dimension: "consolation",  delta: -0.3, verdict: noise }
+      - { dimension: "pacing",       delta: -0.1, verdict: noise }
+  known_regressions: []
+
+# ─── Post-delivery (will activate at phase=deliver) ─────────────────────
+post_delivery:
+  review_horizon: "Event duration (14 days) + 7 days post-event reconciliation."
+  metrics_watched:
+    - { name: "actual_ssr_rate_by_region", baseline: "1.5% +- 0.1%", alert_threshold: "deviation > 0.15% over 10k pulls" }
+    - { name: "rate_disclosure_match",     baseline: "100%",          alert_threshold: "any mismatch" }
+    - { name: "pull_event_error_rate",     baseline: "< 0.05%",       alert_threshold: "> 0.2%" }
+    - { name: "revenue_per_paying_user",   baseline: "Q1 event",      alert_threshold: "informational — not a gate" }
+  feedback_channels:
+    - "#player-support"
+    - "in-game feedback form"
+    - "app store reviews (rated-release analyzer)"
+    - "JP/KR regulator inbox"
+  production_findings: []                         # populated during observation phase
+
+# ─── AI Hygiene ─────────────────────────────────────────────────────────
+assumptions:
+  - statement: "JP regulator-locked rate remains at base level; no filing needed for JP."
+    confidence: high
+    validation_plan: "Compliance team confirmed 2026-04-14."
+
+  - statement: "Client cache TTL of 15 min is acceptable drift window for rate display post-kill-switch."
+    confidence: medium
+    validation_plan: "Reviewed with legal + design lead; accepted as residual risk."
+
+escalations:
+  - trigger: irreversible_side_effect
+    description: "Granted items cannot be revoked after server ack; any misconfiguration must be compensated."
+    decision_needed: "Confirm compensation plan + runbook approver."
+    resolution: "Plan approved by ops-lead + legal on 2026-04-16."
+    resolved_at: "2026-04-16T16:00:00Z"
+
+  - trigger: rollback_mode_3
+    description: "Surface rollback for real_world is mode 3 (compensation). Requires named approver + runbook."
+    decision_needed: "Human sign-off on launch readiness."
+    resolution: "Launch approved by abel + game-design-lead + legal."
+    resolved_at: "2026-04-17T11:45:00Z"
+
+residual_risks:
+  - description: "Concurrent event (Q2 banner + weekly login bonus) may confound attribution in SSR-rate metrics."
+    severity: low
+    mitigation: "Analytics adds event_id tag on every pull; dashboards filter by event_id."
+    accepted_by: "game-design-lead"
+
+  - description: "Regulator filing timing depends on translation vendor SLA."
+    severity: medium
+    mitigation: "Filing package prepared by 2026-04-13 (7 days buffer)."
+    accepted_by: "compliance-lead"
+
+  - description: "If rate_config hot reload fails silently, we'd serve base rate during event."
+    severity: high
+    mitigation: "Alert on gacha_rate_config_loaded event missing > 5 min after push; rollback to manual config apply."
+    accepted_by: "ops-lead"

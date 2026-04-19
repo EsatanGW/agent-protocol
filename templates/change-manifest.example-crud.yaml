@@ -1,0 +1,175 @@
+# yaml-language-server: $schema=../schemas/change-manifest.schema.yaml
+#
+# Example 1 — Simple CRUD field addition.
+#
+# Scenario:
+#   Add optional `expiry_at` to the Voucher API. Backend, one mobile client, no
+#   third parties. Purely additive, no behavior change for existing consumers.
+#
+# What this example exercises:
+#   - SoT patterns 1 (Schema-Defined), 3 (Enum-Defined), 4 (Contract-Defined)
+#   - Breaking change L0
+#   - Rollback mode 1 (reversible via flag)
+#   - Minimal cross-cutting footprint
+#
+# What this example does NOT exercise:
+#   - Dual-representation (no codegen beyond trivial DTO)
+#   - Experience / playtest
+#   - Variant resolution / host lifecycle
+#   - Uncontrolled interfaces
+
+change_id: "2026-04-17-voucher-expiry-field"
+title: "Add optional expiry_at to Voucher API"
+phase: implement
+status: in_progress
+
+authors:
+  - { name: "abel",             role: human }
+  - { name: "claude-opus-4-7",  role: ai, identifier: "claude-opus-4-7" }
+
+last_updated: "2026-04-17T10:30:00Z"
+
+# ─── Surfaces ────────────────────────────────────────────────────────────
+surfaces_touched:
+  - surface: system_interface
+    role: primary
+    notes: "GET /api/v1/vouchers/{id} and list endpoint gain expiry_at."
+  - surface: information
+    role: primary
+    notes: "voucher table gains expiry_at TIMESTAMPTZ NULL column."
+  - surface: user
+    role: consumer
+    notes: "Voucher card shows expiry badge when non-null. No new screen."
+  - surface: operational
+    role: incidental
+    notes: "Changelog + runbook note only."
+
+# ─── SoT Map ────────────────────────────────────────────────────────────
+sot_map:
+
+  - info_name: "voucher.expiry_at"
+    pattern: 1                                    # Schema-Defined
+    source: "db/migrations/2026_04_17_add_voucher_expiry.sql"
+    consumers:
+      - { name: "VoucherDto (backend)", kind: code,          sync_lag: synchronous }
+      - { name: "OpenAPI spec",         kind: documentation, sync_lag: synchronous }
+      - { name: "mobile VoucherModel",  kind: code,          sync_lag: batch }
+    sync_mechanism: "OpenAPI gen step in CI; mobile regenerates DTOs each release."
+    desync_risk: low
+
+  - info_name: "voucher.status"
+    pattern: 3                                    # Enum/Status-Defined
+    source: "api/src/enums/VoucherStatus.kt"
+    consumers:
+      - { name: "mobile VoucherStatus enum", kind: code,          sync_lag: batch }
+      - { name: "analytics event schema",    kind: data_pipeline, sync_lag: near_real_time }
+      - { name: "support runbook",           kind: documentation, sync_lag: manual }
+    sync_mechanism: "No new status added — purely additive field, so enum untouched."
+    desync_risk: low
+
+  - info_name: "Voucher list contract"
+    pattern: 4                                    # Contract-Defined
+    source: "api/openapi/vouchers.yaml"
+    consumers:
+      - { name: "mobile repository layer",    kind: code, sync_lag: batch }
+      - { name: "admin dashboard (internal)", kind: code, sync_lag: batch }
+    sync_mechanism: "OpenAPI contract test in CI; dashboard regenerates TS client."
+    desync_risk: low
+
+# ─── Cross-Cutting ──────────────────────────────────────────────────────
+cross_cutting:
+
+  security:
+    impact: none
+    notes: "Field is server-side computed + read-only to consumers; no auth change."
+
+  performance:
+    impact: low
+    notes: "+1 column on hot list query. Confirmed index on (status, expiry_at)."
+    budget:
+      list_p95_latency_ms: 80
+
+  observability:
+    impact: low
+    new_events: []
+    new_dashboards: []
+    notes: "Field included in existing voucher_viewed event. No new dashboard."
+
+  testability:
+    impact: low
+    test_levels: [unit, contract]
+
+  error_handling:
+    impact: none
+    classification_updated: false
+    cancellation_propagation_reviewed: false      # no new long-running async work
+
+  build_time_risk:
+    impact: low
+    codegen_touched: true                         # OpenAPI client regenerates
+    codegen_artifacts_committed: true
+    minification_rules_touched: false
+    asset_pipeline_touched: false
+    release_build_verified: true
+    determinism_considerations: []
+
+# ─── Breaking Change ────────────────────────────────────────────────────
+breaking_change:
+  level: L0                                       # Additive
+  self_assessed_vs_worst_case: matches
+  affected_consumers:
+    - { category: first_party_client, identifier: "mobile v4.x", notes: "Deserializer tolerant of extra field." }
+    - { category: internal_sync,       identifier: "admin dashboard" }
+  migration_path: none
+
+# ─── Rollback ───────────────────────────────────────────────────────────
+rollback:
+  overall_mode: 1                                 # Reversible
+  per_surface_modes:
+    - { surface: system_interface, mode: 1, rationale: "Column is nullable; API field is optional." }
+    - { surface: information,      mode: 1, rationale: "Migration is additive; drop column is safe." }
+    - { surface: user,             mode: 1, rationale: "Badge is behind feature flag." }
+  kill_switch:
+    available: true
+    mechanism: "feature flag 'voucher_expiry_display'"
+    tested: true
+
+# ─── Evidence ───────────────────────────────────────────────────────────
+evidence_plan:
+
+  - type: contract_test
+    surface: system_interface
+    status: collected
+    artifact_location: "ci/reports/openapi-contract-2026-04-17.html"
+    summary: "OpenAPI schema diff + backward-compat check passed."
+    validated_by: "github-actions/contract-test"
+    collected_at: "2026-04-17T09:10:00Z"
+
+  - type: migration_dry_run
+    surface: information
+    status: collected
+    artifact_location: "db/dryrun/2026_04_17_add_voucher_expiry.log"
+    summary: "Ran on staging clone (18M rows). Added column in 3.2s, no locks observed."
+    validated_by: "dba-runbook"
+    collected_at: "2026-04-17T09:30:00Z"
+
+  - type: screenshot_diff
+    surface: user
+    status: planned
+    summary: "Voucher card with/without expiry badge. Flag on/off."
+
+  - type: changelog_entry
+    surface: operational
+    status: planned
+
+# ─── AI Hygiene ─────────────────────────────────────────────────────────
+assumptions:
+  - statement: "No third-party SDK consumes this API directly."
+    confidence: high
+    validation_plan: "Searched repos.internal + API gateway routing rules."
+
+residual_risks:
+  - description: "Consumers using strict JSON parsing might reject unknown fields."
+    severity: low
+    mitigation: "Contract test explicitly covers legacy mobile v3.x deserialization."
+    accepted_by: "abel"

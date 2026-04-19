@@ -1,0 +1,899 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://github.com/agent-protocol/schemas/change-manifest.schema.yaml"
+title: "Change Manifest"
+description: |
+  Structured artifact produced by an AI (or human) co-author during an engineering change.
+  A single manifest tracks one change across its phases; it is both produced and consumed by
+  AI tooling, skill workflows, and CI validation.
+
+  Links to the methodology:
+    - Surfaces:        docs/surfaces.md
+    - SoT patterns:    docs/source-of-truth-patterns.md (10 patterns + pattern 4a pipeline order)
+    - Cross-cutting:   docs/cross-cutting-concerns.md (6 dimensions)
+    - Breaking change: docs/breaking-change-framework.md
+    - Rollback:        docs/rollback-asymmetry.md
+    - Playtest:        docs/playtest-discipline.md
+    - AI contract:     docs/ai-operating-contract.md
+    - Post-delivery:   docs/post-delivery-observation.md
+
+type: object
+additionalProperties: false
+
+required:
+  - change_id
+  - title
+  - phase
+  - surfaces_touched
+  - sot_map
+  - evidence_plan
+  - rollback
+
+properties:
+
+  # ─── Identity ──────────────────────────────────────────────────────────
+
+  change_id:
+    type: string
+    description: "Stable identifier. Recommended format: YYYY-MM-DD-short-slug."
+    pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+$"
+    examples: ["2026-04-17-add-voucher-expiry"]
+
+  title:
+    type: string
+    minLength: 4
+    maxLength: 120
+    description: "Human-readable title. Not marketing copy — describe the change."
+
+  phase:
+    type: string
+    enum: [investigate, plan, test_plan, implement, review, signoff, deliver, observe]
+    description: "Current phase of the methodology. See docs/product-engineering-operating-system.md."
+
+  status:
+    type: string
+    enum: [draft, proposed, accepted, in_progress, blocked, delivered, retired]
+    default: draft
+
+  authors:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [name, role]
+      additionalProperties: false
+      properties:
+        name: { type: string }
+        role:
+          type: string
+          enum: [human, ai]
+        identifier:
+          type: string
+          description: "Git identity, ai model ID, or agent name."
+
+  last_updated:
+    type: string
+    format: date-time
+    description: "ISO 8601 timestamp. Must be rewritten on every material change."
+
+  supersedes:
+    type: array
+    items: { type: string }
+    description: "change_id(s) this manifest replaces or extends."
+
+  # ─── Decomposition graph (docs/change-decomposition.md) ────────────────
+
+  depends_on:
+    type: array
+    items: { type: string }
+    description: |
+      change_id(s) that must be delivered BEFORE this one can be delivered.
+      See docs/change-decomposition.md §dependency graph.
+
+  blocks:
+    type: array
+    items: { type: string }
+    description: |
+      change_id(s) whose delivery is blocked until this one ships.
+      Dual of depends_on; both sides should be declared for graph integrity.
+
+  co_required:
+    type: array
+    items: { type: string }
+    description: |
+      change_id(s) that MUST deliver together (atomic group). Partial delivery
+      would leave the system in an inconsistent state.
+
+  part_of:
+    type: string
+    description: |
+      Parent initiative / epic id. Purely descriptive aggregation, not a
+      dependency relation.
+
+  # ─── Surfaces ──────────────────────────────────────────────────────────
+
+  surfaces_touched:
+    type: array
+    minItems: 1
+    description: "Every surface this change leaves a trace on. See docs/surfaces.md."
+    items:
+      type: object
+      required: [surface, role]
+      additionalProperties: false
+      properties:
+        surface:
+          type: string
+          enum:
+            # core (canonical, from docs/surfaces.md)
+            - user
+            - system_interface
+            - information
+            - operational
+            # extension (composable, from docs/surfaces.md)
+            - asset
+            - experience
+            - performance_budget
+            - data_quality
+            - hardware
+            - model
+            - compliance
+            - process
+            - real_world
+            # escape hatch — requires stack-bridge.md entry
+            - custom
+        custom_name:
+          type: string
+          description: "Required when surface == custom; cite your stack-bridge.md."
+        role:
+          type: string
+          enum: [primary, consumer, incidental]
+          description: |
+            primary:    where the change originates / SoT lives
+            consumer:   surface that will re-sync because of the primary
+            incidental: touched but not load-bearing (e.g. doc update)
+        notes: { type: string }
+      allOf:
+        - if:
+            properties: { surface: { const: custom } }
+          then:
+            required: [custom_name]
+
+  uncontrolled_interfaces:
+    type: array
+    description: |
+      Third-party SDKs / OS policies / upstream APIs this change depends on.
+      See docs/surfaces.md "Controllable vs uncontrollable subcategories."
+    items:
+      type: object
+      required: [name, kind]
+      additionalProperties: false
+      properties:
+        name: { type: string, examples: ["payment-provider SDK", "mobile-OS background-execution policy"] }
+        kind:
+          type: string
+          enum: [third_party_sdk, platform_os, store_policy, upstream_api, regulation]
+        current_version: { type: string }
+        known_deprecation: { type: string, description: "Timeline / date if any." }
+        monitoring_channel:
+          type: string
+          description: "Where release notes / advisories are tracked."
+
+  # ─── Source of Truth Map ───────────────────────────────────────────────
+
+  sot_map:
+    type: array
+    minItems: 1
+    description: |
+      One entry per informational asset this change reads/writes/depends on.
+      Patterns are defined in docs/source-of-truth-patterns.md:
+        1  Schema-Defined
+        2  Config-Defined
+        3  Enum/Status-Defined
+        4  Contract-Defined     (4a pipeline-order sub-type)
+        5  UI-Defined
+        6  Transition-Defined
+        7  Temporal-Local
+        8  Dual-Representation
+        9  Resolved/Variant
+        10 Host-Lifecycle
+    items:
+      type: object
+      required: [info_name, pattern, source, consumers, desync_risk]
+      additionalProperties: false
+      properties:
+        info_name:
+          type: string
+          description: "What information is this? e.g. 'voucher.expiry_at'"
+        pattern:
+          oneOf:
+            - type: integer
+              minimum: 1
+              maximum: 10
+            - type: string
+              enum: ["4a"]
+        source:
+          type: string
+          description: "Where the authoritative definition lives."
+        consumers:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [name, kind]
+            additionalProperties: false
+            properties:
+              name: { type: string }
+              kind:
+                type: string
+                enum: [code, data_pipeline, human_process, external_party, cache, search_index, documentation]
+              sync_lag:
+                type: string
+                enum: [synchronous, near_real_time, batch, manual, none]
+        sync_mechanism:
+          type: string
+          description: "How consumers stay in sync (event, cache-invalidation, polling, manual, etc.)."
+        desync_risk:
+          type: string
+          enum: [low, medium, high]
+        notes:
+          type: string
+          description: "Free-form annotation (e.g. why the risk rating, known edge cases)."
+
+        # Pattern-specific extensions (conditionally required below)
+        transition_guard:
+          type: object
+          description: "Required when pattern == 6. See SoT pattern 6."
+          properties:
+            allowed_transitions:
+              type: array
+              items:
+                type: object
+                required: [from, to]
+                properties:
+                  from: { type: string }
+                  to: { type: string }
+            enforcement_point: { type: string }
+
+        temporal_local:
+          type: object
+          description: "Required when pattern == 7."
+          properties:
+            promotion_trigger: { type: string }
+            conflict_resolution:
+              type: string
+              enum: [last_write_wins, version_vector, crdt, user_choice, custom]
+            offline_scope: { type: string }
+
+        dual_representation:
+          type: object
+          description: "Required when pattern == 8."
+          properties:
+            editor_form: { type: string, examples: ["annotation-decorated class", "IDL / schema file", "visual scene / prefab source"] }
+            runtime_form: { type: string, examples: ["codegen-produced source", "generated typed stub", "serialized runtime object"] }
+            sync_step: { type: string, examples: ["run codegen tool", "run IDL compiler", "reimport asset / rebuild runtime"] }
+            ci_sync_check:
+              type: boolean
+              description: "Does CI verify editor ↔ runtime are in sync?"
+
+        variant_resolution:
+          type: object
+          description: "Required when pattern == 9."
+          properties:
+            candidates:
+              type: array
+              items: { type: string }
+            resolution_rule: { type: string }
+            override_layers:
+              type: array
+              items: { type: string }
+              description: "Ordered highest to lowest precedence."
+
+        host_lifecycle:
+          type: object
+          description: "Required when pattern == 10."
+          properties:
+            host_type:
+              type: string
+              enum:
+                - mobile_os_process            # process may be killed by OS after backgrounding
+                - browser_tab                  # tab / document lifecycle, reload clears memory
+                - serverless_instance          # warm / cold boot, may be recycled anytime
+                - scene_based_runtime          # runtime scoped to a scene / level reload
+                - container                    # process inside an orchestrator, may be rescheduled
+                - game_session                 # session-scoped runtime
+                - desktop_app_process          # user-closable long-running host
+                - custom
+            death_triggers:
+              type: array
+              items: { type: string }
+            persisted_layer: { type: string, examples: ["OS-provided saved-state bundle", "browser-local KV store", "session-scoped store", "embedded object store"] }
+            restoration_path: { type: string }
+
+        pipeline_order:
+          type: object
+          description: "Required when pattern == 4a."
+          properties:
+            stages:
+              type: array
+              items: { type: string }
+              description: "Ordered list of stages."
+            declared_constraints:
+              type: array
+              items:
+                type: object
+                properties:
+                  stage: { type: string }
+                  after:  { type: array, items: { type: string } }
+                  before: { type: array, items: { type: string } }
+            declaration_file:
+              type: string
+              description: "Where the order is canonically declared (not scattered)."
+
+      # Conditional requirements by pattern
+      allOf:
+        - if: { properties: { pattern: { const: 6 } } }
+          then: { required: [transition_guard] }
+        - if: { properties: { pattern: { const: 7 } } }
+          then: { required: [temporal_local] }
+        - if: { properties: { pattern: { const: 8 } } }
+          then: { required: [dual_representation] }
+        - if: { properties: { pattern: { const: 9 } } }
+          then: { required: [variant_resolution] }
+        - if: { properties: { pattern: { const: 10 } } }
+          then: { required: [host_lifecycle] }
+        - if: { properties: { pattern: { const: "4a" } } }
+          then: { required: [pipeline_order] }
+
+  # ─── Cross-Cutting (6 dimensions from docs/cross-cutting-concerns.md) ──
+
+  cross_cutting:
+    type: object
+    additionalProperties: false
+    properties:
+      security:
+        $ref: "#/$defs/ccDimension"
+      performance:
+        allOf:
+          - $ref: "#/$defs/ccDimension"
+          - properties:
+              budget:
+                type: object
+                description: "e.g. { p95_latency_ms: 300, memory_mb: 256 }"
+                additionalProperties: true
+      observability:
+        allOf:
+          - $ref: "#/$defs/ccDimension"
+          - properties:
+              new_events:
+                type: array
+                items: { type: string }
+              new_dashboards:
+                type: array
+                items: { type: string }
+      testability:
+        allOf:
+          - $ref: "#/$defs/ccDimension"
+          - properties:
+              test_levels:
+                type: array
+                items:
+                  type: string
+                  enum: [unit, integration, contract, e2e, visual, load, chaos, playtest]
+      error_handling:
+        allOf:
+          - $ref: "#/$defs/ccDimension"
+          - properties:
+              classification_updated:
+                type: boolean
+                description: "Did this change introduce new error codes / categories?"
+              cancellation_propagation_reviewed:
+                type: boolean
+                description: |
+                  See docs/cross-cutting-concerns.md "Cancellation and context propagation."
+                  Required true if any long-running async operation is touched.
+      build_time_risk:
+        allOf:
+          - $ref: "#/$defs/ccDimension"
+          - properties:
+              codegen_touched:
+                type: boolean
+                description: "See SoT pattern 8."
+              codegen_artifacts_committed:
+                type: boolean
+              minification_rules_touched:
+                type: boolean
+                description: "Keep / retain rules for code shrinker or name mangler tool chain."
+              asset_pipeline_touched:
+                type: boolean
+              determinism_considerations:
+                type: array
+                items:
+                  type: string
+                  enum: [floating_point, random_seed, sort_stability, timezone, locale, hash_randomization, compiler_flags, gpu_variant]
+              release_build_verified:
+                type: boolean
+                description: "Did verification run against a release/AOT/minified build, not just debug?"
+
+  # ─── Breaking Change Assessment ────────────────────────────────────────
+
+  breaking_change:
+    type: object
+    description: "See docs/breaking-change-framework.md. Required if any consumer could observe a difference."
+    additionalProperties: false
+    required: [level]
+    properties:
+      level:
+        type: string
+        enum: [L0, L1, L2, L3, L4]
+        description: |
+          L0 Additive / L1 Behavioral / L2 Structural / L3 Removal / L4 Semantic Reversal
+      self_assessed_vs_worst_case:
+        type: string
+        enum: [matches, escalated, unresolved]
+        description: |
+          Per framework "Hidden traps in severity judgment": judge by worst case, not most common case.
+          'escalated' = originally thought lower, upgraded after analysis.
+      affected_consumers:
+        type: array
+        items:
+          type: object
+          required: [category]
+          properties:
+            category:
+              type: string
+              enum:
+                - internal_sync
+                - internal_async
+                - first_party_client
+                - third_party_external
+                - data_downstream
+                - human_process
+            identifier: { type: string }
+            notes: { type: string }
+      migration_path:
+        type: string
+        enum: [none, gray_rollout, parallel_switch, deprecation_cycle, rename_and_coexist, custom]
+      migration_plan:
+        type: string
+        description: "Required when level is L2+."
+      deprecation_timeline:
+        type: object
+        description: "Required when level is L3+."
+        properties:
+          announce_date: { type: string, format: date }
+          sunset_date: { type: string, format: date }
+          escalation_contact: { type: string }
+    allOf:
+      - if: { properties: { level: { enum: [L2, L3, L4] } } }
+        then: { required: [migration_plan, affected_consumers] }
+      - if: { properties: { level: { enum: [L3, L4] } } }
+        then: { required: [deprecation_timeline] }
+      - if: { properties: { level: { const: L4 } } }
+        then:
+          properties:
+            migration_path:
+              enum: [rename_and_coexist, deprecation_cycle]
+
+  # ─── Rollback Plan ─────────────────────────────────────────────────────
+
+  rollback:
+    type: object
+    description: "See docs/rollback-asymmetry.md."
+    additionalProperties: false
+    required: [overall_mode, per_surface_modes]
+    properties:
+      overall_mode:
+        type: integer
+        enum: [1, 2, 3]
+        description: |
+          1 = Reversible Rollback (blue/green, flag off)
+          2 = Forward-Fix (hotfix release, cannot undo persisted state)
+          3 = Compensation Only (side effects already emitted to the world)
+      per_surface_modes:
+        type: array
+        items:
+          type: object
+          required: [surface, mode]
+          properties:
+            surface: { type: string }
+            mode: { type: integer, enum: [1, 2, 3] }
+            rationale: { type: string }
+      long_lived_client_notes:
+        type: string
+        description: |
+          Required if any iOS/Android/desktop/game-binary consumer exists.
+          See docs/rollback-asymmetry.md "Long-lifecycle client special handling."
+      kill_switch:
+        type: object
+        properties:
+          available: { type: boolean }
+          mechanism: { type: string, examples: ["feature flag name", "remote config key"] }
+          tested: { type: boolean }
+      compensation_plan:
+        type: string
+        description: "Required when overall_mode == 3."
+    allOf:
+      - if: { properties: { overall_mode: { const: 3 } } }
+        then: { required: [compensation_plan] }
+
+  # ─── Evidence Plan ─────────────────────────────────────────────────────
+
+  evidence_plan:
+    type: array
+    minItems: 1
+    description: |
+      Each surface touched (role=primary) MUST have at least one evidence item.
+      See docs/ai-operating-contract.md §3 "Evidence quality."
+    items:
+      type: object
+      required: [type, surface, status]
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - unit_test
+            - integration_test
+            - contract_test
+            - e2e_test
+            - screenshot_diff
+            - interaction_recording
+            - api_proof
+            - migration_dry_run
+            - query_plan
+            - log_sample
+            - metric_diff
+            - playtest_result
+            - security_scan
+            - load_test
+            - build_artifact
+            - changelog_entry
+            - runbook_update
+            - reconciliation_report
+        surface:
+          type: string
+          description: "Which surface this evidence validates."
+        status:
+          type: string
+          enum: [planned, in_progress, collected, rejected]
+        artifact_location:
+          type: string
+          description: "File path, URL, or stable reference. Required when status == collected."
+        summary: { type: string }
+        validated_by:
+          type: string
+          description: "Who/what verified this (CI job name, human, another agent)."
+        collected_at:
+          type: string
+          format: date-time
+
+  # ─── Playtest (conditional) ────────────────────────────────────────────
+
+  playtest:
+    type: object
+    description: "Required when surfaces_touched includes 'experience'. See docs/playtest-discipline.md."
+    additionalProperties: false
+    required: [level, sample, rubric]
+    properties:
+      level:
+        type: string
+        enum: [L0, L1, L2, L3]
+      sample:
+        type: object
+        required: [size]
+        properties:
+          size: { type: integer, minimum: 1 }
+          composition:
+            type: string
+            description: "Describe coverage: devices, locales, experience levels, target vs non-target."
+      rubric:
+        type: object
+        required: [dimensions]
+        properties:
+          dimensions:
+            type: array
+            minItems: 1
+            items:
+              type: object
+              required: [name, pass_threshold]
+              properties:
+                name: { type: string }
+                pass_threshold: { type: string, description: "e.g. 'median >= 4, no score <= 2'" }
+          session_minimum_runs: { type: integer, minimum: 1 }
+      baseline:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [golden_build, previous_release, ab_control, designer_intent, none]
+          reference: { type: string, description: "Build tag, version, or doc link." }
+          rubric_diff:
+            type: array
+            description: "Per-dimension delta vs baseline."
+            items:
+              type: object
+              properties:
+                dimension: { type: string }
+                delta: { type: number }
+                verdict:
+                  type: string
+                  enum: [improved, noise, acceptable_regression, blocking_regression]
+      known_regressions:
+        type: array
+        items:
+          type: object
+          properties:
+            dimension: { type: string }
+            delta: { type: number }
+            decision: { type: string }
+            decided_by: { type: string }
+
+  # ─── Post-delivery observation (Phase 8) ───────────────────────────────
+
+  post_delivery:
+    type: object
+    description: "Required when phase == deliver or observe. See docs/post-delivery-observation.md."
+    additionalProperties: false
+    properties:
+      review_horizon:
+        type: string
+        description: "e.g. '7d', '30d', 'through end of quarter'."
+      metrics_watched:
+        type: array
+        items:
+          type: object
+          required: [name]
+          properties:
+            name: { type: string }
+            baseline: { type: string }
+            alert_threshold: { type: string }
+      feedback_channels:
+        type: array
+        items: { type: string, examples: ["#support", "NPS survey", "app store review"] }
+      production_findings:
+        type: array
+        description: "Populated during observation phase."
+        items:
+          type: object
+          properties:
+            finding: { type: string }
+            severity: { type: string, enum: [info, low, medium, high] }
+            action_taken: { type: string }
+
+  # ─── AI-Specific Hygiene (from ai-operating-contract.md) ───────────────
+
+  assumptions:
+    type: array
+    description: "Per ai-operating-contract.md §1, mark every assumption explicitly."
+    items:
+      type: object
+      required: [statement, confidence]
+      properties:
+        statement: { type: string }
+        confidence: { type: string, enum: [low, medium, high] }
+        validation_plan: { type: string }
+
+  escalations:
+    type: array
+    description: "Points where AI stopped and requested human judgment. See ai-operating-contract.md §5."
+    items:
+      type: object
+      required: [trigger, description]
+      properties:
+        trigger:
+          type: string
+          enum:
+            - third_party_consumer_affected
+            - irreversible_side_effect
+            - rollback_mode_3
+            - breaking_change_l3_or_l4
+            - ambiguous_sot
+            - security_or_pii_path
+            - user_requested_pause
+            - output_mismatch_with_intent
+            - scope_expansion_discovered
+        description: { type: string }
+        decision_needed: { type: string }
+        resolution: { type: string }
+        resolved_at: { type: string, format: date-time }
+
+  # ─── Multi-agent handoff fields (docs/multi-agent-handoff.md) ──────────
+
+  implementation_notes:
+    type: array
+    description: |
+      Append-only notes from the Implementer role. Capture deltas from plan,
+      discoveries during Phase 4, scope expansions flagged via discovery loop.
+    items:
+      type: object
+      required: [type, description]
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - plan_delta              # implementation deviated from plan
+            - discovery                # new fact found during implementation
+            - scope_flag              # potential scope expansion surfaced
+            - evidence_added          # link to a newly-collected evidence item
+            - assumption_validated    # an assumption from §assumptions now confirmed
+            - assumption_invalidated  # an assumption from §assumptions now disproved
+        description: { type: string }
+        scope_delta:
+          type: string
+          enum: [none, acknowledged_and_approved, escalated, rejected]
+        rationale: { type: string }
+        recorded_at: { type: string, format: date-time }
+
+  review_notes:
+    type: array
+    description: |
+      Append-only notes from the Reviewer role. One entry per review topic
+      (cross-cutting dimension, breaking-change audit, surface coverage gap).
+    items:
+      type: object
+      required: [topic, finding]
+      additionalProperties: false
+      properties:
+        topic: { type: string }
+        finding:
+          type: string
+          enum: [pass, pass_with_followup, fail, needs_human_decision]
+        detail: { type: string }
+        followup_change_id:
+          type: string
+          description: "Referenced follow-up change, if any."
+        recorded_at: { type: string, format: date-time }
+
+  approvals:
+    type: array
+    description: |
+      Sign-off records. At least one approval with role=human is required
+      before phase can transition to 'delivered'.
+    items:
+      type: object
+      required: [approver, role, scope, timestamp]
+      additionalProperties: false
+      properties:
+        approver: { type: string }
+        role:
+          type: string
+          enum: [human, ai]
+        scope:
+          type: string
+          description: "What is being approved (full change / specific waiver / partial scope)."
+        timestamp: { type: string, format: date-time }
+        conditions:
+          type: string
+          description: "Any conditions attached to the approval."
+
+  handoff_narrative:
+    type: string
+    description: |
+      Free-form human-readable summary for the next operator: what shipped,
+      how to observe it, residual risks, rollback trigger. See docs/operational-disciplines.md.
+
+  # ─── Waiver protocol (docs/automation-contract.md §waiver) ─────────────
+
+  waivers:
+    type: array
+    description: |
+      Explicit exceptions to otherwise-required rules. Each waiver MUST name
+      a human approver (role != ai) and a rationale. See docs/automation-contract.md.
+    items:
+      type: object
+      required: [rule_id, rationale, approver, approver_role, expires_at]
+      additionalProperties: false
+      properties:
+        rule_id:
+          type: string
+          description: "Stable identifier of the rule being waived (e.g. 'evidence.primary_surface_required')."
+        rationale: { type: string }
+        approver: { type: string }
+        approver_role:
+          type: string
+          enum: [human]
+          description: "AI cannot approve its own waiver. Enforced as enum single-value."
+        granted_at: { type: string, format: date-time }
+        expires_at:
+          type: string
+          format: date
+          description: "Waivers must be time-bounded; indefinite waivers are forbidden."
+        scope:
+          type: string
+          description: "What the waiver applies to — a specific surface / rule / evidence item."
+
+  residual_risks:
+    type: array
+    items:
+      type: object
+      required: [description, severity]
+      properties:
+        description: { type: string }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        mitigation: { type: string }
+        accepted_by: { type: string, description: "Human signer or 'unaccepted'." }
+
+# ─── Top-level conditionals ──────────────────────────────────────────────
+
+allOf:
+  # Experience surface ⇒ playtest required
+  - if:
+      properties:
+        surfaces_touched:
+          contains:
+            properties: { surface: { const: experience } }
+    then:
+      required: [playtest]
+
+  # Deliver / observe phase ⇒ post_delivery required
+  - if:
+      properties:
+        phase:
+          enum: [deliver, observe]
+    then:
+      required: [post_delivery]
+
+  # codegen touched ⇒ must declare whether artifacts are committed
+  - if:
+      properties:
+        cross_cutting:
+          properties:
+            build_time_risk:
+              properties:
+                codegen_touched: { const: true }
+    then:
+      properties:
+        cross_cutting:
+          properties:
+            build_time_risk:
+              required: [codegen_artifacts_committed, release_build_verified]
+
+  # Real-world surface ⇒ rollback mode must be 3 (or justify)
+  - if:
+      properties:
+        surfaces_touched:
+          contains:
+            properties:
+              surface: { const: real_world }
+              role: { const: primary }
+    then:
+      properties:
+        rollback:
+          properties:
+            overall_mode: { const: 3 }
+
+  # status=delivered ⇒ at least one human approval required
+  - if:
+      properties:
+        status: { const: delivered }
+    then:
+      required: [approvals]
+      properties:
+        approvals:
+          contains:
+            properties:
+              role: { const: human }
+
+  # phase=observe ⇒ handoff_narrative required (next operator needs it)
+  - if:
+      properties:
+        phase: { const: observe }
+    then:
+      required: [handoff_narrative]
+
+# ─── Reusable definitions ────────────────────────────────────────────────
+
+$defs:
+
+  ccDimension:
+    type: object
+    additionalProperties: true
+    properties:
+      impact:
+        type: string
+        enum: [none, low, medium, high]
+      notes: { type: string }
+      checklist_items_touched:
+        type: array
+        description: "Free-form references to docs/cross-cutting-concerns.md checklist items."
+        items: { type: string }

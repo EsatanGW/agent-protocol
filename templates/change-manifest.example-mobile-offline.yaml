@@ -1,0 +1,270 @@
+# yaml-language-server: $schema=../schemas/change-manifest.schema.yaml
+#
+# Example 2 — Mobile offline notes sync.
+#
+# Scenario:
+#   A notes app adds offline-first editing: user can create/edit notes without
+#   network; changes sync when online. Client is long-lived (installed app),
+#   multiple OS versions in the wild.
+#
+# What this example exercises:
+#   - SoT pattern 7  (Temporal-Local — local edit is temporarily SoT)
+#   - SoT pattern 8  (Dual-Representation — json_serializable editor/runtime forms)
+#   - SoT pattern 10 (Host-Lifecycle — Android process death mid-edit)
+#   - Breaking change L1 (behavioral — conflict resolution semantics change)
+#   - Rollback mode 2 (forward-fix — cannot pull the new client version back)
+#   - Uncontrolled interfaces (iOS background execution policy)
+#   - Cross-cutting: error_handling with cancellation, codegen build risk
+
+change_id: "2026-04-17-notes-offline-sync"
+title: "Offline-first note editing with last-write-wins sync"
+phase: implement
+status: in_progress
+
+authors:
+  - { name: "abel",             role: human }
+  - { name: "claude-opus-4-7",  role: ai, identifier: "claude-opus-4-7" }
+
+last_updated: "2026-04-17T11:00:00Z"
+
+# ─── Surfaces ────────────────────────────────────────────────────────────
+surfaces_touched:
+  - surface: user
+    role: primary
+    notes: "New sync status indicator + conflict resolution sheet."
+  - surface: information
+    role: primary
+    notes: "Note schema gains client_updated_at + sync_state; conflict policy defined."
+  - surface: system_interface
+    role: primary
+    notes: "POST /notes/sync accepts batched diffs with vector clock."
+  - surface: operational
+    role: consumer
+    notes: "New sync_conflict_resolved and sync_failed events."
+
+uncontrolled_interfaces:
+  - name: "iOS background execution"
+    kind: platform_os
+    current_version: "iOS 17.4"
+    known_deprecation: "iOS 18 tightens BGTaskScheduler quotas (rumor, unconfirmed)."
+    monitoring_channel: "Apple developer release notes + #ios-platform internal."
+  - name: "Android Doze mode"
+    kind: platform_os
+    current_version: "Android 14"
+    monitoring_channel: "Android platform release notes."
+
+# ─── SoT Map ────────────────────────────────────────────────────────────
+sot_map:
+
+  - info_name: "note.body (while editing offline)"
+    pattern: 7                                    # Temporal-Local
+    source: "mobile local SQLite: notes.body + sync_state='dirty'"
+    consumers:
+      - { name: "server note document", kind: code,          sync_lag: batch }
+      - { name: "other devices",        kind: code,          sync_lag: batch }
+      - { name: "search index",         kind: search_index,  sync_lag: near_real_time }
+    sync_mechanism: "Batched diff upload on connectivity restoration."
+    desync_risk: medium
+    temporal_local:
+      promotion_trigger: "Successful /notes/sync response with accepted=true."
+      conflict_resolution: last_write_wins
+      offline_scope: "Up to 14 days offline; beyond that local is frozen read-only."
+
+  - info_name: "NoteDto (Flutter)"
+    pattern: 8                                    # Dual-Representation
+    source: "mobile/lib/data/models/note.dart (@JsonSerializable)"
+    consumers:
+      - { name: "runtime serialization", kind: code, sync_lag: synchronous }
+      - { name: "NoteRepository",        kind: code, sync_lag: synchronous }
+    sync_mechanism: "dart run build_runner build --delete-conflicting-outputs"
+    desync_risk: medium
+    dual_representation:
+      editor_form: "@JsonSerializable class in note.dart"
+      runtime_form: "note.g.dart (generated fromJson/toJson)"
+      sync_step: "build_runner"
+      ci_sync_check: true                         # CI fails if .g.dart stale
+
+  - info_name: "Editor draft state (mid-edit)"
+    pattern: 10                                   # Host-Lifecycle
+    source: "Android Activity + Flutter state"
+    consumers:
+      - { name: "user screen",         kind: code, sync_lag: synchronous }
+      - { name: "local SQLite draft",  kind: code, sync_lag: near_real_time }
+    sync_mechanism: "Autosave to SQLite every 3s + onPause."
+    desync_risk: high
+    host_lifecycle:
+      host_type: android_process
+      death_triggers:
+        - "Low-memory kill while app backgrounded"
+        - "OS-initiated restart after system update"
+        - "User swipes task away (some OEMs)"
+      persisted_layer: "SQLite notes.draft_body + draft_updated_at"
+      restoration_path: "On resume, if draft_updated_at > last saved snapshot, restore + show 'recovered draft' chip."
+
+  - info_name: "sync_state enum"
+    pattern: 3                                    # Enum/Status-Defined
+    source: "shared/contracts/sync_state.yaml"
+    consumers:
+      - { name: "Flutter enum (generated)", kind: code, sync_lag: batch }
+      - { name: "backend Kotlin enum",      kind: code, sync_lag: batch }
+      - { name: "analytics event schema",   kind: data_pipeline, sync_lag: near_real_time }
+    sync_mechanism: "Code generation from shared YAML; CI guard on divergence."
+    desync_risk: low
+
+  - info_name: "POST /notes/sync contract"
+    pattern: 4                                    # Contract-Defined
+    source: "api/openapi/notes-sync.yaml"
+    consumers:
+      - { name: "mobile SyncApi client", kind: code, sync_lag: batch }
+      - { name: "backend SyncHandler",   kind: code, sync_lag: synchronous }
+    sync_mechanism: "OpenAPI contract test + staged rollout."
+    desync_risk: medium
+
+# ─── Cross-Cutting ──────────────────────────────────────────────────────
+cross_cutting:
+
+  security:
+    impact: medium
+    notes: "Offline cache contains user notes — must encrypt local SQLite. Android uses SQLCipher; iOS uses NSFileProtectionComplete."
+    checklist_items_touched:
+      - "local-storage-encrypted-at-rest"
+      - "auth-token-revocation-respected-on-sync"
+
+  performance:
+    impact: medium
+    notes: "Batch upload must not block main thread; p95 sync latency budget 2s."
+    budget:
+      sync_p95_latency_ms: 2000
+      local_storage_cap_mb: 200
+
+  observability:
+    impact: high
+    new_events:
+      - "sync_attempted"
+      - "sync_conflict_resolved"
+      - "sync_failed"
+    new_dashboards:
+      - "offline-sync-health (success rate, conflict rate, p95 latency)"
+
+  testability:
+    impact: high
+    test_levels: [unit, integration, contract, e2e]
+
+  error_handling:
+    impact: high
+    classification_updated: true                  # new SyncError categories
+    cancellation_propagation_reviewed: true       # sync uses Dart Future + user can cancel
+    notes: "All sync operations accept a cancellation token; app-background triggers graceful cancel."
+
+  build_time_risk:
+    impact: medium
+    codegen_touched: true
+    codegen_artifacts_committed: true
+    minification_rules_touched: true              # R8 keep rules for SQLCipher + json models
+    asset_pipeline_touched: false
+    release_build_verified: true
+    determinism_considerations: [timezone, hash_randomization]
+
+# ─── Breaking Change ────────────────────────────────────────────────────
+breaking_change:
+  level: L1                                       # Behavioral: conflict semantics change
+  self_assessed_vs_worst_case: escalated
+  affected_consumers:
+    - { category: first_party_client, identifier: "mobile v4.0+", notes: "Old clients (<4.0) fall back to online-only mode via feature-flag gating." }
+    - { category: internal_sync,       identifier: "backend SyncHandler" }
+    - { category: data_downstream,     identifier: "search index (notes)", notes: "Conflict-resolved body replaces prior index entry." }
+  migration_path: gray_rollout
+  migration_plan: |
+    Phase 1 (week 1): server accepts new sync contract, old clients unchanged.
+    Phase 2 (week 2-4): mobile v4.0 rolled to 5% / 25% / 50% / 100%.
+    Phase 3 (week 5): flip default conflict policy from reject to last-write-wins for all.
+
+# ─── Rollback ───────────────────────────────────────────────────────────
+rollback:
+  overall_mode: 2                                 # Forward-Fix (installed clients can't be recalled)
+  per_surface_modes:
+    - { surface: system_interface, mode: 1, rationale: "Server can disable /notes/sync v2 via flag; clients fall back." }
+    - { surface: information,      mode: 2, rationale: "Local dirty notes on installed clients cannot be retrieved if feature disabled." }
+    - { surface: user,             mode: 1, rationale: "UI sync indicator hidden behind flag." }
+  long_lived_client_notes: |
+    Any user who installed v4.0 and went offline before disabling the flag may
+    hold dirty local edits we cannot pull back. Forward-fix plan: v4.0.1 reads
+    legacy dirty rows and re-uploads them. Tracked in runbook offline-sync-rb.
+  kill_switch:
+    available: true
+    mechanism: "remote config 'notes_offline_sync_enabled'"
+    tested: true
+
+# ─── Evidence ───────────────────────────────────────────────────────────
+evidence_plan:
+
+  - type: integration_test
+    surface: system_interface
+    status: in_progress
+    summary: "Round-trip create → edit offline → reconnect → conflict → resolve."
+
+  - type: contract_test
+    surface: system_interface
+    status: collected
+    artifact_location: "ci/reports/notes-sync-contract-2026-04-16.html"
+    validated_by: "github-actions/contract-test"
+    collected_at: "2026-04-16T18:00:00Z"
+
+  - type: e2e_test
+    surface: user
+    status: planned
+    summary: "Android + iOS scripted: edit offline → airplane on/off → verify merge."
+
+  - type: interaction_recording
+    surface: user
+    status: planned
+    summary: "Screen recording of conflict resolution sheet on both platforms."
+
+  - type: migration_dry_run
+    surface: information
+    status: planned
+    summary: "Backfill sync_state='synced' for existing rows."
+
+  - type: metric_diff
+    surface: operational
+    status: planned
+    summary: "Baseline online-only sync failure rate vs. offline-capable client."
+
+  - type: build_artifact
+    surface: operational
+    status: collected
+    artifact_location: "ci/artifacts/mobile-v4.0-release.apk"
+    summary: "R8 release build verified — no obfuscation-related crashes in smoke test."
+    validated_by: "ci/release-smoke"
+    collected_at: "2026-04-17T08:00:00Z"
+
+# ─── Post-delivery (not yet in deliver phase, but planned) ──────────────
+# (omitted — will be populated when phase advances to deliver)
+
+# ─── AI Hygiene ─────────────────────────────────────────────────────────
+assumptions:
+  - statement: "last-write-wins is acceptable for user notes given 14-day offline cap."
+    confidence: medium
+    validation_plan: "Support team review of conflict-rate dashboard after week-1 rollout."
+
+  - statement: "iOS BGTaskScheduler quota changes in iOS 18 will not materially affect sync cadence."
+    confidence: low
+    validation_plan: "Monitor iOS 18 beta build results; fall back to opportunistic-only sync if quota becomes restrictive."
+
+escalations:
+  - trigger: irreversible_side_effect
+    description: "Installed v4.0 clients that go offline cannot be downgraded."
+    decision_needed: "Confirm forward-fix plan is acceptable vs. delaying launch."
+    resolution: "Accepted by abel on 2026-04-15 — forward-fix v4.0.1 is sufficient."
+    resolved_at: "2026-04-15T16:20:00Z"
+
+residual_risks:
+  - description: "User edits two devices offline; both reconnect; last-write-wins may surprise."
+    severity: medium
+    mitigation: "Conflict sheet shows 'overwritten version' with undo for 30 days."
+    accepted_by: "abel"
+
+  - description: "SQLCipher key rotation not yet designed."
+    severity: low
+    mitigation: "Tracked as follow-up; current key derived from OS keychain (secure)."
+    accepted_by: "abel"

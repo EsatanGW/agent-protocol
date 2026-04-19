@@ -1,0 +1,213 @@
+# Worked example: multi-agent handoff progression of a single Change Manifest
+# through Planner → Implementer → Reviewer, shown as three sequential snapshots
+# of the same change_id (separated by --- in the same file for illustration only;
+# in a real repo each snapshot would be a separate commit to the same file).
+#
+# Paired with: docs/multi-agent-handoff.md
+
+# ─── Snapshot 1: Planner has just handed off to Implementer ──────────────────
+change_id: 2026-04-20-add-notification-preferences
+title: "Add per-channel notification preferences for end users"
+phase: implement       # Planner set this when handing over
+status: in_progress
+last_updated: "2026-04-20T09:00:00Z"
+authors:
+  - name: "planner-agent"
+    role: ai
+    identifier: "planner-agent@vendor-neutral#run-abc123"
+
+surfaces_touched:
+  - surface: user
+    role: primary
+    notes: "New settings screen with per-channel toggles"
+  - surface: system_interface
+    role: primary
+    notes: "New preference GET/PUT endpoints"
+  - surface: information
+    role: primary
+    notes: "New preferences table + enum of channel kinds"
+  - surface: operational
+    role: consumer
+    notes: "Telemetry for preference changes; docs update"
+
+sot_map:
+  - info: "notification channel enum"
+    sot_path: "shared/contracts/notification-channels.proto"
+    pattern: enum-defined
+    consumers:
+      - "backend service"
+      - "frontend client"
+      - "analytics downstream"
+      - "customer support SOP"
+  - info: "user preferences table"
+    sot_path: "backend/migrations/2026-04-20-add-user-preferences.sql"
+    pattern: schema-defined
+    consumers:
+      - "preferences API handler"
+      - "notification dispatcher"
+
+breaking_change:
+  level: L1              # New enum value; consumers with non-exhaustive switch may drop messages
+  rationale: "adds a 'push_high_priority' channel value; existing consumers must handle default"
+  migration_path: "two-release consumer warning window"
+
+rollback:
+  mode: 1                # Behind a flag; can be reverted by flag-off
+  notes: "Already-sent notifications follow mode 3 (no retract)"
+
+uncontrolled_interfaces:
+  - kind: platform_policy
+    description: "Platform push policies for high-priority channel"
+    monitoring_channel: "platform-release-notes-subscription"
+
+evidence_plan:
+  categories:
+    - "API contract test"
+    - "Migration applied + schema snapshot"
+    - "UI interaction evidence"
+    - "Telemetry event registered"
+  artifacts: []          # Implementer fills these in snapshot 2
+
+---
+
+# ─── Snapshot 2: Implementer hands off to Reviewer ───────────────────────────
+change_id: 2026-04-20-add-notification-preferences
+title: "Add per-channel notification preferences for end users"
+phase: review
+status: in_progress
+last_updated: "2026-04-21T17:30:00Z"
+authors:
+  - name: "planner-agent"
+    role: ai
+    identifier: "planner-agent@vendor-neutral#run-abc123"
+  - name: "implementer-agent"
+    role: ai
+    identifier: "implementer-agent@vendor-neutral#run-def456"
+
+# Planner-written fields preserved verbatim (Implementer does not overwrite).
+surfaces_touched:
+  - surface: user
+    role: primary
+    notes: "New settings screen with per-channel toggles"
+  - surface: system_interface
+    role: primary
+    notes: "New preference GET/PUT endpoints"
+  - surface: information
+    role: primary
+    notes: "New preferences table + enum of channel kinds"
+  - surface: operational
+    role: consumer
+    notes: "Telemetry for preference changes; docs update"
+
+sot_map:
+  - info: "notification channel enum"
+    sot_path: "shared/contracts/notification-channels.proto"
+    pattern: enum-defined
+    consumers:
+      - "backend service"
+      - "frontend client"
+      - "analytics downstream"
+      - "customer support SOP"
+  - info: "user preferences table"
+    sot_path: "backend/migrations/2026-04-20-add-user-preferences.sql"
+    pattern: schema-defined
+    consumers:
+      - "preferences API handler"
+      - "notification dispatcher"
+
+breaking_change:
+  level: L1
+  rationale: "adds a 'push_high_priority' channel value; existing consumers must handle default"
+  migration_path: "two-release consumer warning window"
+
+rollback:
+  mode: 1
+  notes: "Already-sent notifications follow mode 3 (no retract)"
+
+uncontrolled_interfaces:
+  - kind: platform_policy
+    description: "Platform push policies for high-priority channel"
+    monitoring_channel: "platform-release-notes-subscription"
+
+evidence_plan:
+  categories:
+    - "API contract test"
+    - "Migration applied + schema snapshot"
+    - "UI interaction evidence"
+    - "Telemetry event registered"
+  artifacts:
+    - category: "API contract test"
+      path: "backend/tests/preferences_contract_test.xml"
+      summary: "All assertions pass, including unknown-channel fallback"
+    - category: "Migration applied + schema snapshot"
+      path: "db/schema.sql@rev-2026-04-21"
+      summary: "Preferences table present with 3 columns + FK"
+    - category: "UI interaction evidence"
+      path: "evidence/ui/preferences-screen-walkthrough.mp4"
+      summary: "Toggling each channel persists and survives app restart"
+    - category: "Telemetry event registered"
+      path: "telemetry/events.registry.json"
+      summary: "preference_changed event added with schema"
+
+implementation_notes:
+  - type: plan_delta
+    description: "Added a compensating migration step to backfill defaults for existing rows"
+    scope_delta: acknowledged_and_approved
+    rationale: "Discovered during Phase 1 redo after noticing existing null rows"
+
+---
+
+# ─── Snapshot 3: Reviewer signs off ──────────────────────────────────────────
+change_id: 2026-04-20-add-notification-preferences
+title: "Add per-channel notification preferences for end users"
+phase: signoff
+status: accepted
+last_updated: "2026-04-22T11:05:00Z"
+authors:
+  - name: "planner-agent"
+    role: ai
+    identifier: "planner-agent@vendor-neutral#run-abc123"
+  - name: "implementer-agent"
+    role: ai
+    identifier: "implementer-agent@vendor-neutral#run-def456"
+  - name: "reviewer-agent"
+    role: ai
+    identifier: "reviewer-agent@vendor-neutral#run-ghi789"
+  - name: "human-approver"
+    role: human
+    identifier: "alice@example.com"
+
+# All prior fields preserved; Reviewer only appends their own fields.
+surfaces_touched: *previous   # (in real YAML, copy the block; anchors shown for illustration)
+sot_map: *previous
+breaking_change: *previous
+rollback: *previous
+uncontrolled_interfaces: *previous
+evidence_plan: *previous
+implementation_notes: *previous
+
+review_notes:
+  - topic: "Cross-cutting: observability"
+    finding: "pass"
+    detail: "telemetry event schema matches registry contract"
+  - topic: "Cross-cutting: security"
+    finding: "pass"
+    detail: "preferences endpoint requires authenticated user; authorization scoped to own user_id"
+  - topic: "Breaking change: L1 consumer impact"
+    finding: "pass with follow-up"
+    detail: "analytics downstream confirmed non-exhaustive switch replaced with fallback; customer support SOP update ticketed separately"
+
+residual_risk:
+  - "Existing push policies may flag 'high_priority' channel in some regions; monitoring via release-notes subscription"
+  - "First-week opt-in rate unknown; Phase 8 T+7d check scheduled"
+
+approvals:
+  - approver: "alice@example.com"
+    role: human
+    scope: "full change accepted including L1 impact"
+    timestamp: "2026-04-22T11:00:00Z"
+
+handoff_narrative: |
+  Feature ships behind a remote feature flag at 0% and ramps 10/25/50/100 over 5 days.
+  Migration already applied in staging; will run on production deploy.
+  Phase 8 observation scheduled at T+24h, T+72h, T+7d per post-delivery observation doc.
