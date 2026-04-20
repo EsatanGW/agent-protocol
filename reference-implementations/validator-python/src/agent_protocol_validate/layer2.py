@@ -1,7 +1,9 @@
-"""Layer 2 — cross-reference consistency. Rules 2.1 – 2.10.
+"""Layer 2 — cross-reference consistency. Rules 2.1 – 2.11.
 
 2.4 (decomposition acyclicity) and 2.5 (depends_on / blocks mirror) are the
 two rules flagged as gaps in the POSIX reference; both are implemented here.
+2.11 (evidence tier floor under high-severity conditions) was added in the
+1.8 schema revision and is enforced identically across all three validators.
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ def check(
     findings.extend(_rule_2_8(manifest))
     findings.extend(_rule_2_9(manifest))
     findings.extend(_rule_2_10(manifest))
+    findings.extend(_rule_2_11(manifest))
 
     return findings
 
@@ -283,3 +286,60 @@ def _rule_2_10(manifest: dict[str, Any]) -> list[Finding]:
             )
         ]
     return []
+
+
+_HIGH_RISK_SURFACES = frozenset({"compliance", "real_world", "experience"})
+_HIGH_BREAKING_LEVELS = frozenset({"L2", "L3", "L4"})
+
+
+def _rule_2_11(manifest: dict[str, Any]) -> list[Finding]:
+    """At least one tier=critical evidence is required when high-severity
+    conditions apply: breaking_change >= L2, rollback mode 3, or a high-risk
+    surface (compliance / real_world / experience) touched with role=primary.
+
+    A missing `tier` field is treated as "standard" — pre-1.8 manifests remain
+    valid. The rule fires only when the manifest itself declares high severity.
+    """
+    breaking = manifest.get("breaking_change") or {}
+    rollback = manifest.get("rollback") or {}
+    rollback_mode = rollback.get("overall_mode") or rollback.get("mode")
+
+    high_risk_surface_primary = any(
+        isinstance(s, dict)
+        and s.get("role") == "primary"
+        and s.get("surface") in _HIGH_RISK_SURFACES
+        for s in (manifest.get("surfaces_touched") or [])
+    )
+
+    high_severity = (
+        breaking.get("level") in _HIGH_BREAKING_LEVELS
+        or rollback_mode == 3
+        or high_risk_surface_primary
+    )
+    if not high_severity:
+        return []
+
+    has_critical = any(
+        isinstance(ev, dict) and ev.get("tier") == "critical"
+        for ev in (manifest.get("evidence_plan") or [])
+    )
+    if has_critical:
+        return []
+
+    triggers = []
+    if breaking.get("level") in _HIGH_BREAKING_LEVELS:
+        triggers.append(f"breaking_change.level={breaking.get('level')}")
+    if rollback_mode == 3:
+        triggers.append("rollback.overall_mode=3")
+    if high_risk_surface_primary:
+        triggers.append("high-risk surface touched with role=primary")
+    return [
+        Finding(
+            rule_id="evidence.critical_required_for_high_severity",
+            severity="blocking",
+            detail=(
+                "at least one evidence_plan entry must be tier=critical when "
+                + " / ".join(triggers)
+            ),
+        )
+    ]

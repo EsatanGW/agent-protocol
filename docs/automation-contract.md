@@ -73,6 +73,7 @@ The automation layer must at minimum be able to answer three questions. Each tie
 - The evidence paths declared in `evidence_plan.artifacts` — are they locatable?
 - The third parties declared in `uncontrolled_interfaces` — are they in the dependency list?
 - If the declared breaking-change level is ≥ L2, does a corresponding migration document path exist?
+- **Evidence tier discipline** — when the manifest declares a high-severity condition (breaking-change ≥ L2, rollback mode 3, or a high-risk surface touched with role=primary), at least one evidence entry in `evidence_plan` must carry `tier: critical`. The `tier` field names the severity of a single evidence item and the Reviewer's waiver authority over it. See §Evidence tier below.
 
 Implementations at this tier **may** use stack-specific tooling (e.g. a bridge can use that language's AST parser to determine whether SoT files were actually modified) — because it compares against real code.
 But the **output format** still follows tier 1's uniform format.
@@ -89,6 +90,31 @@ But the **output format** still follows tier 1's uniform format.
 - Can compare a `delivered` manifest against Phase 8 observation presence (if the manifest declared it needed observation).
 
 This is the most expensive tier; it is recommended to run it only periodically on `main`, not on every PR.
+
+---
+
+## Evidence tier
+
+Each entry in `evidence_plan` carries an optional `tier` field with two values:
+
+| Tier | Meaning | Reviewer authority |
+|---|---|---|
+| `critical` | Missing / rejected evidence of this tier **blocks** Phase 6 sign-off. Cannot be waived into `residual_risk`; cannot be approved with a `conditional_approval`. | Reviewer may **upgrade** a `standard` entry to `critical` — this triggers a send-back to collect more evidence. Reviewer **must not downgrade** `critical` → `standard`. |
+| `standard` | Missing evidence may be recorded in `residual_risk` and the change approved with `approval_type: conditional_approval`. | Reviewer may judge on substance — standard is the default Reviewer posture. |
+
+A missing `tier` is treated as `standard` — this keeps pre-1.8 manifests valid. The Planner assigns tier at Phase 2 Plan based on the manifest's breaking-change level, rollback mode, and touched surfaces; automation enforces the floor (see Rule 2.11 in `automation-contract-algorithm.md`).
+
+**Automation floor — Rule 2.11.** Independent of any individual entry's declared tier, the manifest must contain at least one `tier: critical` evidence entry when any of the following conditions hold:
+
+- `breaking_change.level` ∈ {L2, L3, L4} — structural, removal, or semantic-reversal breaks require evidence strong enough to block shipping if missing.
+- `rollback.overall_mode == 3` — compensation-only rollback means evidence gaps cannot be fixed forward; if the Reviewer signs off with a missing `critical` entry, there is no safety net.
+- Any surface in `surfaces_touched` with `role: primary` is one of the high-risk surface extensions: `compliance`, `real_world`, or `experience` (from the extension-surface list in `docs/surfaces.md`). These three surfaces describe work whose consumers are humans, regulators, or the physical world — contexts where retroactive evidence collection is either impossible or too late.
+
+Violation of Rule 2.11 is **blocking**. The severity reflects that the same conditions also govern deprecation paths (§2.6) and compensation plans (§2.7) — tier is the evidence-layer counterpart of those two rules.
+
+**What Rule 2.11 does not do.** Rule 2.11 does not prescribe *which specific evidence types* must be critical — it requires at least one. The Planner still chooses which evidence best captures the high-severity risk (a migration dry-run for an L2 schema change is typically stronger than a screenshot-diff; a metric-diff for mode-3 rollback is typically stronger than a unit test). Rule 2.11 enforces the existence of at least one strong anchor, not the identity of the anchor.
+
+**Forward compatibility.** If a future schema revision adds a new surface family that warrants `critical` evidence, the rule can be extended without changing existing manifests — the floor only rises, never falls.
 
 ---
 

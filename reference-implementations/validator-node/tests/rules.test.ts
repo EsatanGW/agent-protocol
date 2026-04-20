@@ -214,3 +214,93 @@ describe("exit-code mapping", () => {
     assert.equal(computeExitCode(all), 0);
   });
 });
+
+// ─── Rule 2.11 — evidence tier floor under high-severity conditions ─────
+
+const RULE_2_11_ID = "evidence.critical_required_for_high_severity";
+
+function manifestWith(opts: {
+  breakingLevel?: string;
+  rollbackMode?: number;
+  surfaces?: Array<{ surface: string; role: string }>;
+  evidence?: Array<Record<string, unknown>>;
+}) {
+  return {
+    change_id: "2026-04-21-rule-2-11-test",
+    breaking_change: { level: opts.breakingLevel ?? "L0" },
+    rollback: { overall_mode: opts.rollbackMode ?? 1 },
+    surfaces_touched: opts.surfaces ?? [{ surface: "user", role: "primary" }],
+    evidence_plan: opts.evidence ?? [],
+  };
+}
+
+describe("rule 2.11 — evidence tier floor", () => {
+  it("fires on L2 without tier=critical", () => {
+    const findings = layer2.rule2_11(
+      manifestWith({
+        breakingLevel: "L2",
+        evidence: [{ type: "unit_test", surface: "user", status: "collected", tier: "standard" }],
+      })
+    );
+    assert.ok(findings.some(f => f.rule_id === RULE_2_11_ID && f.severity === "blocking"));
+  });
+
+  it("fires on rollback mode 3 without tier=critical", () => {
+    const findings = layer2.rule2_11(
+      manifestWith({
+        rollbackMode: 3,
+        evidence: [{ type: "unit_test", surface: "user", status: "collected" }],
+      })
+    );
+    assert.ok(findings.some(f => f.rule_id === RULE_2_11_ID));
+  });
+
+  it("fires on compliance-primary surface without tier=critical", () => {
+    const findings = layer2.rule2_11(
+      manifestWith({
+        surfaces: [{ surface: "compliance", role: "primary" }],
+        evidence: [{ type: "changelog_entry", surface: "compliance", status: "planned" }],
+      })
+    );
+    assert.ok(findings.length > 0 && findings[0]!.rule_id === RULE_2_11_ID);
+  });
+
+  it("silent when tier=critical is present", () => {
+    const findings = layer2.rule2_11(
+      manifestWith({
+        breakingLevel: "L3",
+        rollbackMode: 3,
+        evidence: [
+          { type: "unit_test", surface: "user", status: "collected", tier: "standard" },
+          { type: "migration_dry_run", surface: "information", status: "collected", tier: "critical" },
+        ],
+      })
+    );
+    assert.deepEqual(findings, []);
+  });
+
+  it("silent when no high-severity condition applies (backward compat)", () => {
+    const findings = layer2.rule2_11(
+      manifestWith({
+        breakingLevel: "L0",
+        rollbackMode: 1,
+        surfaces: [{ surface: "user", role: "primary" }],
+        evidence: [{ type: "unit_test", surface: "user", status: "collected" }],
+      })
+    );
+    assert.deepEqual(findings, []);
+  });
+
+  it("silent when high-risk surface is in consumer role (not primary)", () => {
+    const findings = layer2.rule2_11(
+      manifestWith({
+        surfaces: [
+          { surface: "user", role: "primary" },
+          { surface: "compliance", role: "consumer" },
+        ],
+        evidence: [{ type: "unit_test", surface: "user", status: "collected" }],
+      })
+    );
+    assert.deepEqual(findings, []);
+  });
+});

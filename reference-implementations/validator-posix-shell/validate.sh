@@ -160,6 +160,42 @@ if [ "$phase" = "observe" ]; then
         && emit blocking "handoff.narrative_required_for_observe" "phase=observe but no handoff_narrative"
 fi
 
+# 2.11 Evidence tier floor under high-severity conditions.
+#      Added in schema 1.8. If breaking_change.level >= L2, rollback mode 3,
+#      or a high-risk surface (compliance / real_world / experience) is
+#      touched with role=primary, at least one evidence entry must have
+#      tier=critical. Missing `tier` is treated as standard (pre-1.8
+#      manifests remain valid — the rule only fires when the manifest
+#      itself declares high severity).
+high_severity=0
+case "$level" in
+    L2|L3|L4) high_severity=1 ;;
+esac
+[ "$mode" = "3" ] && high_severity=1
+hr_primary=$(q '.surfaces_touched[] | select(.role == "primary") | select(.surface == "compliance" or .surface == "real_world" or .surface == "experience") | .surface' | head -n1)
+[ -n "$hr_primary" ] && high_severity=1
+
+if [ "$high_severity" = "1" ]; then
+    has_critical=$(q '.evidence_plan[] | select(.tier == "critical") | .tier' | head -n1)
+    if [ -z "$has_critical" ]; then
+        # Build detail with the triggers that fired.
+        triggers=""
+        case "$level" in
+            L2|L3|L4) triggers="breaking_change.level=$level" ;;
+        esac
+        if [ "$mode" = "3" ]; then
+            [ -n "$triggers" ] && triggers="$triggers / rollback.overall_mode=3" \
+                || triggers="rollback.overall_mode=3"
+        fi
+        if [ -n "$hr_primary" ]; then
+            [ -n "$triggers" ] && triggers="$triggers / high-risk surface '$hr_primary' with role=primary" \
+                || triggers="high-risk surface '$hr_primary' with role=primary"
+        fi
+        emit blocking "evidence.critical_required_for_high_severity" \
+            "at least one evidence_plan entry must be tier=critical when $triggers"
+    fi
+fi
+
 # ─── Layer 3: drift detection (optional, requires base ref) ───────────────
 
 if [ -n "$BASE_REF" ] && command -v git >/dev/null 2>&1; then

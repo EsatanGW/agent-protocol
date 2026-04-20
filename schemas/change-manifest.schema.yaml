@@ -614,6 +614,21 @@ properties:
         status:
           type: string
           enum: [planned, in_progress, collected, rejected]
+        tier:
+          type: string
+          enum: [critical, standard]
+          description: |
+            Severity of this evidence item. `critical` evidence must be
+            collected — missing or rejected `critical` evidence blocks
+            Phase 6 sign-off and cannot be waived into `residual_risk`.
+            `standard` evidence may be moved to `residual_risk` with
+            `conditional_approval`. If absent, treated as `standard`
+            (default) for backward compatibility with pre-1.8 manifests.
+            The Planner assigns `tier` at Phase 2 Plan; the Reviewer may
+            upgrade `standard` → `critical` (which triggers send-back
+            to collect more evidence) but must not downgrade.
+            See docs/automation-contract.md §Evidence tier and
+            docs/automation-contract-algorithm.md §Rule 2.11.
         artifact_location:
           type: string
           description: "File path, URL, or stable reference. Required when status == collected."

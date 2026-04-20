@@ -1,4 +1,7 @@
-// Layer 2 — cross-reference consistency. Rules 2.1 – 2.10.
+// Layer 2 — cross-reference consistency. Rules 2.1 – 2.11.
+//
+// 2.11 (evidence tier floor under high-severity conditions) was added in the
+// 1.8 schema revision and is enforced identically across all three validators.
 
 import * as path from "node:path";
 import { existsSync } from "node:fs";
@@ -22,6 +25,7 @@ export function check(
   out.push(...rule2_8(manifest));
   out.push(...rule2_9(manifest));
   out.push(...rule2_10(manifest));
+  out.push(...rule2_11(manifest));
   return out;
 }
 
@@ -311,4 +315,55 @@ function rule2_10(manifest: Manifest): Finding[] {
     ];
   }
   return [];
+}
+
+// Rule 2.11 — evidence tier floor under high-severity conditions.
+// At least one evidence_plan entry must be tier=critical when: breaking_change
+// level >= L2, rollback mode 3, or a high-risk surface (compliance /
+// real_world / experience) is touched with role=primary. Missing `tier` is
+// treated as "standard" for backward compatibility with pre-1.8 manifests.
+
+const HIGH_RISK_SURFACES = new Set(["compliance", "real_world", "experience"]);
+const HIGH_BREAKING_LEVELS = new Set(["L2", "L3", "L4"]);
+
+export function rule2_11(manifest: Manifest): Finding[] {
+  const breaking = (manifest["breaking_change"] as Record<string, unknown>) || {};
+  const rollback = (manifest["rollback"] as Record<string, unknown>) || {};
+  const rollbackMode = rollback["overall_mode"] ?? rollback["mode"];
+
+  const surfaces = (manifest["surfaces_touched"] as unknown[]) || [];
+  const highRiskSurfacePrimary = surfaces.some(s => {
+    if (!s || typeof s !== "object" || Array.isArray(s)) return false;
+    const rec = s as Record<string, unknown>;
+    return rec["role"] === "primary" && HIGH_RISK_SURFACES.has(rec["surface"] as string);
+  });
+
+  const highSeverity =
+    HIGH_BREAKING_LEVELS.has(breaking["level"] as string) ||
+    rollbackMode === 3 ||
+    highRiskSurfacePrimary;
+
+  if (!highSeverity) return [];
+
+  const evidence = (manifest["evidence_plan"] as unknown[]) || [];
+  const hasCritical = evidence.some(ev => {
+    if (!ev || typeof ev !== "object" || Array.isArray(ev)) return false;
+    return (ev as Record<string, unknown>)["tier"] === "critical";
+  });
+  if (hasCritical) return [];
+
+  const triggers: string[] = [];
+  if (HIGH_BREAKING_LEVELS.has(breaking["level"] as string)) {
+    triggers.push(`breaking_change.level=${breaking["level"]}`);
+  }
+  if (rollbackMode === 3) triggers.push("rollback.overall_mode=3");
+  if (highRiskSurfacePrimary) triggers.push("high-risk surface touched with role=primary");
+
+  return [
+    makeFinding(
+      "evidence.critical_required_for_high_severity",
+      "blocking",
+      `at least one evidence_plan entry must be tier=critical when ${triggers.join(" / ")}`
+    ),
+  ];
 }

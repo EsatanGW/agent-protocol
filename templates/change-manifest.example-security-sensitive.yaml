@@ -253,6 +253,7 @@ evidence_plan:
   - type: security_scan
     surface: system_interface
     status: collected
+    tier: critical                                  # SAST on identity-plane; missing blocks ship under compliance primary + Mode 3
     artifact_location: "ci/reports/sast-identity-2026-04-20.sarif"
     summary: "SAST + secret-scanning green; no hard-coded key material; new flag gated via secret store."
     validated_by: "github-actions/sast"
@@ -261,6 +262,7 @@ evidence_plan:
   - type: security_scan
     surface: information
     status: collected
+    tier: critical                                  # Threat-model diff — regulatory expectation; unwaiveable
     artifact_location: "evidence/threat-model/jwt-rotation-diff-2026-04-20.md"
     summary: |
       Threat model diff vs baseline: two new threats enumerated (compromised
@@ -272,6 +274,7 @@ evidence_plan:
   - type: integration_test
     surface: system_interface
     status: collected
+    tier: standard
     artifact_location: "ci/reports/jwt-dual-kid-integration-2026-04-20.html"
     summary: |
       Integration test: issue-with-old / verify-with-old; issue-with-new /
@@ -284,6 +287,7 @@ evidence_plan:
   - type: runbook_update
     surface: operational
     status: collected
+    tier: standard
     artifact_location: "docs/runbooks/jwt-rotation.md"
     summary: |
       Runbook dry-run against staging identity service: full 7-step
@@ -296,6 +300,7 @@ evidence_plan:
   - type: changelog_entry
     surface: compliance
     status: collected
+    tier: critical                                  # Regulatory audit-trail; unwaiveable evidence for compliance surface
     artifact_location: "compliance/audit-trail/2026-Q2-rotations.md"
     summary: "Q2-2026 key-rotation entry added; references change_id + runbook; signed off by compliance officer."
     validated_by: "compliance-team@internal"

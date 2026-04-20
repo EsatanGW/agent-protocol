@@ -1065,6 +1065,14 @@
               "rejected"
             ]
           },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "standard"
+            ],
+            "description": "Severity of this evidence item. `critical` evidence must be\ncollected \u2014 missing or rejected `critical` evidence blocks\nPhase 6 sign-off and cannot be waived into `residual_risk`.\n`standard` evidence may be moved to `residual_risk` with\n`conditional_approval`. If absent, treated as `standard`\n(default) for backward compatibility with pre-1.8 manifests.\nThe Planner assigns `tier` at Phase 2 Plan; the Reviewer may\nupgrade `standard` \u2192 `critical` (which triggers send-back\nto collect more evidence) but must not downgrade.\nSee docs/automation-contract.md \u00a7Evidence tier and\ndocs/automation-contract-algorithm.md \u00a7Rule 2.11.\n"
+          },
           "artifact_location": {
             "type": "string",
             "description": "File path, URL, or stable reference. Required when status == collected."

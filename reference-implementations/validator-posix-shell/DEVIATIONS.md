@@ -5,7 +5,7 @@ Tracks where this POSIX-shell reference differs from `docs/automation-contract-a
 ## Implemented
 
 - Layer 1: all rules (1.1 – 1.4). JSON Schema validation is delegated to an external validator binary; all other Layer-1 rules are implemented directly.
-- Layer 2: rules 2.1, 2.2, 2.3, 2.6, 2.7, 2.8, 2.9, 2.10.
+- Layer 2: rules 2.1, 2.2, 2.3, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11.
 - Layer 3: rules 3.1, 3.3, 3.5.
 - Waiver filtering: full.
 - Exit code mapping: full.

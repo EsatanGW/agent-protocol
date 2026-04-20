@@ -153,6 +153,32 @@ function check_layer_2(manifest, repo_root):
     if manifest.phase == "observe" and not present(manifest.handoff_narrative):
         errors.append({ rule: "handoff.narrative_required_for_observe", severity: "blocking" })
 
+    # 2.11 High-severity conditions require at least one tier=critical evidence.
+    #      Tier is an optional field on each evidence_plan item; absent tier
+    #      is treated as "standard" for backward compatibility with pre-1.8
+    #      manifests. Rule 2.11 only fires when the manifest itself declares
+    #      a high-severity condition.
+    high_severity = (
+        manifest.breaking_change.level in ["L2", "L3", "L4"]
+        or manifest.rollback.overall_mode == 3
+        or any(
+            s.role == "primary"
+            and s.surface in ["compliance", "real_world", "experience"]
+            for s in manifest.surfaces_touched
+        )
+    )
+    if high_severity:
+        has_critical = any(
+            ev.tier == "critical"
+            for ev in manifest.evidence_plan
+        )
+        if not has_critical:
+            errors.append({
+                rule: "evidence.critical_required_for_high_severity",
+                severity: "blocking",
+                detail: "high-severity conditions require ≥1 evidence with tier=critical"
+            })
+
     return errors
 ```
 

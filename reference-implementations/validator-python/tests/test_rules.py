@@ -137,3 +137,91 @@ def test_waiver_downgrades_blocking_to_waived():
 def test_surface_map_globstar(path, expected_pattern):
     surface_map = load_surface_map(FIXTURES / "surface-map-flutter.yaml")
     assert surface_map.surfaces_for_path(path)
+
+
+# ─── Rule 2.11 — evidence tier floor under high-severity conditions ─────
+
+RULE_2_11_ID = "evidence.critical_required_for_high_severity"
+
+
+def _manifest_with(
+    *,
+    breaking_level: str = "L0",
+    rollback_mode: int = 1,
+    surfaces: list[dict] | None = None,
+    evidence: list[dict] | None = None,
+) -> dict:
+    return {
+        "change_id": "2026-04-21-rule-2-11-test",
+        "breaking_change": {"level": breaking_level},
+        "rollback": {"overall_mode": rollback_mode},
+        "surfaces_touched": surfaces or [{"surface": "user", "role": "primary"}],
+        "evidence_plan": evidence or [],
+    }
+
+
+def test_rule_2_11_fires_on_l2_without_critical():
+    manifest = _manifest_with(
+        breaking_level="L2",
+        evidence=[{"type": "unit_test", "surface": "user", "status": "collected", "tier": "standard"}],
+    )
+    findings = layer2._rule_2_11(manifest)
+    assert any(f.rule_id == RULE_2_11_ID and f.severity == "blocking" for f in findings)
+
+
+def test_rule_2_11_fires_on_mode_3_without_critical():
+    manifest = _manifest_with(
+        rollback_mode=3,
+        evidence=[{"type": "unit_test", "surface": "user", "status": "collected"}],  # no tier == standard
+    )
+    findings = layer2._rule_2_11(manifest)
+    assert any(f.rule_id == RULE_2_11_ID for f in findings)
+
+
+def test_rule_2_11_fires_on_compliance_primary_without_critical():
+    manifest = _manifest_with(
+        surfaces=[{"surface": "compliance", "role": "primary"}],
+        evidence=[{"type": "changelog_entry", "surface": "compliance", "status": "planned"}],
+    )
+    findings = layer2._rule_2_11(manifest)
+    assert findings and findings[0].rule_id == RULE_2_11_ID
+
+
+def test_rule_2_11_silent_when_critical_present():
+    manifest = _manifest_with(
+        breaking_level="L3",
+        rollback_mode=3,
+        evidence=[
+            {"type": "unit_test", "surface": "user", "status": "collected", "tier": "standard"},
+            {"type": "migration_dry_run", "surface": "information", "status": "collected", "tier": "critical"},
+        ],
+    )
+    findings = layer2._rule_2_11(manifest)
+    assert findings == []
+
+
+def test_rule_2_11_silent_when_no_high_severity_condition():
+    """Backward compat: L0 / Mode 1 / non-high-risk surface with no tier field
+    on any evidence entry (pre-1.8 manifest shape) must not trigger the rule.
+    """
+    manifest = _manifest_with(
+        breaking_level="L0",
+        rollback_mode=1,
+        surfaces=[{"surface": "user", "role": "primary"}],
+        evidence=[{"type": "unit_test", "surface": "user", "status": "collected"}],
+    )
+    findings = layer2._rule_2_11(manifest)
+    assert findings == []
+
+
+def test_rule_2_11_silent_when_high_risk_surface_is_not_primary():
+    """A high-risk surface in the `consumer` role does not trigger 2.11."""
+    manifest = _manifest_with(
+        surfaces=[
+            {"surface": "user", "role": "primary"},
+            {"surface": "compliance", "role": "consumer"},
+        ],
+        evidence=[{"type": "unit_test", "surface": "user", "status": "collected"}],
+    )
+    findings = layer2._rule_2_11(manifest)
+    assert findings == []

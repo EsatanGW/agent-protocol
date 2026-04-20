@@ -194,6 +194,7 @@ evidence_plan:
   - type: contract_test
     surface: system_interface
     status: collected
+    tier: standard                                  # system_interface is a consumer surface here; standard sufficient
     artifact_location: "ci/reports/pull-proto-contract-2026-04-16.html"
     validated_by: "github-actions/contract-test"
     collected_at: "2026-04-16T14:00:00Z"
@@ -201,6 +202,7 @@ evidence_plan:
   - type: integration_test
     surface: information
     status: collected
+    tier: standard
     artifact_location: "ci/reports/rate-config-resolution-2026-04-16.log"
     summary: "Verified variant resolution for 6 regions x 3 event windows."
     validated_by: "github-actions/integration"
@@ -209,6 +211,7 @@ evidence_plan:
   - type: load_test
     surface: operational
     status: collected
+    tier: standard
     artifact_location: "perf/reports/pull-service-2026-04-17.html"
     summary: "10k pulls/sec for 30 min; p95 latency 95ms; no rate drift observed."
     validated_by: "perf-team"
@@ -217,6 +220,7 @@ evidence_plan:
   - type: playtest_result
     surface: experience
     status: collected
+    tier: critical                                  # experience is primary + Mode 3 rollback; satisfies rule 2.11
     artifact_location: "playtest/ssr-event-q2-L2.md"
     summary: "L2 playtest, 6 participants, rubric pass. See playtest section."
     validated_by: "game-design"
@@ -225,11 +229,13 @@ evidence_plan:
   - type: reconciliation_report
     surface: compliance
     status: planned
+    tier: critical                                  # Post-event rate disclosure — regulatory evidence; cannot be waived
     summary: "Post-event: actual SSR rate vs configured vs disclosed, per region."
 
   - type: runbook_update
     surface: operational
     status: collected
+    tier: standard
     artifact_location: "docs/runbooks/gacha-rate-misconfig.md"
     validated_by: "ops-lead"
     collected_at: "2026-04-17T10:00:00Z"
