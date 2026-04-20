@@ -16,7 +16,7 @@ search, write, shell execution, sub-agent delegation), not tool names.
 
 | Runtime | Mechanism | Enforcement |
 |---------|-----------|-------------|
-| **Claude Code** | Sub-agent definitions under `.claude-plugin/agents/{planner,implementer,reviewer}.md` with `tools:` frontmatter | **Mechanical** — the runtime refuses to expose tools outside the whitelist |
+| **Claude Code** | Sub-agent definitions under `agents/{planner,implementer,reviewer}.md` with `tools:` frontmatter | **Mechanical** — the runtime refuses to expose tools outside the whitelist |
 | **Cursor** | Custom Mode per role (Cursor → Settings → Chat → Custom Modes) + role-scoped rule files under `.cursor/rules/{planner,implementer,reviewer}.mdc` | **Partial-mechanical** — Custom Modes constrain the tool surface; rule files set the system prompt |
 | **Gemini CLI** | Paste as the persona prompt at session start; run each role in a separate session to isolate context | **Human-process** — the CLI cannot prevent a persona from calling tools the persona was told not to |
 | **Windsurf** | Paste into Cascade / planning / reviewing modes as the mode-scoped system prompt | **Human-process** — same limitation |

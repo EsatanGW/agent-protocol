@@ -41,6 +41,34 @@ _None._
 
 ## Closed initiatives
 
+## plugin-layout-conformance — move plugin components to Claude Code plugin-root convention (patch 1.7.3)
+
+- **Opened:** 2026-04-20
+- **Closed:** 2026-04-20
+- **Driver:** User opened the Claude Desktop → Code → Customize panel for this plugin and noticed the detail view listed only the **Skills** tab — no **Agents** or **Hooks** tabs — even though the repo shipped three sub-agent definitions and five hook scripts since 1.6.0. Diagnosis against the reference `openai-codex` plugin (which shows all three tabs) and against the Claude Code plugin docs (https://code.claude.com/docs/en/plugins.md §Common mistake: "Don't put `commands/`, `agents/`, `skills/`, or `hooks/` inside the `.claude-plugin/` directory. Only `plugin.json` goes inside `.claude-plugin/`") confirmed the root cause: the 1.6.0 role artifacts were placed under `.claude-plugin/agents/` and the Claude Code reference hooks were never exposed as plugin-level hooks, only as an opt-in `settings.example.json`. The autoloader does not scan `.claude-plugin/agents/` or `.claude-plugin/hooks/`, so the Customize panel could not discover either surface. Bug pre-existed from 1.6.0 for agents and from 1.3.0 for hooks — surfaced now because the Customize panel is the first place the layout mistake becomes visible to a user.
+- **Status:** closed
+- **Target version:** 1.7.3 (patch — plugin packaging fix, no schema / contract / methodology changes; `git mv` preserves file history)
+- **Phases:** table below
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Open this ROADMAP entry | `ROADMAP.md` new closed-initiative row with phase table | Initiative section renders with driver + scope documented | ✅ passed | _(this change)_ | Opens before any implementation per `phase-gate-discipline.md`; patch-sized so logged at close-time in the same commit, matching the 1.7.1 / 1.7.2 pattern |
+| P1 | Move agents to plugin root | `git mv .claude-plugin/agents agents` (preserves file history); `.claude-plugin/` retains only `plugin.json` + `marketplace.json` | `ls agents/` shows three files (`planner.md`, `implementer.md`, `reviewer.md`); `ls .claude-plugin/` shows only the two manifests; `git status` shows three renames not three delete+add pairs | ✅ passed | _(this change)_ | Matches the layout of the reference `openai-codex` plugin and the Claude Code plugin docs |
+| P2 | Add plugin-level hooks entry point | `hooks/hooks.json` at plugin root, wiring five reference hook scripts via `${CLAUDE_PLUGIN_ROOT}/reference-implementations/hooks-claude-code/hooks/*.sh` onto `PreToolUse` (Bash git commit / Bash git push), `PostToolUse` (Edit / Write / MultiEdit), and `Stop` events | `python3 -m json.tool hooks/hooks.json` reports valid JSON; all five referenced scripts exist and are executable under `reference-implementations/hooks-claude-code/hooks/` | ✅ passed | _(this change)_ | Thin wrapper, not a relocation — scripts stay under `reference-implementations/` so the Cursor / Gemini CLI / Windsurf / Codex bridges can still reference the same source |
+| P3 | Cross-reference sweep | `README.md` (layout tree `.claude-plugin/agents/` → `agents/` + new `hooks/` entry; auto-load sentence lists all four autoload surfaces); `AGENTS.md §7` (`.claude-plugin/agents/{...}` → `agents/{...}`); `docs/multi-agent-handoff.md §Enforcement across runtimes` (same edit); `reference-implementations/roles/README.md` (same edit) | `grep -rn '\.claude-plugin/agents' --include='*.md'` returns only `CHANGELOG.md` + `ROADMAP.md` (historical record, intentionally not rewritten per `CLAUDE.md §3`) | ✅ passed | _(this change)_ | Cross-cutting-term discipline: when the canonical path moves, all consumers in the same change must move |
+| P4 | User verification in Claude Desktop | Customize panel loaded against the renamed layout shows all three tabs (Skills / Agents / Hooks) | User confirmed in conversation: "我成功看到了三個 tab（Skills / Agents / Hooks）" | ✅ passed | _(this change)_ | End-to-end evidence that the fix actually resolves the reported symptom, not just the alleged root cause |
+| P5 | Release 1.7.3 | `.claude-plugin/plugin.json` + `marketplace.json` + README badge `1.7.2 → 1.7.3`; `CHANGELOG.md` `[1.7.3] - 2026-04-20` entry under Fixed / Added / Changed; `CHANGELOG.json` regenerated; this ROADMAP initiative closed in the same commit | `sh .github/scripts/check-version-consistency.sh` reports `OK: all five declarations agree on 1.7.3`; full self-validation suite passes; CI green on push | ✅ passed | _(this change)_ | Standard patch-release procedure per `VERSIONING.md`; git tag `v1.7.3` created matching the 1.7.2 tagging convention |
+
+### Phase log
+
+- Root cause was a layout-discoverability bug, not a methodology or contract change — the tool-permission-matrix-enforced sub-agent definitions worked correctly when invoked, they just were not being advertised by the runtime to the end-user. All methodology documents retained their meaning; only the physical location of the bridge artifacts moved.
+- Why patch, not minor: no new capabilities, no new examples, no new templates, no workflow-guidance changes — only a packaging conformance fix + a thin wrapper that exposes already-shipped hooks through the official plugin entry point. Matches the `VERSIONING.md` patch category ("small ... fixes, non-semantic ... improvements").
+- Why the scripts stayed under `reference-implementations/hooks-claude-code/hooks/` instead of moving to `hooks/`: the four non-Claude bridges (Cursor / Gemini CLI / Windsurf / Codex) reference those same scripts through the reference-implementations path. Moving them would have broken four other runtime bridges to fix the Claude Code entry point — a thin wrapper at `hooks/hooks.json` using `${CLAUDE_PLUGIN_ROOT}` relative paths avoided that trade-off entirely.
+- Historical `.claude-plugin/agents/` references in `CHANGELOG.md` / `CHANGELOG.json` / the closed ROADMAP entries for 1.6.0 P2–P3 were intentionally left intact. CLAUDE.md §3 makes the repo's position explicit: CHANGELOG is a factual record, past entries describe what was true at the time of that release, and renaming them to match a later layout erases the rename signal. Future readers who search for "where did the 1.6.0 agent frontmatter contract live" will correctly find the `.claude-plugin/agents/` form, matching the repo state at 1.6.0.
+- Closed 2026-04-20 at commit `(this release)` after all six phases passed. P5 release verified via `sh .github/scripts/check-version-consistency.sh` reporting `OK: all five declarations agree on 1.7.3`.
+
+---
+
 ## first-ci-run-bug-fixes — fix two pre-existing bugs exposed by first-ever CI run (patch 1.7.2)
 
 - **Opened:** 2026-04-20

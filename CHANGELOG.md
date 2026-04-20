@@ -6,6 +6,20 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-04-20
+
+### Fixed
+
+- **Claude Code plugin layout non-conformance** — `agents/` and `hooks/` were placed under `.claude-plugin/`, which violates the Claude Code plugin convention that requires components at plugin root and only `plugin.json` inside `.claude-plugin/` (per https://code.claude.com/docs/en/plugins.md). The Customize panel in Claude Desktop silently listed only the Skills tab for this plugin; Agents and Hooks never surfaced because the autoloader does not scan `.claude-plugin/agents/` or `.claude-plugin/hooks/`. Moved the three sub-agent definitions from `.claude-plugin/agents/` to `agents/` (via `git mv` so history is preserved). Pre-existed from 1.6.0 when the role artifacts were introduced; surfaced now because the discoverability gap was not visible until the Claude Desktop Customize panel was inspected directly.
+
+### Added
+
+- **`hooks/hooks.json` plugin entry point** — a thin wrapper that makes the existing Claude Code hook bundle discoverable as plugin hooks. Wires the five reference hooks (`manifest-required`, `evidence-artifact-exists`, `consumer-registry-check`, `sot-drift-check`, `completion-audit`) onto `PreToolUse` / `PostToolUse` / `Stop` events using `${CLAUDE_PLUGIN_ROOT}` paths. Scripts continue to live under `reference-implementations/hooks-claude-code/hooks/` so that the Cursor / Gemini CLI / Windsurf / Codex bridges can reference the same source — no duplication. Users can toggle individual hooks on or off in the Customize panel.
+
+### Changed
+
+- **Cross-reference sweep for the new plugin layout** — `README.md` layout tree updated so `agents/` and `hooks/` are shown at plugin root with `.claude-plugin/` reduced to the two manifest files; README auto-load sentence now names all four autoload surfaces (`plugin.json`, `skills/*/SKILL.md`, `agents/*.md`, `hooks/hooks.json`) with an inline reminder that components live at plugin root, not under `.claude-plugin/`; `AGENTS.md §7`, `docs/multi-agent-handoff.md` §Enforcement across runtimes, and `reference-implementations/roles/README.md` all updated from `.claude-plugin/agents/{...}` to `agents/{...}`. Historical references under `CHANGELOG.md` / `CHANGELOG.json` / `ROADMAP.md` closed-initiative entries intentionally left as-is per the repo's "CHANGELOG is a factual record, do not rewrite history" discipline (CLAUDE.md §3).
+
 ## [1.7.2] - 2026-04-20
 
 ### Fixed

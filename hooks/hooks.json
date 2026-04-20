@@ -1,0 +1,85 @@
+{
+  "_comment": "Plugin entry point for Claude Code auto-discovery. Wires the Claude Code reference hooks bundle (per docs/runtime-hook-contract.md) onto Claude Code's native hook events. Scripts live under reference-implementations/hooks-claude-code/hooks/ so that other runtime bridges (Cursor, Gemini CLI, Windsurf, Codex) can reference the same source. Users can toggle these on/off in the Claude Code Customize panel. The agentProtocol.{category,level,ruleIds} fields are documentation aids — Claude Code ignores unknown keys.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/reference-implementations/hooks-claude-code/hooks/manifest-required.sh",
+            "description": "Category A (phase-gate): block non-trivial git commit if no Change Manifest is staged",
+            "agentProtocol": {
+              "category": "phase-gate",
+              "level": "block",
+              "ruleIds": ["phase-gate.manifest-required"]
+            }
+          },
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/reference-implementations/hooks-claude-code/hooks/evidence-artifact-exists.sh",
+            "description": "Category B (evidence): block git commit when evidence_plan paths do not resolve",
+            "agentProtocol": {
+              "category": "evidence",
+              "level": "block",
+              "ruleIds": ["evidence.artifact-exists"]
+            }
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git push*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/reference-implementations/hooks-claude-code/hooks/consumer-registry-check.sh",
+            "description": "Category C (drift, network): warn when declared consumer registries are unreachable; never blocks",
+            "agentProtocol": {
+              "category": "drift",
+              "level": "warn",
+              "ruleIds": ["drift.consumer-registry-stale"]
+            }
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/reference-implementations/hooks-claude-code/hooks/sot-drift-check.sh",
+            "description": "Category C (drift): warn when a declared SoT source is not being touched",
+            "agentProtocol": {
+              "category": "drift",
+              "level": "warn",
+              "ruleIds": ["drift.sot-file-must-move"]
+            }
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/reference-implementations/hooks-claude-code/hooks/completion-audit.sh",
+            "description": "Category D (completion-audit): block end-of-turn when manifest says 'done' dishonestly",
+            "agentProtocol": {
+              "category": "completion-audit",
+              "level": "block",
+              "ruleIds": [
+                "completion.evidence-complete",
+                "completion.unaccepted-risk",
+                "completion.unresolved-escalation",
+                "completion.observe-needs-narrative"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
