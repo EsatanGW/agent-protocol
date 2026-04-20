@@ -149,7 +149,9 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 
 **Structured output (AI contract artifact):**
 
-- `schemas/change-manifest.schema.yaml` — JSON Schema 2020-12 (YAML form)
+- `schemas/change-manifest.schema.yaml` — JSON Schema 2020-12 (canonical YAML form, comments + anchors preserved)
+- `schemas/change-manifest.schema.json` — generated JSON mirror for Node / browser / GitHub Actions consumers; `.github/scripts/generate-schema-json.py --check` enforces parity in CI
+- `schemas/surface-map.schema.yaml` + `.json` — per-bridge surface-map artifact (same dual-format discipline)
 - `templates/change-manifest.example-crud.yaml` — simple CRUD example
 - `templates/change-manifest.example-mobile-offline.yaml` — offline-first mobile example
 - `templates/change-manifest.example-game-gacha.yaml` — live-ops game example
@@ -174,6 +176,8 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 
 - `reference-implementations/` — directory index; every sub-implementation ships `README.md` + `DEVIATIONS.md` + source + self-test.
 - `reference-implementations/validator-posix-shell/` — POSIX-shell reference validator (needs `yq`, `git`, and an external JSON Schema validator via `$SCHEMA_VALIDATOR`). Implements most of the algorithm; `DEVIATIONS.md` documents the three deliberate gaps.
+- `reference-implementations/validator-python/` — Python 3.10+ language-native validator; closes rules 2.4 / 2.5 / 3.2 / 3.4 via PyYAML + jsonschema. Recommended when CI already has a Python interpreter. Pytest suite under `tests/`.
+- `reference-implementations/validator-node/` — TypeScript / Node 20+ language-native validator; identical rule coverage and exit-code contract to the Python reference. Recommended for Node-based CI or editor integrations; runtime deps limited to `yaml` + `ajv` + `glob`. Test suite via `node --test`.
 - `reference-implementations/roles/` — runtime-neutral Planner / Implementer / Reviewer role prompts. Paste-ready for Cursor Custom Mode, Gemini CLI session, Windsurf mode, Codex profile. Mirrors the §7 permission matrix in prose for runtimes that cannot gate tool exposure per persona.
 
 **Stack bridges (opt-in, the only place where tool / framework / language names appear):**

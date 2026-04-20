@@ -65,8 +65,10 @@ The two historical onboarding files (`quick-start.md` and `if-you-only-read-one-
 - `docs/multi-agent-handoff.md` — agent roles, manifest progression, **Enforcement across runtimes** (which runtimes enforce mechanically vs prose-only)
 - `docs/ai-project-memory.md` — cross-session memory discipline
 - `docs/automation-contract.md` — what a validator must guarantee
+- `docs/runtime-hook-contract.md` — normative contract for agent-runtime event-driven hooks (categories, event schema, latency budgets); pair with [`docs/runtime-hooks-in-practice.md`](../runtime-hooks-in-practice.md) for install + adoption steps
 - `docs/adoption-anti-metrics.md` — **non-normative** diagnostic aids for telling substantive adoption from ceremonial adoption
 - `reference-implementations/roles/` — runtime-neutral Planner / Implementer / Reviewer role prompts (paste-ready for Cursor Custom Mode, Gemini CLI session, Windsurf mode, Codex profile)
+- `reference-implementations/validator-{posix-shell,python,node}/` — three non-normative language references for the automation contract; the Python and Node references close all rules (including 2.4 / 2.5 / 3.2 / 3.4) and agree on exit codes + rule IDs
 
 **You pick one when relevant to your stack:**
 - `docs/bridges/flutter-stack-bridge.md`
@@ -223,9 +225,12 @@ Canonical doc list, ordered by when you'll typically read it.
 
 ### Contract + automation
 
-- `docs/change-manifest-spec.md` — machine-readable output contract.
+- `docs/change-manifest-spec.md` — machine-readable output contract (includes the "Deprecating a field" decision table for the schema's `$defs.deprecation` marker).
 - `docs/automation-contract-algorithm.md` — normative validator algorithm.
-- `reference-implementations/` — non-normative example validators.
+- `docs/runtime-hook-contract.md` + `docs/runtime-hooks-in-practice.md` — normative runtime-hook contract + the how-to companion (install, adapter wiring, adoption ramp).
+- `schemas/change-manifest.schema.yaml` + `.json` + `schemas/surface-map.schema.yaml` + `.json` — dual-format schemas; the JSON mirrors are generated from the YAML canonicals and drift-checked in CI.
+- `CHANGELOG.json` — generated machine-readable release feed alongside the human `CHANGELOG.md`.
+- `reference-implementations/validator-{posix-shell,python,node}/` — non-normative example validators in three languages.
 
 ### Stack bridges (pick one for your stack)
 

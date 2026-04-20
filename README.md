@@ -29,7 +29,7 @@ Install once; it works across Claude Code, Cursor, Gemini CLI, Windsurf, Codex, 
    Four canonical surfaces, 10 SoT patterns, breaking-change severity matrix, rollback modes, cross-cutting concerns, AI operating contract, security & supply-chain disciplines, change decomposition, team / org-scale disciplines, AI project memory, automation contract, multi-agent handoff, worked examples.
 
 4. **Structured AI output contract** — [`schemas/`](./schemas/) + [`templates/`](./templates/)
-   Change Manifest JSON Schema and worked example manifests (CRUD, mobile offline, game live-ops, multi-agent handoff progression).
+   Change Manifest JSON Schema (YAML canonical + JSON generated mirror for Node/browser consumers) and worked example manifests (CRUD, mobile offline, game live-ops, multi-agent handoff progression, security-sensitive JWT rotation). Schema carries a reusable `$defs.deprecation` marker so L3/L4 breaking changes can declare deprecate-then-remove timelines directly in-manifest. A generated [`CHANGELOG.json`](./CHANGELOG.json) mirrors the human-readable CHANGELOG for release-automation consumers.
 
 5. **Stack bridges (optional, opt-in)** — [`docs/bridges/`](./docs/bridges/)
    The only place where specific framework / tool / language names appear. Bridges map the tool-agnostic methodology onto a given stack (Flutter, Android Kotlin + XML, Android Jetpack Compose, Ktor, Unity 3D). Add more bridges for your own stack by copying [`docs/stack-bridge-template.md`](./docs/stack-bridge-template.md).
@@ -164,23 +164,30 @@ agent-protocol/
 │       ├── ml-model-training-example.md
 │       ├── data-pipeline-example.md
 │       └── embedded-firmware-example.md
-├── schemas/                    # Change Manifest JSON Schema
-│   └── change-manifest.schema.yaml
+├── schemas/                    # Change Manifest + surface-map JSON Schemas (dual-format)
+│   ├── change-manifest.schema.yaml    # canonical (comments, anchors)
+│   ├── change-manifest.schema.json    # generated — Node / browser consumers
+│   ├── surface-map.schema.yaml
+│   └── surface-map.schema.json
 ├── templates/                  # Change Manifest examples
 │   ├── change-manifest.example-crud.yaml
 │   ├── change-manifest.example-mobile-offline.yaml
 │   ├── change-manifest.example-game-gacha.yaml
-│   └── change-manifest.example-multi-agent-handoff.yaml
+│   ├── change-manifest.example-multi-agent-handoff.yaml
+│   └── change-manifest.example-security-sensitive.yaml
 ├── reference-implementations/  # Non-normative example validators + hook bundles
 │   ├── validator-posix-shell/  # POSIX shell + yq + pluggable schema validator (minimal)
 │   ├── validator-python/       # Python 3.10+ validator (covers all rules including 2.4, 2.5, 3.2, 3.4)
+│   ├── validator-node/         # TypeScript / Node 20+ validator (yaml + ajv + glob; same rule coverage as Python)
+│   ├── roles/                  # Runtime-neutral Planner / Implementer / Reviewer role prompts
 │   ├── hooks-claude-code/      # Runtime-hook reference bundle + selftest harness
 │   ├── hooks-cursor/           # Cursor adapter
 │   ├── hooks-gemini-cli/       # Gemini CLI adapter
 │   ├── hooks-windsurf/         # Windsurf adapter
 │   └── hooks-codex/            # Codex adapter
 ├── ROADMAP.md                   # Multi-session tracking artifact for in-flight initiatives
-├── CHANGELOG.md
+├── CHANGELOG.md                 # Human-readable release history (Keep-a-Changelog)
+├── CHANGELOG.json               # Generated machine-readable release feed
 ├── CONTRIBUTING.md
 ├── VERSIONING.md
 ├── LICENSE
@@ -247,7 +254,8 @@ See [`AGENTS.md`](./AGENTS.md) "Recommended reading order".
 - Team / org-scale concerns (consumer registry, deprecation queue) → [`docs/team-org-disciplines.md`](./docs/team-org-disciplines.md)
 - Adoption review — is the team applying the methodology or going through the motions? → [`docs/adoption-anti-metrics.md`](./docs/adoption-anti-metrics.md) (non-normative diagnostic aids)
 - Long-lived session or cross-session work → [`docs/ai-project-memory.md`](./docs/ai-project-memory.md)
-- Writing a validator / CI gate for this methodology → [`docs/automation-contract.md`](./docs/automation-contract.md) (capability spec) + [`docs/automation-contract-algorithm.md`](./docs/automation-contract-algorithm.md) (normative algorithm) + [`reference-implementations/`](./reference-implementations/) (non-normative example validators)
+- Writing a validator / CI gate for this methodology → [`docs/automation-contract.md`](./docs/automation-contract.md) (capability spec) + [`docs/automation-contract-algorithm.md`](./docs/automation-contract-algorithm.md) (normative algorithm) + three non-normative language references: [`validator-posix-shell/`](./reference-implementations/validator-posix-shell/) (minimal), [`validator-python/`](./reference-implementations/validator-python/), [`validator-node/`](./reference-implementations/validator-node/) — all three ship a `DEVIATIONS.md` that maps exactly which rules they close
+- Deprecating a schema field or API surface → [`docs/change-manifest-spec.md` §"Deprecating a field"](./docs/change-manifest-spec.md) (decision table) + `$defs.deprecation` in [`schemas/change-manifest.schema.yaml`](./schemas/change-manifest.schema.yaml) (reusable deprecation marker)
 - Writing agent-runtime hooks (pre-tool-use, pre-commit, on-stop) → [Agent-runtime hooks](#agent-runtime-hooks) section below + [`docs/runtime-hook-contract.md`](./docs/runtime-hook-contract.md) + [`reference-implementations/hooks-claude-code/`](./reference-implementations/hooks-claude-code/)
 
 ---

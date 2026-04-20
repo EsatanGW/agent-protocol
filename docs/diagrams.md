@@ -224,7 +224,7 @@ graph TB
 
 The dashed arrows back into the execution and carrier layers show the **feedback direction**: when a guard fires, the fix happens inside the phase loop, not in the guard. Hooks do not edit manifests — they refuse to let incomplete ones proceed.
 
-See also: [`AGENTS.md`](../AGENTS.md) §7 (multi-agent), [`docs/runtime-hook-contract.md`](./runtime-hook-contract.md), [`docs/ci-cd-integration-hooks.md`](./ci-cd-integration-hooks.md), [`schemas/change-manifest.schema.yaml`](../schemas/change-manifest.schema.yaml), [`examples/starter-repo/`](../examples/starter-repo/) for a working end-to-end instantiation.
+See also: [`AGENTS.md`](../AGENTS.md) §7 (multi-agent), [`docs/runtime-hook-contract.md`](./runtime-hook-contract.md) + [`docs/runtime-hooks-in-practice.md`](./runtime-hooks-in-practice.md) (runtime hooks — spec + how-to), [`docs/ci-cd-integration-hooks.md`](./ci-cd-integration-hooks.md), [`schemas/change-manifest.schema.yaml`](../schemas/change-manifest.schema.yaml) (canonical YAML) + [`schemas/change-manifest.schema.json`](../schemas/change-manifest.schema.json) (generated JSON mirror), [`reference-implementations/validator-{posix-shell,python,node}/`](../reference-implementations/) (three non-normative language references), [`examples/starter-repo/`](../examples/starter-repo/) for a working end-to-end instantiation.
 
 ---
 
