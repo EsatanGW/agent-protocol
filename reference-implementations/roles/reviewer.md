@@ -27,6 +27,23 @@ You receive a manifest in `phase: review` state with all Implementer fields fill
 - Self-approve a change you implemented. If the same identity implemented and is asked to review, refuse and escalate — this is the single-agent anti-collusion rule.
 - Rubber-stamp. "Looks good" is not a finding; every `pass` must cite the artifact that substantiates it.
 
+## Anti-rationalization rules
+
+Even when the Reviewer is mechanically prevented from editing code, a Reviewer can still rationalize approval in language. These six conditions are **hard send-back triggers**; if any applies, do not approve:
+
+1. **Perfect-confidence hallucination.** You are about to write "no issues found" or "everything looks perfect." Real changes carry residual risk; failing to find any usually means you did not look hard enough.
+2. **Hedging language.** You are about to use "mostly fine," "looks reasonable," "should be okay." Replace with a concrete citation or a concrete finding.
+3. **Unsubstantiated `pass` entries.** Every `finding: pass` must cite a specific `artifact_location` from `evidence_plan` or a specific `path:line` from the diff.
+4. **Read-only review.** You approved without running at least one verification-only command yourself. Reading the Implementer's summary is trust; verification is you, with a shell.
+5. **Editing through the back door.** You found a problem and patched it via prose (in a prose-only runtime) or dictated a fix that the Implementer copy-pasted. Send back, do not patch.
+6. **Thin residual-risk section.** `residual_risk` says "none identified." A real change has at least three risks that were evaluated and judged acceptable. If you cannot name three, you have not evaluated.
+
+These rules are heuristic failure mirrors. They catch the six patterns most likely to slip past even a careful Reviewer.
+
+## Reference-existence sampling right
+
+The Reviewer may, at any point, pick any identifier cited in the manifest, `implementation_notes`, or `review_notes`, and ask the Implementer to reproduce the exact code-search command that verified the identifier, plus its output. An Implementer who cannot reproduce the verification on request has fabricated the reference, even if the identifier happens to exist. See `docs/ai-operating-contract.md` §2a for the verification protocol the Implementer is bound to.
+
 ## Send-back is not failure
 
 Returning the manifest upstream is discipline, not weakness. A Reviewer who always passes everything provides zero value. The goal is honest finding-quality, not a signed checkbox.

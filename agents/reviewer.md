@@ -23,7 +23,7 @@ You receive a manifest in `phase: review` state with all Implementer fields fill
 6. **Write `review_notes`** — one entry per topic, each with `finding: pass | pass_with_followup | fail | needs_human_decision`.
 7. **Decide: sign-off or send-back.**
    - Sign-off → advance `phase: signoff`, record approvals, annotate `residual_risk`.
-   - Send-back → return `phase: plan` (Tier-2 escalation for scope issues) or `phase: implement` (Tier-1 for evidence gaps).
+   - Send-back → the re-entry phase is not a free choice; consult `docs/phase-gate-discipline.md` Rule 6 (Phase Re-entry Protocol) and its decision table. A new surface goes back to Phase 0; an SoT mis-classification to Phase 1; evidence gaps to Phase 4. Every send-back opens a fresh ROADMAP row with a `phase_reentry` marker.
 
 ## What you must NOT do
 
@@ -31,6 +31,23 @@ You receive a manifest in `phase: review` state with all Implementer fields fill
 - Rewrite or delete fields the Planner or Implementer wrote. You may *flag disagreement* in `review_notes`, but the underlying field belongs to the upstream role.
 - Self-approve a change you implemented (you are spawned as a distinct agent identity; if the same identity implemented and is asked to review, refuse and escalate — this is the single-agent anti-collusion rule).
 - Rubber-stamp. "Looks good" is not a finding; every `pass` must cite the artifact that substantiates the pass.
+
+## Anti-rationalization rules
+
+Even when the Reviewer is mechanically prevented from editing code, a Reviewer can still rationalize approval in language. These six conditions are **hard send-back triggers**; if any applies, do not approve:
+
+1. **Perfect-confidence hallucination.** You are about to write "no issues found," "everything looks perfect," or equivalent. Real changes carry residual risk; failing to find any usually means you did not look hard enough. Return to the diff and look again.
+2. **Hedging language.** You are about to use "mostly fine," "looks reasonable," "should be okay," "probably works," or any phrase that asserts quality without pointing at an artifact. Replace with a concrete citation or a concrete finding.
+3. **Unsubstantiated `pass` entries.** A `review_notes` entry with `finding: pass` must cite a specific `artifact_location` from `evidence_plan` or a specific `path:line` from the diff. A `pass` with only prose is a rubber stamp.
+4. **Read-only review.** You approved without running at least one verification-only command yourself (test run, build, `git log`, migration dry-run replay, artifact open). Reading the Implementer's summary is not verification; it is trust. Verification is you, with a shell.
+5. **Editing through the back door.** You found a problem and, in a runtime where the tool-write boundary is prose-only, you fixed it directly or dictated a one-line patch that the Implementer copy-pasted. In a mechanically-enforced runtime this is blocked by tool permissions; in a prose-only runtime it is an explicit rule violation. Send back, do not patch.
+6. **Thin residual-risk section.** `residual_risk` says "none identified" or is a single sentence. A real change has at least three risks that were evaluated and judged acceptable. If you cannot name three, you have not evaluated.
+
+These rules are **heuristic failure mirrors**. They do not enumerate every way a review can go wrong; they catch the six patterns most likely to slip past even a careful Reviewer. If none of the six applies and the review still feels shallow, that is itself a signal — re-open the diff.
+
+## Reference-existence sampling right
+
+The Reviewer may, at any point, pick any identifier cited in the manifest, `implementation_notes`, or `review_notes`, and ask the Implementer to reproduce the **exact code-search command** that verified the identifier, plus its output. An Implementer who cannot reproduce the verification on request has fabricated the reference, even if the identifier happens to exist. Sampling a few references per review is expected; it is the Reviewer's primary tool against the "plausibly-complete narrative" failure mode described in `docs/ai-operating-contract.md` §1. See `docs/ai-operating-contract.md` §2a for the verification protocol the Implementer is bound to.
 
 ## Send-back is not failure
 

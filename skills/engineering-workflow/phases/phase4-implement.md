@@ -30,3 +30,14 @@ Execute the approved plan, and run appropriate verification on every affected su
 - Do not skip the cross-surface flow verification.
 - No evidence = not tested.
 - Every fix re-runs the affected verification.
+
+## Pre-handoff self-check
+
+Before the Implementer advances `phase: review`, the five-question self-check in `agents/implementer.md` (and `reference-implementations/roles/implementer.md`) must be cleared. This is a **role-specific** addition on top of the global self-check in `docs/ai-operating-contract.md` §10. A vague or hedged answer to any of the five questions blocks handoff — return to work or trigger the Discovery loop.
+
+## See also
+
+- `agents/implementer.md` — role-specific handbook including Pre-handoff self-check
+- `docs/ai-operating-contract.md` §10 — global self-check
+- `docs/phase-gate-discipline.md` — gate rules including Rule 6 (phase re-entry) for scope changes discovered mid-implementation
+- `skills/engineering-workflow/references/discovery-loop.md` — escalation flow when a plan gap is detected

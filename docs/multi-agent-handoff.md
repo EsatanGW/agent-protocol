@@ -65,6 +65,8 @@ The same agent can play different roles in different phases; a human can play an
 - `implementation_notes` (if any drift from the plan).
 - `scope_deltas` (if the Discovery Loop outcome was adopted).
 
+**Pre-handoff self-check.** Before advancing `phase: review`, the Implementer must clear the five-question self-check in `agents/implementer.md` ("Pre-handoff self-check" section). A vague or hedged answer to any of the five questions is a failing answer and blocks handoff.
+
 ### Reviewer
 
 **Responsibilities:**
@@ -78,6 +80,10 @@ The same agent can play different roles in different phases; a human can play an
 
 - Write implementation code (if an issue is found, send back to the Implementer).
 - Rewrite the Planner's or Implementer's fields (can only flag disagreement in `review_notes`).
+
+**Anti-rationalization rules.** Even when mechanically prevented from editing code, a Reviewer can rationalize approval in language. Six hard send-back triggers (perfect-confidence hallucination, hedging language, unsubstantiated `pass` entries, read-only review, editing through the back door, thin residual-risk section) are listed in full in `agents/reviewer.md` ("Anti-rationalization rules" section). Any one of them applying is a mandatory send-back, not a judgment call.
+
+**Reference-existence sampling right.** The Reviewer may at any point pick any identifier cited in the manifest and require the Implementer to reproduce the exact code-search command that verified it. This is the Reviewer's primary defence against the plausibly-complete narrative failure mode; see `docs/ai-operating-contract.md` §2a for the verification protocol the Implementer is bound to.
 
 **Additional required fields when handing off downstream:**
 

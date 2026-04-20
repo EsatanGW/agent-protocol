@@ -19,7 +19,7 @@ This file answers those four.
 
 ---
 
-## The five rules
+## The six rules
 
 ### Rule 1 — Every phase ends with an explicit gate
 
@@ -76,6 +76,58 @@ Phase outcomes are written to the ROADMAP **immediately** on gate pass or fail �
 - Surprises and scope changes discovered during a phase are part of the record. They go in the phase's **Phase log** subsection, not in a separate document that decays.
 
 Batching phase records into a single end-of-initiative write-up is prohibited. If a tool restriction makes phase-boundary writes inconvenient, the ROADMAP still takes precedence — use whatever capability is available, even if awkward.
+
+### Rule 5a — Final artifacts are produced from a working space, not written in place
+
+Rule 5 sets the **timing** of records (at phase boundaries). Rule 5a sets the **production discipline**: the final artifact at a boundary — manifest fragment, ROADMAP row, `review_notes`, `handoff_narrative`, completion report — is produced from a short-lived working space first, then copied into its canonical location. The agent does not type directly into the canonical artifact.
+
+A working space must:
+
+- **Be session-scoped.** It lives alongside the agent's active work, not in the repo's version history. In version-controlled hosts this means gitignored; in other runtimes it means scoped to the session / container.
+- **Be auditable on request.** The Reviewer has the right to ask for the working space contents as a reality check against the final artifact (see `agents/reviewer.md` anti-rationalization rule 1).
+- **Not substitute for the canonical artifact.** An empty working space is fine — the canonical artifact must still be independently complete and correct.
+
+Why: without a working space, the agent writes thinking-in-progress into the canonical artifact, producing either (a) prose-heavy manifest fragments that pollute downstream readers or (b) over-compressed artifacts that skip reasoning and jump to conclusions. The working space is where the compression happens; the canonical artifact receives only the compressed result.
+
+Ceremony scaling:
+
+- **Zero-ceremony mode** — the rule is waived. If there is no ROADMAP and no manifest, there is no phase boundary that needs a buffered artifact.
+- **Lean mode** — the rule applies at least once, before the Implementer begins coding. The minimal-plan artifact in `templates/lean-spec-template.md` is the typical recipient.
+- **Full mode** — the rule applies at every phase boundary. Every Manifest fragment, every ROADMAP row, every `review_notes` entry passes through a working space first.
+
+Runtime-specific bridges (`docs/bridges/*`) should document the recommended working-space location for each host runtime. This file does not prescribe the location — only the property.
+
+### Rule 6 — Phase re-entry protocol
+
+Rules 1–5 govern **closing** a phase. Rule 6 governs **re-opening** one. When the Implementer or Reviewer discovers a problem that requires returning to an earlier phase, the re-entry point, the manifest fields to rewrite, and the commit-history treatment are not a judgment call — they follow the decision table below.
+
+Discovery of a problem has three sources that all feed the same table:
+
+- **Implementer's Discovery loop** — a plan gap detected during implementation (missing surface, unfamiliar SoT, unexpected consumer, infeasible approach).
+- **Reviewer's send-back** — evidence gap, mis-classified breaking change, rollback mode too low, surface missing from `surfaces_touched`.
+- **External signal** — spec updated mid-change, a dependent change shipped, a compliance or security finding surfaced during implementation.
+
+Regardless of source, the re-entry decision is:
+
+| Variation type | Re-entry phase | Manifest fields that must be rewritten | Commit-history treatment |
+|---|---|---|---|
+| A new surface is being touched that was not declared | Phase 0 Clarify | `surfaces_touched`; add matching entries in `evidence_plan` | Append new commits; do not rewrite history |
+| An SoT pattern was mis-classified | Phase 1 Investigate | `sot_map` (affected entries only); consumer list for those entries | Append; do not rewrite |
+| Breaking-change level rises (L0 → L1+, or L1 → L2+) | Phase 1 Investigate | `breaking_change` (including `migration_plan` if level reaches L2); `rollback` if affected | If L1 → L2+ **and** the change is already shipped to any consumer: a deprecation path is required (see `docs/breaking-change-framework.md`); do not attempt an in-place rewrite |
+| Rollback mode rises (Mode 1 → 2, or Mode 2 → 3) | Phase 2 Plan | `rollback`; `post_delivery` if Mode 3 is reached | Case-dependent — Mode 3 requires explicit compensation plan; escalate |
+| Implementation strategy changes but surface / SoT / breaking / rollback are unchanged | Phase 4 Implement (append-only) | `implementation_notes` entry (`type: plan_delta`); `scope_deltas` if scope drifted | Append; do not rewrite |
+| Evidence is insufficient per Reviewer | Phase 4 Implement | `evidence_plan.artifacts` (add missing entries); `implementation_notes` (`type: evidence_added`) | Append |
+| Spec updated mid-change by user | Phase 0 Clarify | Re-read spec per Rule 4; re-enumerate constraints; update any field the spec invalidates | Append; record the spec version read |
+
+Required recording for every re-entry:
+
+- A new ROADMAP row for the re-entered phase, with an explicit `phase_reentry: <reason>` marker in its notes. The row is **not** a substitute for the original row — both rows remain in the history.
+- The `implementation_notes` receives an entry of the appropriate existing type (`plan_delta`, `discovery`, `scope_flag`, `evidence_added`, `assumption_invalidated`) citing the original ROADMAP row and the new one.
+- The preceding phase's commit, if any, is **not** amended or rewritten. If the original commit became incorrect in light of the re-entry, that is recorded in the new phase's commit message, not by rewriting the old one.
+
+Silent re-entry — fixing the manifest and continuing without a new ROADMAP row — is prohibited. It erases the signal that a phase was re-opened and breaks the "evidence is continuous" contract from Rule 1.
+
+Anti-metric: re-entry frequency per initiative is a useful diagnostic. Consistently high re-entry rates at Phase 1 suggest Planner under-investment; consistently high re-entry rates at Phase 4 for evidence reasons suggest the Implementer's pre-handoff self-check (see `agents/implementer.md`) is being skipped. This metric aligns with Principle 10 (baseline + exit criteria + anti-metrics).
 
 ---
 

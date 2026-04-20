@@ -55,6 +55,46 @@ Currently assuming: <assumption + why plausible + how to verify>
 
 ---
 
+## 2a. Reference-existence verification
+
+Section 1 tells the AI to **not fabricate** identifiers; this section tells it **how to prove an identifier is real** before citing it. Non-fabrication is the outcome; reference-existence verification is the protocol.
+
+### Must do
+
+Before referring to any of the following in a plan, manifest field, review note, or completion report, actively confirm it exists:
+
+- **Source-tree identifiers** — function names, type names, file paths, config keys, field names, enum values, migration names.
+- **External references** — URLs, third-party API method names, library symbols, spec section headings, documentation anchors.
+- **In-flight artifact references** — another manifest's `change_id`, a ROADMAP row, an evidence `artifact_location`.
+
+For each, the verification is:
+
+- **Source-tree identifier** → use a "code search" capability (grep / glob / equivalent) to locate a concrete `path:line`. If the capability is not available, the reference must be downgraded to an assumption and an escalation is required.
+- **External reference** → use a "network fetch" capability (or a local mirror) to confirm the URL resolves and the referenced section/method exists. Cache the date of verification.
+- **In-flight artifact reference** → use a "file read" capability to confirm the artifact is present at the stated location.
+
+### Must not do
+
+- Cite an identifier because it *sounds right* or because a similar one existed in a different project.
+- Treat identifiers in example snippets (including snippets produced earlier in this session) as verified real symbols.
+- Use narrative hedging ("there should be a `UserService.findById`...") as a substitute for verification.
+- Re-use a verification from an earlier session without re-checking — code moves; cached verification goes stale.
+
+### When verification fails or is impossible
+
+- If the identifier cannot be found: rewrite the claim as an `assumption` using the uncertainty format in section 1, and trigger the Discovery loop (section 2) to return to Investigate or Plan.
+- If the verification capability is not available in the current runtime: escalate per section 5 — the change cannot proceed on faith alone.
+
+### Reviewer's sampling right
+
+The Reviewer role (see `agents/reviewer.md` and `docs/multi-agent-handoff.md`) has an explicit right to **sample-check** any cited identifier by asking the Implementer to reproduce the exact code-search command and its output. An Implementer who cannot reproduce the verification on request has fabricated the reference, even if the identifier happens to exist — the discipline is "verify every time," not "guess and get lucky."
+
+### Relation to section 9
+
+Section 9 ("Non-fabrication list") names the **kinds** of things the AI must not invent. This section names the **act** the AI must perform to avoid inventing them. If a reader is deciding which rule to apply: section 9 is the prohibition, 2a is the protocol.
+
+---
+
 ## 2. Scope control: stop before doing
 
 ### Must do

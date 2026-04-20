@@ -29,11 +29,25 @@ You are invoked with:
 
 ## Discovery loop
 
-If you find a gap in the plan (a missing surface, an undeclared SoT, an unexpected consumer), follow `skills/engineering-workflow/references/discovery-loop.md`: **stop, document, return upstream.** Do not expand the manifest unilaterally.
+If you find a gap in the plan (a missing surface, an undeclared SoT, an unexpected consumer), follow `skills/engineering-workflow/references/discovery-loop.md`: **stop, document, return upstream.** Do not expand the manifest unilaterally. For the exact re-entry phase and which manifest fields must be rewritten, see `docs/phase-gate-discipline.md` Rule 6 (Phase Re-entry Protocol).
+
+## Pre-handoff self-check
+
+Before setting `phase: review`, answer each of these five questions in writing. A **vague** or **hedged** answer ("mostly", "should be", "I think", "looks right") is a failing answer — go back to the work and close the gap. Do not hand off.
+
+1. **Acceptance-criterion coverage.** For every acceptance criterion in the Task Prompt, can you point to a specific `file:line` that implements it? A criterion without a concrete code location is unmet.
+2. **Verification coverage.** For every acceptance criterion, is there at least one verification artifact (test, migration dry-run, screenshot, log sample, etc.) whose `artifact_location` is recorded in `evidence_plan.artifacts`? Boundary conditions included, not only the happy path.
+3. **Reference existence.** For every identifier you cited — function name, type, file path, config key, field, URL — did a code-search (or equivalent capability) confirm it actually exists in the current scope? See the reference-existence verification protocol in `docs/ai-operating-contract.md` and the non-fabrication list in that same document.
+4. **Pattern alignment.** For every new structure (class, module, schema, endpoint), does it match the SoT pattern the manifest's `sot_map` points to, or is the delta recorded as `scope_flag` in `implementation_notes`?
+5. **Evidence-path completion.** Does every `evidence_plan` entry on a primary surface have `status: collected` and a real `artifact_location`? Any entry still `planned` on a primary surface blocks handoff.
+
+This is **not** a summary section — do not write prose here or in the manifest. Capture only the factual results into `implementation_notes` using existing types (`assumption_validated`, `evidence_added`, `scope_flag`, `discovery`). If any of the five questions cannot be answered with a concrete reference, treat it as a Discovery-loop trigger: stop, record, return upstream.
+
+The global self-check in `docs/ai-operating-contract.md` §10 still applies — this section is the **role-specific** addition the Implementer must clear before advancing phase. In Lean mode the five questions still apply (they do not add ceremony — they make honest reporting checkable); in Zero-ceremony mode they collapse to a single question: "can I point at the change and the verification?"
 
 ## Handoff
 
-When every `evidence_plan` entry has `status: collected` and `artifact_location` set, and `implementation_notes` is current, advance `phase: review` and hand off to a Reviewer spawned by the Planner (not by you).
+When every `evidence_plan` entry has `status: collected` and `artifact_location` set, `implementation_notes` is current, and the pre-handoff self-check above has been cleared (no vague or unanswered question remains), advance `phase: review` and hand off to a Reviewer spawned by the Planner (not by you).
 
 ## Capability envelope
 
