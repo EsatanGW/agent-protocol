@@ -41,11 +41,22 @@ The contract declares structured stdout as **optional**. These hooks gate it beh
 
 ---
 
-## 4. No network-check degradation
+## 4. Network-check degradation — implemented
 
-The contract requires that "checks that genuinely require network must degrade to advisory." None of the four shipped hooks make network calls, so this clause is vacuously satisfied. A future `consumer-registry-check.sh` hook (not yet written) would test remote registry lookup and would need to degrade to `exit 2` on timeout.
+As of v1.3.0 the bundle ships `hooks/consumer-registry-check.sh`, the
+reference implementation of the contract's network-degradation clause.
+The hook walks every `.consumers[].external_registry_url` in the
+manifest, probes each with `curl -fsS --max-time ${AGENT_PROTOCOL_NET_TIMEOUT:-5}`,
+and emits `exit 2` (warn) — never `exit 1` — on timeout, DNS failure,
+non-HTTP URL, or non-2xx response. Missing `curl` or `yq` degrades to
+`exit 2` via the same `TOOL_ERROR` path used elsewhere in this bundle.
 
-**Impact:** none today. Flagged so future additions keep the rule in mind.
+Selftest fixtures under `selftests/fixtures/consumer-registry-check/`
+exercise the no-consumers, reachable, and unreachable branches by way
+of a `curl` stub that honors a per-fixture `curl-exit` file. A real
+end-to-end smoke (against a reachable vs. deliberately-invalid host)
+remains outside the selftest because CI sandboxes typically block
+arbitrary egress.
 
 ---
 

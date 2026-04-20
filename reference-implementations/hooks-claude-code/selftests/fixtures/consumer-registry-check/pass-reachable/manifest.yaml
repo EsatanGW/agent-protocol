@@ -1,0 +1,14 @@
+change_id: CHG-0009
+title: Reachable consumer registry
+phase: execute
+surfaces_touched: [system_interface]
+sot_map:
+  - pattern_id: "4-enum-sot"
+    source: app/enums/invoice_status.py
+    consumers:
+      - id: partner-bridge
+        external_registry_url: https://registry.example.test/schemas/invoice-status
+evidence_plan: []
+rollback:
+  mode: 2
+  notes: redeploy previous revision

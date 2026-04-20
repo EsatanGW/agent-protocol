@@ -26,6 +26,21 @@
             }
           }
         ]
+      },
+      {
+        "matcher": "Bash(git push*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_CONFIG_DIR}/agent-protocol-hooks/hooks/consumer-registry-check.sh",
+            "description": "Category C (drift, network): warn when declared consumer registries are unreachable; never blocks",
+            "agentProtocol": {
+              "category": "drift",
+              "level": "warn",
+              "ruleIds": ["drift.consumer-registry-stale"]
+            }
+          }
+        ]
       }
     ],
     "PostToolUse": [

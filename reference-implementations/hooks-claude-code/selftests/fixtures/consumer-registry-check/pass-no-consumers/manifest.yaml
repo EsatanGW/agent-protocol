@@ -1,0 +1,9 @@
+change_id: CHG-0008
+title: Manifest with no external consumers
+phase: execute
+surfaces_touched: [information]
+sot_map: []
+evidence_plan: []
+rollback:
+  mode: 2
+  notes: redeploy previous revision
