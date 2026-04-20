@@ -29,7 +29,17 @@ For non-trivial changes, `AGENTS.md` §7 defines three role identities with enfo
 - **Implementer** — read + write + shell; no sub-agent spawn.
 - **Reviewer** — read + verification-only shell; **no write/edit tools** (enforced; self-review is the failure mode the methodology is designed against).
 
-When Gemini CLI is acting in Full mode, use its sub-agent / session-isolation mechanism to satisfy this matrix. Full contract: `docs/multi-agent-handoff.md`.
+Gemini CLI does not gate tool exposure per persona, so enforcement of the above is **prose-only** plus session isolation. Recommended practice:
+
+1. Open a distinct Gemini CLI session per role (not just distinct prompts within one session — each persona must have its own conversation history).
+2. Paste the role prompt at session start:
+   - Planner: [`reference-implementations/roles/planner.md`](./reference-implementations/roles/planner.md)
+   - Implementer: [`reference-implementations/roles/implementer.md`](./reference-implementations/roles/implementer.md)
+   - Reviewer: [`reference-implementations/roles/reviewer.md`](./reference-implementations/roles/reviewer.md)
+3. For the Reviewer, consider running in a read-only working-directory or git-worktree so the absence of write capability is OS-enforced, not purely prose-enforced.
+4. Record session / model identity in `approvals` so retroactive audit can spot Implementer ≡ Reviewer collusion.
+
+Full enforcement matrix across runtimes: `docs/multi-agent-handoff.md` §Enforcement across runtimes.
 
 ## Before producing code
 

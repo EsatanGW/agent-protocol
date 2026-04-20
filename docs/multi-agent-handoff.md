@@ -139,6 +139,29 @@ Capability categories are drawn from the contract in `AGENTS.md` ("file read, co
 
 **Runtime enforcement**: each runtime bridge (Claude Code, Cursor, Gemini CLI, Windsurf, Codex, …) is expected to translate this matrix into that runtime's agent / permission mechanism. See `/how-to-use-this-plugin-in-different-runtimes` in `AGENTS.md`. Where a runtime cannot enforce a column mechanically, the bridge must document the gap and fall back to prose-only enforcement; the methodology still holds, the enforcement guarantee weakens.
 
+### Enforcement across runtimes
+
+Not every runtime offers the same mechanical enforcement surface. The matrix below states honestly what each runtime can enforce and where the fallback is human process.
+
+| Runtime | Mechanism | Planner write-blocked | Reviewer write-blocked | Implementer spawn-blocked | Shipped artifact |
+|---|---|---|---|---|---|
+| **Claude Code** | Sub-agent definitions with `tools:` frontmatter; runtime refuses non-whitelisted tools | ✅ mechanical | ✅ mechanical | ✅ mechanical | `.claude-plugin/agents/{planner,implementer,reviewer}.md` |
+| **Cursor** | Custom Mode per role (disables edit-class tools) + role-scoped rule file sets system prompt | ✅ mechanical (when Custom Mode configured) | ✅ mechanical (when Custom Mode configured) | ⚠️ partial — Cursor's spawn surface is newer; rule-based refusal is the primary guard | `.cursor/rules/{planner,implementer,reviewer}.mdc` |
+| **Gemini CLI** | Persona / session prompt; distinct sessions per role | ⚠️ prose-only — CLI does not gate tool exposure per persona | ⚠️ prose-only | ⚠️ prose-only | [`reference-implementations/roles/*.md`](../reference-implementations/roles/) pasted as session instruction |
+| **Windsurf** | Cascade mode / mode-scoped prompt | ⚠️ prose-only — Cascade planning-mode restrictions are advisory, not runtime-enforced on tool access | ⚠️ prose-only | ⚠️ prose-only | [`reference-implementations/roles/*.md`](../reference-implementations/roles/) pasted into the mode prompt |
+| **Codex** | Per-profile `instructions` in `~/.codex/config.toml` or `--instructions` per invocation | ⚠️ prose-only — profiles do not limit tool access per se | ⚠️ prose-only | ⚠️ prose-only | [`reference-implementations/roles/*.md`](../reference-implementations/roles/) referenced from the profile |
+
+**What ⚠️ prose-only means in practice.** The role prompt tells the agent it has no write capability. On a runtime that cannot revoke the tool, a compliant agent still refuses when asked to edit; a non-compliant agent may comply with a user request to edit. This is no different from the human-process baseline — if a human reviewer can be talked into patching their own review, the organizational rule, not the tool, is the last line of defense.
+
+**Recommended practice when mechanical enforcement is absent:**
+
+1. **Session isolation.** Run each role in a separate session / profile / window — the reviewer cannot accidentally edit what they cannot open.
+2. **OS-level write denial.** Run the Reviewer in a working directory mounted read-only (or on a git worktree branch the reviewer has no write access to push).
+3. **Two-party attestation.** Record the session ID / model identity / timestamp in `approvals` so a retroactive audit can spot an Implementer ≡ Reviewer collusion.
+4. **Runtime escalation.** If the change is high-risk (security-sensitive, mode-3 rollback) and the runtime cannot mechanically enforce, escalate to a runtime that can. The methodology does not forbid this; it requires honesty about which runtime is being used.
+
+The honest framing: **mechanical enforcement is a property of the runtime, not the methodology.** The methodology defines the roles, boundaries, and anti-collusion rule; which runtime satisfies them mechanically versus by discipline is a deployment choice.
+
 ---
 
 ## Single-agent anti-collusion rule

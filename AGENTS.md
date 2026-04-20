@@ -90,8 +90,11 @@ When a change is non-trivial (Full mode), and the host runtime provides a sub-ag
 
 Runtime bridges translate this matrix into runtime-specific agent configuration:
 
-- Claude Code: `.claude-plugin/agents/{planner,implementer,reviewer}.md` (ships with this plugin)
-- Cursor / Gemini CLI / Windsurf / Codex: follow the matrix using each runtime's native agent / permission mechanism
+- **Claude Code** — `.claude-plugin/agents/{planner,implementer,reviewer}.md`; mechanically enforced via per-agent `tools:` frontmatter.
+- **Cursor** — `.cursor/rules/{planner,implementer,reviewer}.mdc`; mechanically enforced when paired with a per-role Custom Mode that excludes edit/apply tools.
+- **Gemini CLI / Windsurf / Codex** — `reference-implementations/roles/{planner,implementer,reviewer}.md`; prose-only, since these runtimes do not gate tool exposure per persona. Pair with distinct sessions per role, OS-level read-only working dir for Reviewer, and session-identity recording in `approvals`.
+
+Full matrix (mechanical vs prose-only, per runtime): `docs/multi-agent-handoff.md` §Enforcement across runtimes.
 
 Full contract: `docs/multi-agent-handoff.md` §tool-permission-matrix + §single-agent-anti-collusion-rule. Lean mode (trivial single-surface changes) exempts Planner ≡ Implementer collapse.
 
