@@ -60,10 +60,21 @@ arbitrary egress.
 
 ---
 
-## 5. Only Claude Code is covered
+## 5. Cross-runtime coverage — partial
 
-The contract describes a runtime-neutral hook model. This directory ships only the Claude Code bridge. Cursor, Gemini CLI, Windsurf, and Codex bridges are not yet written.
+As of v1.4.0 the repo ships thin adapter bundles for four additional
+runtimes:
 
-**Mitigation:** each hook is pure shell + `yq`. Re-registering the same scripts under a different runtime's event mechanism should work; only the event-payload parsing at the top of each script needs to change.
+- [`../hooks-cursor/`](../hooks-cursor/) — Cursor (JSON config)
+- [`../hooks-gemini-cli/`](../hooks-gemini-cli/) — Gemini CLI (TOML config)
+- [`../hooks-windsurf/`](../hooks-windsurf/) — Windsurf (JSON config)
+- [`../hooks-codex/`](../hooks-codex/) — Codex (JSON config)
 
-**Impact:** medium. Teams on other runtimes have a template to follow but no ready-to-copy bundle.
+Each adapter ships a README, its own DEVIATIONS, a runtime-native
+settings example, and an `adapter/parse-event.sh` that normalizes the
+runtime's event payload into cross-runtime `AP_*` env vars. The hook
+scripts themselves remain in this (the Claude Code) bundle — the
+adapters point back via relative or absolute paths, so a regression
+fix to `manifest-required.sh` propagates everywhere with a single
+edit. **Still outstanding:** runtime-wiring smoke tests per adapter
+(the `selftests/` harness exercises hook logic, not hook registration).
