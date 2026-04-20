@@ -6,6 +6,16 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-04-20
+
+### Fixed
+
+- **`hooks-claude-code` selftest now skips `yq`-dependent cases cleanly on local dev machines without `yq`** — previously `selftest.sh` printed a warning and then ran every fixture anyway, producing 9 FAILs across the four yq-dependent hook directories (`completion-audit`, `consumer-registry-check`, `evidence-artifact-exists`, `sot-drift-check`) because the hooks correctly degrade to `exit=2` (TOOL_ERROR) but fixtures assert `exit=0` or `exit=1`. The adapter selftests (cursor / gemini-cli / windsurf / codex) already solved the same problem with an `# SKIP yq not on PATH` marker; this patch ports the pattern. Summary line now reports `N cases, F failed, K skipped` when any case skipped. CI (`.github/workflows/validate.yml` → `hooks-selftest`) is unaffected — it installs `yq` explicitly, so every case executes on every push / PR exactly as before.
+
+### Changed
+
+- **`hooks-claude-code/selftests/README.md` drift fixes** — header corrected from "four hooks" to "five hooks" (leftover drift from 1.3.0's `consumer-registry-check` addition); Requirements section rewritten to describe the new SKIP-on-missing-yq pattern; Minimum-coverage table extended to 14 cases with the previously-omitted `consumer-registry-check.sh` row.
+
 ## [1.7.0] - 2026-04-20
 
 ### Added

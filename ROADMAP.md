@@ -41,6 +41,28 @@ _None._
 
 ## Closed initiatives
 
+## hook-selftest-yq-skip-polish — skip yq-dependent selftest cases cleanly on local dev (patch 1.7.1)
+
+- **Opened:** 2026-04-20
+- **Closed:** 2026-04-20
+- **Driver:** Post-1.7.0 verification sweep surfaced a dev-ergonomics gap: `reference-implementations/hooks-claude-code/selftests/selftest.sh` prints a warning when `yq` is absent, then runs every fixture anyway — producing 9 FAILs across the four yq-dependent hook directories (`completion-audit`, `consumer-registry-check`, `evidence-artifact-exists`, `sot-drift-check`) because the hooks correctly degrade to exit=2 (TOOL_ERROR) but the fixtures assert exit=0 or exit=1. CI is unaffected (installs `yq` explicitly), but a contributor running the selftest locally without `yq` sees a red-looking TAP summary and no indication that `yq` is the missing piece. The four adapter selftests (cursor / gemini-cli / windsurf / codex) already solve the same problem with an `# SKIP yq not on PATH` marker — this patch ports the pattern.
+- **Status:** closed
+- **Target version:** 1.7.1 (patch — single-surface dev-ergonomics fix inside the hook bundle selftest harness; no schema, contract, or runtime-behavior changes)
+- **Mode:** lean (one surface: `selftests/selftest.sh` + its README; no consumer-facing change; CI behavior unchanged)
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Open this ROADMAP entry | `ROADMAP.md` closed-initiative row (Lean mode: no phase-by-phase table) | Initiative section renders with schema fields populated; driver + scope documented | ✅ passed | _(this change)_ | Lean mode: phases collapsed to fix + release |
+| P1 | Port adapter's skip pattern to hooks-claude-code selftest | `reference-implementations/hooks-claude-code/selftests/selftest.sh` declares `yq_dependent_dirs` list; when `yq` is absent, emits `ok N - <label> # SKIP yq not on PATH` for cases under those dirs and `manifest-required` cases still run (they don't need `yq`); summary line now reports `N cases, F failed, K skipped` when any case skipped; `selftests/README.md` Requirements section rewritten to describe the SKIP pattern, header updated from "four hooks" → "five hooks" (drift left over from 1.3.0's consumer-registry-check addition), Minimum coverage table extended to 14 cases (added consumer-registry-check row) | `sh reference-implementations/hooks-claude-code/selftests/selftest.sh` reports `14 cases, 0 failed, 9 skipped` on a dev machine without `yq`; on CI (which installs `yq`), same invocation runs all 14 cases as before (no skipped, no failed). Adapter selftests (cursor / gemini-cli / windsurf / codex) unchanged and still pass | ✅ passed | _(this change)_ | Backwards-compatible: when `yq` is present, behavior identical to 1.7.0 |
+| P2 | Release 1.7.1 | `.claude-plugin/plugin.json` + `marketplace.json` + README badge `1.7.0 → 1.7.1`; `CHANGELOG.md` `[1.7.1] - 2026-04-20` entry under Fixed / Changed; `CHANGELOG.json` regenerated | `sh .github/scripts/check-version-consistency.sh` reports `OK: all five declarations agree on 1.7.1`; full self-validation suite passes | ✅ passed | _(this change)_ | Standard patch-release procedure per `VERSIONING.md` |
+
+### Phase log
+
+- Lean-mode patch: dev-ergonomics fix for contributors running the selftest locally without `yq`. CI behavior and release surface unchanged.
+- Closed 2026-04-20 at commit `(this release)` after both phases passed.
+
+---
+
 ## machine-readable-and-onboarding-clarity — publish dual-format schemas + machine-readable CHANGELOG + schema deprecation markers + slimmer top-level README + consolidated onboarding + TS/Node reference validator (v1.7.0)
 
 - **Opened:** 2026-04-20

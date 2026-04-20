@@ -1,6 +1,6 @@
 # Hook bundle self-test
 
-A hermetic, framework-free fixture runner for the four hooks in
+A hermetic, framework-free fixture runner for the five hooks in
 `../hooks/`. The harness shims `git` and injects `AGENT_PROTOCOL_*`
 environment variables so every run is deterministic and repo-state
 independent.
@@ -19,8 +19,13 @@ expected-vs-actual diff and a non-zero aggregate exit code.
 - POSIX `sh` (tested on `bash`, `dash`, `ash`).
 - `yq` on `PATH` — optional for fixtures that only exercise
   `manifest-required.sh`, required for fixtures that exercise any other
-  hook. Without `yq`, the hooks emit their own `TOOL_ERROR` path (exit 2);
-  the harness prints a warning so this case is visible.
+  hook. Without `yq`, the harness emits `# SKIP yq not on PATH` for every
+  case under the four yq-dependent hook directories (`completion-audit`,
+  `consumer-registry-check`, `evidence-artifact-exists`, `sot-drift-check`)
+  so local runs without `yq` stay quiet and the TAP summary reports
+  `N cases, 0 failed, K skipped`. CI (`.github/workflows/validate.yml`
+  → `hooks-selftest`) installs `yq` explicitly, so every case executes on
+  every push / PR.
 
 ## Directory layout
 
@@ -73,6 +78,7 @@ does not match.
 | `evidence-artifact-exists.sh` | 2 |
 | `sot-drift-check.sh` | 2 |
 | `completion-audit.sh` | 2 |
+| `consumer-registry-check.sh` | 3 |
 
-Eleven cases total. Anything below that floor is a regression in the
+Fourteen cases total. Anything below that floor is a regression in the
 bundle's observable contract.
