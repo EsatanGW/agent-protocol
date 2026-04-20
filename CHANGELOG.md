@@ -6,6 +6,8 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-04-20
+
 ### Added
 
 - **Per-bridge surface-map artifacts** — `docs/bridges/flutter-surface-map.yaml`, `docs/bridges/android-kotlin-surface-map.yaml`, `docs/bridges/android-compose-surface-map.yaml`, `docs/bridges/ktor-surface-map.yaml`, `docs/bridges/unity-surface-map.yaml` publish each bridge's mapping from the four canonical surfaces (plus stack extensions such as asset / performance-budget / compliance / experience / data-quality) to machine-consumable file-path globs. The new `schemas/surface-map.schema.yaml` (JSON Schema 2020-12) validates the shape; the artifacts unblock validator rule 3.2 (surface ↔ file-pattern drift) in `docs/automation-contract-algorithm.md`.
