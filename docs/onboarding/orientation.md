@@ -24,6 +24,29 @@ the repository reads as reinforcement rather than first exposure.
 
 ---
 
+## If you only have 3 minutes
+
+Answer these in order. Do **not** answer the shortcuts — the shortcuts are how the wrong question becomes the wrong answer.
+
+1. **Define the change in one sentence.** "What capability are we actually changing?"
+   - Do not answer first: "Is this frontend or backend?" / "Who owns this area?"
+2. **Tag the four surfaces.** User (who will see a visible change?) / system-interface (which API / event / job changes?) / information (which field / enum / schema / config changes?) / operational (log / changelog / rollout / rollback?).
+3. **Find the source of truth.** Where does the authoritative source actually live? Which consumers read from it?
+4. **Decide the minimum verification.** How will I know the change stands? What evidence will I leave behind?
+5. **Pick Lean vs Full.** Small, low-risk → Lean. Multi-surface / public behavior impact / needs handoff → Full.
+
+For the 60-second version inside your next task, jump to [The first 60 seconds of any task](#the-first-60-seconds-of-any-task) below.
+
+## If you only read one page
+
+This is that page. The single most important takeaway from the whole repository is the **change-centric perspective** — tech stack does not matter first; "how does this capability pass through the whole system, and how do we prove it was changed safely?" does.
+
+The five rules directly above are the entire load-bearing summary. If the rest of this page disappeared, those five bullets would still carry the methodology.
+
+The two historical onboarding files (`quick-start.md` and `if-you-only-read-one-page.md`) have been merged into this page as the two sections above; those files are now redirect stubs.
+
+---
+
 ## Navigation map
 
 **You must read:**

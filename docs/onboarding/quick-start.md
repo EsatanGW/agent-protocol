@@ -1,37 +1,7 @@
-# Quick Start
+# Quick Start — redirect
 
-If you only have 3 minutes, start in this order.
-
-## Step 1: Define the change in one sentence
-Answer:
-- What capability are we actually changing?
-
-Do not answer first:
-- Is this frontend or backend?
-- Who owns this area?
-
-## Step 2: Tag the four surfaces
-Ask yourself quickly:
-- User surface: who will see a visible change?
-- System-interface surface: which API / event / job / integration changes?
-- Information surface: which field / enum / schema / config changes?
-- Operational surface: do we need to add log / changelog / rollout / rollback?
-
-## Step 3: Find the source of truth
-Ask:
-- Where does the authoritative source for this capability actually live?
-- Which consumers read from it?
-
-## Step 4: Decide the minimum verification
-At minimum, answer:
-- How will I know the change actually stands?
-- What evidence will I leave behind?
-
-## Step 5: Then decide whether to go through the full workflow
-- Small, low-risk → use Lean.
-- Multi-surface / public behavior impact / needs handoff → use Full.
-
-## If you only want to read 3 documents first
-1. `docs/product-engineering-operating-system.md`
-2. `docs/system-change-perspective.md`
-3. `docs/examples/worked-example.md`
+> Merged into [`orientation.md` §"If you only have 3 minutes"](./orientation.md#if-you-only-have-3-minutes).
+>
+> `orientation.md` is the canonical single onboarding page. Previously, `quick-start.md`, `if-you-only-read-one-page.md`, and `orientation.md` each held partial versions of the same material; the three-minute and one-page summaries now live as named sections inside `orientation.md` so a new reader finds exactly one entry point.
+>
+> External links to this path continue to resolve so bookmarks do not break; new references should point at `orientation.md` directly.
