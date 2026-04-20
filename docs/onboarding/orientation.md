@@ -10,6 +10,8 @@ the repository reads as reinforcement rather than first exposure.
 
 **This plugin is a methodology for managing change, not for writing code.** Before any non-trivial engineering change, identify (1) the *source of truth* for the capability being changed, (2) the *surfaces* the change will be perceived through (user / system-interface / information / operational), (3) who the *consumers* of that truth are, and (4) what *evidence* will prove the change is actually safely in place. Pick the lightest workflow (Lean / Full / Zero-ceremony) that still produces that evidence, and never claim completion without it. When multiple agents cooperate, they exchange state through a structured **Change Manifest** (`schemas/change-manifest.schema.yaml`). When the stack matters, consult a **stack bridge** in `docs/bridges/`.
 
+> **Want the stack map first?** [`docs/diagrams.md` §6 — All pieces together](../diagrams.md#6-all-pieces-together--how-the-layers-connect) shows on one page how the contract layer, execution layer, carrier artifacts, and mechanical guardrails (runtime hooks + CI hooks) fit together. Useful as a mental frame before reading the per-document detail below.
+
 ---
 
 ## The five rules that matter most

@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Plugin: Multi-agent](https://img.shields.io/badge/plugin-multi--agent-blue.svg)](./AGENTS.md)
 [![Skill: Engineering Workflow](https://img.shields.io/badge/skill-engineering--workflow-purple.svg)](./skills/engineering-workflow/SKILL.md)
-[![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-brightgreen.svg)](./CHANGELOG.md)
+[![Version: 1.3.0](https://img.shields.io/badge/version-1.3.0-brightgreen.svg)](./CHANGELOG.md)
 [![Language: English-only](https://img.shields.io/badge/language-English--only-blue.svg)](./CHANGELOG.md)
 
 A **tool-agnostic engineering workflow plugin** for AI coding agents.
@@ -14,6 +14,8 @@ A **tool-agnostic engineering workflow plugin** for AI coding agents.
 Install once; it works across Claude Code, Cursor, Gemini CLI, Windsurf, Codex, Aider, OpenCode, or any agent that reads `AGENTS.md`.
 
 ---
+
+> **See the whole stack on one page.** [`docs/diagrams.md` §6 — All pieces together](./docs/diagrams.md#6-all-pieces-together--how-the-layers-connect) maps the normative layer (contracts), execution layer (skill + phases), carrier artifacts (manifest + evidence + ROADMAP), and mechanical guardrails (runtime hooks + CI hooks) in a single diagram. Read it before drilling into any specific file.
 
 ## What you get
 
