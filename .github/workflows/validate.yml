@@ -1,0 +1,88 @@
+name: validate
+
+# Self-validation for the agent-protocol repo itself. The repo preaches
+# evidence-before-completion and phase-gate discipline; this workflow
+# holds the repo to its own contract.
+#
+# Security note: this workflow uses NO untrusted event inputs
+# (no github.event.issue.*, github.event.pull_request.*, github.head_ref, etc.).
+# All "run:" commands execute hardcoded scripts in .github/scripts/ or
+# fixed tool invocations. No injection surface.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+
+  schema-syntax:
+    name: Schema meta-validity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install pyyaml jsonschema
+      - name: Validate schemas against JSON Schema 2020-12 meta-schema
+        run: python3 .github/scripts/validate-schema-syntax.py
+
+  template-conformance:
+    name: Template conformance
+    runs-on: ubuntu-latest
+    needs: schema-syntax
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install pyyaml jsonschema
+      - name: Validate every template against change-manifest.schema.yaml
+        run: python3 .github/scripts/validate-templates.py
+
+  hooks-selftest:
+    name: Hook bundle selftest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yq
+        run: |
+          sudo wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+            -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+      - name: Run Claude Code hook selftest
+        run: sh reference-implementations/hooks-claude-code/selftests/selftest.sh
+
+  validator-python-tests:
+    name: Python validator pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install validator + pytest
+        working-directory: reference-implementations/validator-python
+        run: |
+          pip install -e .
+          pip install pytest
+      - name: Run pytest
+        working-directory: reference-implementations/validator-python
+        run: pytest -q
+
+  version-consistency:
+    name: Version string consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check plugin.json / marketplace.json / README badge / CHANGELOG agree
+        run: sh .github/scripts/check-version-consistency.sh

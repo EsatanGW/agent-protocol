@@ -35,7 +35,27 @@ Every initiative section follows this shape:
 
 ## Active initiatives
 
-_(none active)_
+## self-validation-foundation — repo self-validates its own methodology (v1.4.0)
+
+- **Opened:** 2026-04-20
+- **Driver:** Post-1.3.0 review surfaced that the repo preaches evidence, CI gates, and starter-kit adoption patterns but doesn't self-validate (no `.github/workflows/`), ships no runnable starter example, and lacks top-level security reporting hygiene. Sprint 1 of a 4-sprint improvement plan (tracking 15 issues) — this sprint is the foundation layer other sprints depend on.
+- **Status:** in_progress
+- **Target version:** 1.4.0 (minor — additive: new CI, new examples dir, new diagram section, new `.github/` hygiene files; no schema changes, no contract changes)
+- **Phases:** table below
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Open this ROADMAP entry | `ROADMAP.md` new active-initiative row with phase table | Initiative section renders with schema fields populated; driver + scope documented | ✅ passed | _(this change)_ | Opens the initiative before any implementation per `phase-gate-discipline.md` |
+| P1 | Add CI self-validation workflow | `.github/workflows/validate.yml` with 5 jobs + 3 scripts (`check-version-consistency.sh`, `validate-schema-syntax.py`, `validate-templates.py`); template drift fixes discovered by first CI run (mobile-offline `host_type: android_process` → `mobile_os_process`; full rewrite of multi-agent-handoff to schema compliance) | Schema meta-validity: 2/2 ok; template conformance: 4/4 ok; Python validator pytest: 12/12 pass; version-consistency: `1.3.0` agrees across plugin.json / marketplace.json / README badge / CHANGELOG; hooks selftest verified locally — 6 cases pass without yq; remaining 8 degrade to `TOOL_ERROR` (exit 2) per contract, will pass in CI once `yq` is installed by the workflow step | ✅ passed | _(this change)_ | CI caught 2 real drifts on the first run, which is the entire point. Multi-agent template was completely rewritten (was using field names from an earlier schema version) |
+| P2 | Create `examples/starter-repo/` | Self-contained mini-repo showing: a change manifest, evidence artifacts, ROADMAP row, a one-command `make validate` that passes | Fresh `git clone` + `cd examples/starter-repo && make validate` exits 0 | ⏳ pending | _(pending)_ | Adoption leverage: abstract docs → runnable sample |
+| P3 | Add all-pieces-together architectural diagram | `docs/diagrams.md` §7 Mermaid flow: Contract → Skill → Phase → Manifest → Runtime hooks → CI hooks; README + `orientation.md` link to it | Diagram renders in GitHub-flavored markdown; links from README intro + orientation page resolve | ⏳ pending | _(pending)_ | Reader gets "how do these pieces plug together" in one scroll |
+| P4 | Add SECURITY.md + issue + PR templates | `.github/SECURITY.md`; `.github/ISSUE_TEMPLATE/{bug,doc,bridge}.md`; `.github/PULL_REQUEST_TEMPLATE.md` | All 5 files parse as markdown; SECURITY.md contains a contact channel + disclosure policy; PR template references surface-first checklist | ⏳ pending | _(pending)_ | Repo-level hygiene catching up with methodology content |
+| P5 | Release v1.4.0 | Version bump in `.claude-plugin/plugin.json` + `marketplace.json` + README badge; `CHANGELOG.md` 1.4.0 Added/Changed entries; this ROADMAP row closed | All 3 version strings consistent (checked by P1 CI job); CHANGELOG entry lists each P1–P4 deliverable; ROADMAP row flipped to `closed` | ⏳ pending | _(pending)_ | Standard minor-release procedure per `VERSIONING.md` |
+
+### Phase log
+
+- Sprint plan backdrop: this initiative is the first of 4 planned sprints (v1.4.0 → v1.7.0) addressing 15 optimization items organized by impact (P0 foundation / P1 adoption / P2 breadth / P3 hygiene). Sprints 2–4 cover: new bridge stacks (iOS/Swift + React/Next), non-Claude-Code multi-agent enforcement, adapter selftests, TS validator, adoption anti-metric, schema JSON dual format, README slim, CHANGELOG machine-readable, schema deprecation marker.
+- Why this sprint ships as minor not patch: two new user-facing dirs (`examples/starter-repo/`, `.github/workflows/`) and a new top-level `.github/SECURITY.md` qualify as additive features per `VERSIONING.md`.
 
 ---
 

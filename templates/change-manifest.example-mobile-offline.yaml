@@ -93,7 +93,7 @@ sot_map:
     sync_mechanism: "Autosave to SQLite every 3s + onPause."
     desync_risk: high
     host_lifecycle:
-      host_type: android_process
+      host_type: mobile_os_process
       death_triggers:
         - "Low-memory kill while app backgrounded"
         - "OS-initiated restart after system update"

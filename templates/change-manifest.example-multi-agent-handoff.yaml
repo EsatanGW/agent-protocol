@@ -1,205 +1,310 @@
+# yaml-language-server: $schema=../schemas/change-manifest.schema.yaml
+#
 # Worked example: multi-agent handoff progression of a single Change Manifest
 # through Planner → Implementer → Reviewer, shown as three sequential snapshots
 # of the same change_id (separated by --- in the same file for illustration only;
 # in a real repo each snapshot would be a separate commit to the same file).
 #
+# Each snapshot below is an independently schema-valid Change Manifest. Upstream
+# fields are copied verbatim between snapshots — the Implementer does NOT rewrite
+# Planner fields; the Reviewer does NOT rewrite either. Only the snapshot's own
+# phase advances the owned fields.
+#
 # Paired with: docs/multi-agent-handoff.md
 
 # ─── Snapshot 1: Planner has just handed off to Implementer ──────────────────
-change_id: 2026-04-20-add-notification-preferences
+change_id: "2026-04-20-add-notification-preferences"
 title: "Add per-channel notification preferences for end users"
-phase: implement       # Planner set this when handing over
+phase: implement                        # Planner set this when handing over
 status: in_progress
 last_updated: "2026-04-20T09:00:00Z"
 authors:
-  - name: "planner-agent"
-    role: ai
-    identifier: "planner-agent@vendor-neutral#run-abc123"
+  - { name: "planner-agent", role: ai, identifier: "planner-agent@vendor-neutral#run-abc123" }
 
 surfaces_touched:
-  - surface: user
-    role: primary
-    notes: "New settings screen with per-channel toggles"
-  - surface: system_interface
-    role: primary
-    notes: "New preference GET/PUT endpoints"
-  - surface: information
-    role: primary
-    notes: "New preferences table + enum of channel kinds"
-  - surface: operational
-    role: consumer
-    notes: "Telemetry for preference changes; docs update"
-
-sot_map:
-  - info: "notification channel enum"
-    sot_path: "shared/contracts/notification-channels.proto"
-    pattern: enum-defined
-    consumers:
-      - "backend service"
-      - "frontend client"
-      - "analytics downstream"
-      - "customer support SOP"
-  - info: "user preferences table"
-    sot_path: "backend/migrations/2026-04-20-add-user-preferences.sql"
-    pattern: schema-defined
-    consumers:
-      - "preferences API handler"
-      - "notification dispatcher"
-
-breaking_change:
-  level: L1              # New enum value; consumers with non-exhaustive switch may drop messages
-  rationale: "adds a 'push_high_priority' channel value; existing consumers must handle default"
-  migration_path: "two-release consumer warning window"
-
-rollback:
-  mode: 1                # Behind a flag; can be reverted by flag-off
-  notes: "Already-sent notifications follow mode 3 (no retract)"
+  - { surface: user,             role: primary,  notes: "New settings screen with per-channel toggles" }
+  - { surface: system_interface, role: primary,  notes: "New preference GET/PUT endpoints" }
+  - { surface: information,      role: primary,  notes: "New preferences table + enum of channel kinds" }
+  - { surface: operational,      role: consumer, notes: "Telemetry for preference changes; docs update" }
 
 uncontrolled_interfaces:
-  - kind: platform_policy
-    description: "Platform push policies for high-priority channel"
+  - name: "platform push policy"
+    kind: platform_os
     monitoring_channel: "platform-release-notes-subscription"
 
+sot_map:
+  - info_name: "notification channel enum"
+    pattern: 3                          # Enum/Status-Defined
+    source: "shared/contracts/notification-channels.proto"
+    consumers:
+      - { name: "backend service",        kind: code,          sync_lag: synchronous }
+      - { name: "frontend client",        kind: code,          sync_lag: batch }
+      - { name: "analytics downstream",   kind: data_pipeline, sync_lag: near_real_time }
+      - { name: "customer support SOP",   kind: documentation, sync_lag: manual }
+    sync_mechanism: "protoc codegen in CI; support SOP linked from enum comment"
+    desync_risk: medium
+
+  - info_name: "user preferences table"
+    pattern: 1                          # Schema-Defined
+    source: "backend/migrations/2026-04-20-add-user-preferences.sql"
+    consumers:
+      - { name: "preferences API handler", kind: code, sync_lag: synchronous }
+      - { name: "notification dispatcher", kind: code, sync_lag: near_real_time }
+    sync_mechanism: "ORM model regenerates from migration; dispatcher reads via API"
+    desync_risk: low
+
+breaking_change:
+  level: L1                             # New enum value; non-exhaustive switches may drop
+  self_assessed_vs_worst_case: matches
+  affected_consumers:
+    - { category: data_downstream,     identifier: "notification-events dashboard" }
+    - { category: internal_sync,       identifier: "customer-support macros" }
+  migration_path: deprecation_cycle
+
+rollback:
+  overall_mode: 1                       # Reversible — behind a remote flag
+  per_surface_modes:
+    - { surface: system_interface, mode: 1, rationale: "Endpoint behind flag; flag-off removes path" }
+    - { surface: information,      mode: 1, rationale: "Table nullable; additive only" }
+    - { surface: user,             mode: 1, rationale: "Settings screen guarded by same flag" }
+    - { surface: operational,      mode: 3, rationale: "Already-sent notifications cannot be retracted" }
+  kill_switch:
+    available: true
+    mechanism: "remote feature flag 'notification_preferences_v1'"
+    tested: false                       # Implementer will verify in Phase 4
+
 evidence_plan:
-  categories:
-    - "API contract test"
-    - "Migration applied + schema snapshot"
-    - "UI interaction evidence"
-    - "Telemetry event registered"
-  artifacts: []          # Implementer fills these in snapshot 2
+  - { type: contract_test,     surface: system_interface, status: planned, summary: "OpenAPI + enum extension contract test" }
+  - { type: migration_dry_run, surface: information,      status: planned, summary: "Dry-run on staging clone; verify no long locks" }
+  - { type: screenshot_diff,   surface: user,             status: planned, summary: "Settings screen with flag on/off" }
+  - { type: log_sample,        surface: operational,      status: planned, summary: "preference_changed telemetry event captured" }
 
 ---
 
 # ─── Snapshot 2: Implementer hands off to Reviewer ───────────────────────────
-change_id: 2026-04-20-add-notification-preferences
+# Planner fields (above) are copied verbatim. Implementer appends
+# implementation_notes and advances evidence_plan statuses.
+
+change_id: "2026-04-20-add-notification-preferences"
 title: "Add per-channel notification preferences for end users"
-phase: review
+phase: review                           # Implementer advances on handoff
 status: in_progress
 last_updated: "2026-04-21T17:30:00Z"
 authors:
-  - name: "planner-agent"
-    role: ai
-    identifier: "planner-agent@vendor-neutral#run-abc123"
-  - name: "implementer-agent"
-    role: ai
-    identifier: "implementer-agent@vendor-neutral#run-def456"
+  - { name: "planner-agent",     role: ai, identifier: "planner-agent@vendor-neutral#run-abc123" }
+  - { name: "implementer-agent", role: ai, identifier: "implementer-agent@vendor-neutral#run-def456" }
 
-# Planner-written fields preserved verbatim (Implementer does not overwrite).
 surfaces_touched:
-  - surface: user
-    role: primary
-    notes: "New settings screen with per-channel toggles"
-  - surface: system_interface
-    role: primary
-    notes: "New preference GET/PUT endpoints"
-  - surface: information
-    role: primary
-    notes: "New preferences table + enum of channel kinds"
-  - surface: operational
-    role: consumer
-    notes: "Telemetry for preference changes; docs update"
+  - { surface: user,             role: primary,  notes: "New settings screen with per-channel toggles" }
+  - { surface: system_interface, role: primary,  notes: "New preference GET/PUT endpoints" }
+  - { surface: information,      role: primary,  notes: "New preferences table + enum of channel kinds" }
+  - { surface: operational,      role: consumer, notes: "Telemetry for preference changes; docs update" }
+
+uncontrolled_interfaces:
+  - name: "platform push policy"
+    kind: platform_os
+    monitoring_channel: "platform-release-notes-subscription"
 
 sot_map:
-  - info: "notification channel enum"
-    sot_path: "shared/contracts/notification-channels.proto"
-    pattern: enum-defined
+  - info_name: "notification channel enum"
+    pattern: 3
+    source: "shared/contracts/notification-channels.proto"
     consumers:
-      - "backend service"
-      - "frontend client"
-      - "analytics downstream"
-      - "customer support SOP"
-  - info: "user preferences table"
-    sot_path: "backend/migrations/2026-04-20-add-user-preferences.sql"
-    pattern: schema-defined
+      - { name: "backend service",        kind: code,          sync_lag: synchronous }
+      - { name: "frontend client",        kind: code,          sync_lag: batch }
+      - { name: "analytics downstream",   kind: data_pipeline, sync_lag: near_real_time }
+      - { name: "customer support SOP",   kind: documentation, sync_lag: manual }
+    sync_mechanism: "protoc codegen in CI; support SOP linked from enum comment"
+    desync_risk: medium
+  - info_name: "user preferences table"
+    pattern: 1
+    source: "backend/migrations/2026-04-20-add-user-preferences.sql"
     consumers:
-      - "preferences API handler"
-      - "notification dispatcher"
+      - { name: "preferences API handler", kind: code, sync_lag: synchronous }
+      - { name: "notification dispatcher", kind: code, sync_lag: near_real_time }
+    sync_mechanism: "ORM model regenerates from migration; dispatcher reads via API"
+    desync_risk: low
 
 breaking_change:
   level: L1
-  rationale: "adds a 'push_high_priority' channel value; existing consumers must handle default"
-  migration_path: "two-release consumer warning window"
+  self_assessed_vs_worst_case: matches
+  affected_consumers:
+    - { category: data_downstream,     identifier: "notification-events dashboard" }
+    - { category: internal_sync,       identifier: "customer-support macros" }
+  migration_path: deprecation_cycle
 
 rollback:
-  mode: 1
-  notes: "Already-sent notifications follow mode 3 (no retract)"
-
-uncontrolled_interfaces:
-  - kind: platform_policy
-    description: "Platform push policies for high-priority channel"
-    monitoring_channel: "platform-release-notes-subscription"
+  overall_mode: 1
+  per_surface_modes:
+    - { surface: system_interface, mode: 1, rationale: "Endpoint behind flag; flag-off removes path" }
+    - { surface: information,      mode: 1, rationale: "Table nullable; additive only" }
+    - { surface: user,             mode: 1, rationale: "Settings screen guarded by same flag" }
+    - { surface: operational,      mode: 3, rationale: "Already-sent notifications cannot be retracted" }
+  kill_switch:
+    available: true
+    mechanism: "remote feature flag 'notification_preferences_v1'"
+    tested: true                        # Implementer verified the kill-switch
 
 evidence_plan:
-  categories:
-    - "API contract test"
-    - "Migration applied + schema snapshot"
-    - "UI interaction evidence"
-    - "Telemetry event registered"
-  artifacts:
-    - category: "API contract test"
-      path: "backend/tests/preferences_contract_test.xml"
-      summary: "All assertions pass, including unknown-channel fallback"
-    - category: "Migration applied + schema snapshot"
-      path: "db/schema.sql@rev-2026-04-21"
-      summary: "Preferences table present with 3 columns + FK"
-    - category: "UI interaction evidence"
-      path: "evidence/ui/preferences-screen-walkthrough.mp4"
-      summary: "Toggling each channel persists and survives app restart"
-    - category: "Telemetry event registered"
-      path: "telemetry/events.registry.json"
-      summary: "preference_changed event added with schema"
+  - type: contract_test
+    surface: system_interface
+    status: collected
+    artifact_location: "ci/reports/notifications-contract-2026-04-21.html"
+    summary: "OpenAPI diff accepted; unknown-channel fallback covered"
+    validated_by: "github-actions/contract-test"
+    collected_at: "2026-04-21T10:12:00Z"
+  - type: migration_dry_run
+    surface: information
+    status: collected
+    artifact_location: "db/dryrun/2026-04-20-add-user-preferences.log"
+    summary: "Staging clone (12M users); migration 4.1s, no long locks"
+    validated_by: "dba-runbook"
+    collected_at: "2026-04-21T11:40:00Z"
+  - type: screenshot_diff
+    surface: user
+    status: collected
+    artifact_location: "evidence/ui/preferences-screen-2026-04-21.png"
+    summary: "Flag on shows 4 toggles; flag off hides section"
+    validated_by: "implementer-agent"
+    collected_at: "2026-04-21T14:02:00Z"
+  - type: log_sample
+    surface: operational
+    status: collected
+    artifact_location: "telemetry/sample-preference_changed-2026-04-21.json"
+    summary: "Event registered; schema matches contract"
+    validated_by: "implementer-agent"
+    collected_at: "2026-04-21T15:30:00Z"
 
 implementation_notes:
   - type: plan_delta
-    description: "Added a compensating migration step to backfill defaults for existing rows"
+    description: "Added a backfill step to default existing rows to 'all_enabled'"
     scope_delta: acknowledged_and_approved
     rationale: "Discovered during Phase 1 redo after noticing existing null rows"
 
 ---
 
 # ─── Snapshot 3: Reviewer signs off ──────────────────────────────────────────
-change_id: 2026-04-20-add-notification-preferences
+# Implementer fields (above) are copied verbatim. Reviewer appends review_notes
+# and approvals; phase advances to signoff.
+
+change_id: "2026-04-20-add-notification-preferences"
 title: "Add per-channel notification preferences for end users"
-phase: signoff
+phase: signoff                          # Reviewer advances on sign-off
 status: accepted
 last_updated: "2026-04-22T11:05:00Z"
 authors:
-  - name: "planner-agent"
-    role: ai
-    identifier: "planner-agent@vendor-neutral#run-abc123"
-  - name: "implementer-agent"
-    role: ai
-    identifier: "implementer-agent@vendor-neutral#run-def456"
-  - name: "reviewer-agent"
-    role: ai
-    identifier: "reviewer-agent@vendor-neutral#run-ghi789"
-  - name: "human-approver"
-    role: human
-    identifier: "alice@example.com"
+  - { name: "planner-agent",     role: ai,    identifier: "planner-agent@vendor-neutral#run-abc123" }
+  - { name: "implementer-agent", role: ai,    identifier: "implementer-agent@vendor-neutral#run-def456" }
+  - { name: "reviewer-agent",    role: ai,    identifier: "reviewer-agent@vendor-neutral#run-ghi789" }
+  - { name: "human-approver",    role: human, identifier: "alice@example.com" }
 
-# All prior fields preserved; Reviewer only appends their own fields.
-surfaces_touched: *previous   # (in real YAML, copy the block; anchors shown for illustration)
-sot_map: *previous
-breaking_change: *previous
-rollback: *previous
-uncontrolled_interfaces: *previous
-evidence_plan: *previous
-implementation_notes: *previous
+surfaces_touched:
+  - { surface: user,             role: primary,  notes: "New settings screen with per-channel toggles" }
+  - { surface: system_interface, role: primary,  notes: "New preference GET/PUT endpoints" }
+  - { surface: information,      role: primary,  notes: "New preferences table + enum of channel kinds" }
+  - { surface: operational,      role: consumer, notes: "Telemetry for preference changes; docs update" }
+
+uncontrolled_interfaces:
+  - name: "platform push policy"
+    kind: platform_os
+    monitoring_channel: "platform-release-notes-subscription"
+
+sot_map:
+  - info_name: "notification channel enum"
+    pattern: 3
+    source: "shared/contracts/notification-channels.proto"
+    consumers:
+      - { name: "backend service",        kind: code,          sync_lag: synchronous }
+      - { name: "frontend client",        kind: code,          sync_lag: batch }
+      - { name: "analytics downstream",   kind: data_pipeline, sync_lag: near_real_time }
+      - { name: "customer support SOP",   kind: documentation, sync_lag: manual }
+    sync_mechanism: "protoc codegen in CI; support SOP linked from enum comment"
+    desync_risk: medium
+  - info_name: "user preferences table"
+    pattern: 1
+    source: "backend/migrations/2026-04-20-add-user-preferences.sql"
+    consumers:
+      - { name: "preferences API handler", kind: code, sync_lag: synchronous }
+      - { name: "notification dispatcher", kind: code, sync_lag: near_real_time }
+    sync_mechanism: "ORM model regenerates from migration; dispatcher reads via API"
+    desync_risk: low
+
+breaking_change:
+  level: L1
+  self_assessed_vs_worst_case: matches
+  affected_consumers:
+    - { category: data_downstream,     identifier: "notification-events dashboard" }
+    - { category: internal_sync,       identifier: "customer-support macros" }
+  migration_path: deprecation_cycle
+
+rollback:
+  overall_mode: 1
+  per_surface_modes:
+    - { surface: system_interface, mode: 1, rationale: "Endpoint behind flag; flag-off removes path" }
+    - { surface: information,      mode: 1, rationale: "Table nullable; additive only" }
+    - { surface: user,             mode: 1, rationale: "Settings screen guarded by same flag" }
+    - { surface: operational,      mode: 3, rationale: "Already-sent notifications cannot be retracted" }
+  kill_switch:
+    available: true
+    mechanism: "remote feature flag 'notification_preferences_v1'"
+    tested: true
+
+evidence_plan:
+  - type: contract_test
+    surface: system_interface
+    status: collected
+    artifact_location: "ci/reports/notifications-contract-2026-04-21.html"
+    summary: "OpenAPI diff accepted; unknown-channel fallback covered"
+    validated_by: "github-actions/contract-test"
+    collected_at: "2026-04-21T10:12:00Z"
+  - type: migration_dry_run
+    surface: information
+    status: collected
+    artifact_location: "db/dryrun/2026-04-20-add-user-preferences.log"
+    summary: "Staging clone (12M users); migration 4.1s, no long locks"
+    validated_by: "dba-runbook"
+    collected_at: "2026-04-21T11:40:00Z"
+  - type: screenshot_diff
+    surface: user
+    status: collected
+    artifact_location: "evidence/ui/preferences-screen-2026-04-21.png"
+    summary: "Flag on shows 4 toggles; flag off hides section"
+    validated_by: "implementer-agent"
+    collected_at: "2026-04-21T14:02:00Z"
+  - type: log_sample
+    surface: operational
+    status: collected
+    artifact_location: "telemetry/sample-preference_changed-2026-04-21.json"
+    summary: "Event registered; schema matches contract"
+    validated_by: "implementer-agent"
+    collected_at: "2026-04-21T15:30:00Z"
+
+implementation_notes:
+  - type: plan_delta
+    description: "Added a backfill step to default existing rows to 'all_enabled'"
+    scope_delta: acknowledged_and_approved
+    rationale: "Discovered during Phase 1 redo after noticing existing null rows"
 
 review_notes:
   - topic: "Cross-cutting: observability"
-    finding: "pass"
+    finding: pass
     detail: "telemetry event schema matches registry contract"
   - topic: "Cross-cutting: security"
-    finding: "pass"
+    finding: pass
     detail: "preferences endpoint requires authenticated user; authorization scoped to own user_id"
   - topic: "Breaking change: L1 consumer impact"
-    finding: "pass with follow-up"
-    detail: "analytics downstream confirmed non-exhaustive switch replaced with fallback; customer support SOP update ticketed separately"
+    finding: pass_with_followup
+    detail: "analytics dashboard confirmed non-exhaustive switch replaced with fallback; customer-support SOP update ticketed separately"
 
-residual_risk:
-  - "Existing push policies may flag 'high_priority' channel in some regions; monitoring via release-notes subscription"
-  - "First-week opt-in rate unknown; Phase 8 T+7d check scheduled"
+residual_risks:
+  - description: "Existing push policies may flag 'high_priority' channel in some regions"
+    severity: medium
+    mitigation: "Monitoring via platform release-notes subscription; Phase 8 T+7d check"
+    accepted_by: "alice@example.com"
+  - description: "First-week opt-in rate unknown"
+    severity: low
+    mitigation: "Phase 8 T+7d review"
+    accepted_by: "alice@example.com"
 
 approvals:
   - approver: "alice@example.com"
