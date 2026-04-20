@@ -244,4 +244,5 @@ Bridge-level hooks **may** name specific tools (that is precisely why bridges ex
 - `automation-contract.md` — the batch-validator capability contract. Rule IDs are shared with runtime hooks where applicable.
 - `automation-contract-algorithm.md` — normative algorithm; runtime hooks can reuse rule IDs from there.
 - `multi-agent-handoff.md` — phase-gate hooks are the primary enforcement mechanism for the phase-transition rules in that document.
-- `reference-implementations/hooks-claude-code/` — the non-normative reference bridge.
+- `reference-implementations/hooks-claude-code/` — the primary non-normative reference bridge (hosts the hook scripts).
+- `reference-implementations/hooks-cursor/`, `hooks-gemini-cli/`, `hooks-windsurf/`, `hooks-codex/` — thin adapter bundles that reuse the Claude Code hook scripts under each runtime's native registration format.

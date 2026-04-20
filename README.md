@@ -245,15 +245,16 @@ See [`AGENTS.md`](./AGENTS.md) "Recommended reading order".
 
 **Normative contract.** [`docs/runtime-hook-contract.md`](./docs/runtime-hook-contract.md) — defines four categories (A phase-gate / B evidence / C drift / D completion-audit), JSON-over-stdin event schema, latency budgets (< 500 ms for A/B, < 2 s for C), non-functional requirements (offline, deterministic, no side effects, no model-in-hook).
 
-**Reference bundle.** [`reference-implementations/hooks-claude-code/`](./reference-implementations/hooks-claude-code/) ships four POSIX-sh hooks (`manifest-required.sh`, `evidence-artifact-exists.sh`, `sot-drift-check.sh`, `completion-audit.sh`), a `settings.example.json` wiring them to Claude Code's native events, a README with install steps, and a DEVIATIONS.md.
+**Reference bundles.** The primary bundle lives at [`reference-implementations/hooks-claude-code/`](./reference-implementations/hooks-claude-code/) and ships five POSIX-sh hooks (`manifest-required.sh`, `evidence-artifact-exists.sh`, `sot-drift-check.sh`, `consumer-registry-check.sh`, `completion-audit.sh`), a `settings.example.json` wiring them to Claude Code's native events, a README, a DEVIATIONS.md, and a hermetic self-test harness under `selftests/`. Thin adapter bundles for [Cursor](./reference-implementations/hooks-cursor/), [Gemini CLI](./reference-implementations/hooks-gemini-cli/), [Windsurf](./reference-implementations/hooks-windsurf/), and [Codex](./reference-implementations/hooks-codex/) reuse the same hook scripts under each runtime's native registration format.
 
-### The four reference hooks
+### The five reference hooks
 
 | Hook | Category | Checks | Blocks (exit 1) / Warns (exit 2) |
 |---|---|---|---|
 | `manifest-required.sh` | A phase-gate | Non-trivial git commits have a staged Change Manifest | Block |
 | `evidence-artifact-exists.sh` | B evidence | Every `evidence_plan[].status == collected` has a resolvable `artifact_location` | Block |
 | `sot-drift-check.sh` | C drift | Declared `sot_map[].source` files appear in `git diff --name-only` | Warn |
+| `consumer-registry-check.sh` | C drift (network) | Each `consumers[].external_registry_url` responds 2xx within `AGENT_PROTOCOL_NET_TIMEOUT` | Warn |
 | `completion-audit.sh` | D completion-audit | On-stop: no pending `evidence_plan`, no `accepted_by: unaccepted`, every escalation has `resolved_at`, `phase: observe` has `handoff_narrative` | Block |
 
 ### Install on Claude Code

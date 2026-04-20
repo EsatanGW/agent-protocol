@@ -1,0 +1,62 @@
+{
+  "_comment": "Reference hook wiring for Cursor. The shape of Cursor's workspace config evolves; treat this file as the normative intent (which hook fires on which event) rather than as a byte-exact config. Adjust key names to match your Cursor version, keep the commands + ordering identical. Paths assume this adapter sits next to ../hooks-claude-code/hooks/; absolute paths also work.",
+  "rules": [
+    {
+      "name": "agent-protocol/phase-gate",
+      "trigger": "pre-commit",
+      "commands": [
+        "sh ./reference-implementations/hooks-claude-code/hooks/manifest-required.sh",
+        "sh ./reference-implementations/hooks-claude-code/hooks/evidence-artifact-exists.sh"
+      ],
+      "agentProtocol": {
+        "category": "phase-gate+evidence",
+        "level": "block",
+        "ruleIds": [
+          "phase-gate.manifest-required",
+          "evidence.artifact-exists"
+        ]
+      }
+    },
+    {
+      "name": "agent-protocol/drift",
+      "trigger": "post-file-edit",
+      "commands": [
+        "sh ./reference-implementations/hooks-claude-code/hooks/sot-drift-check.sh"
+      ],
+      "agentProtocol": {
+        "category": "drift",
+        "level": "warn",
+        "ruleIds": ["drift.sot-file-must-move"]
+      }
+    },
+    {
+      "name": "agent-protocol/drift-network",
+      "trigger": "pre-push",
+      "commands": [
+        "sh ./reference-implementations/hooks-claude-code/hooks/consumer-registry-check.sh"
+      ],
+      "agentProtocol": {
+        "category": "drift",
+        "level": "warn",
+        "ruleIds": ["drift.consumer-registry-stale"]
+      }
+    },
+    {
+      "name": "agent-protocol/completion-audit",
+      "trigger": "session-end",
+      "commands": [
+        "sh ./reference-implementations/hooks-claude-code/hooks/completion-audit.sh"
+      ],
+      "agentProtocol": {
+        "category": "completion-audit",
+        "level": "block",
+        "ruleIds": [
+          "completion.evidence-complete",
+          "completion.unaccepted-risk",
+          "completion.unresolved-escalation",
+          "completion.observe-needs-narrative"
+        ]
+      }
+    }
+  ]
+}
