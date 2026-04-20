@@ -1,0 +1,193 @@
+schema_version: 1
+stack: ios-swift
+bridge_doc: docs/bridges/ios-swift-stack-bridge.md
+
+canonical_surfaces:
+
+  user:
+    patterns:
+      - "**/*View.swift"
+      - "**/*ViewController.swift"
+      - "**/*Screen.swift"
+      - "**/Views/**"
+      - "**/ViewControllers/**"
+      - "**/Scenes/**"
+      - "**/Navigation/**"
+      - "**/Localizable.strings"
+      - "**/Localizable.xcstrings"
+      - "**/*.xcstrings"
+      - "**/InfoPlist.strings"
+      - "**/*.storyboard"
+      - "**/*.xib"
+      - "**/Assets.xcassets/**"
+      - "**/*.xcassets/**"
+      - "**/Widget/**"
+      - "**/WidgetExtension/**"
+      - "**/*Widget.swift"
+      - "**/LiveActivity/**"
+      - "**/Tests/**/*ViewTests.swift"
+      - "**/Tests/**/*SnapshotTests.swift"
+      - "**/UITests/**"
+    notes: |
+      UIKit view controllers, SwiftUI views, navigation containers, storyboards,
+      xibs, and the asset catalog for images/colors. Widget and LiveActivity
+      extensions are user-surface because their role is on-screen presentation;
+      their data plumbing (App Group reads, timeline reloads) lives under
+      information and system_interface respectively. xcstrings catalogs and
+      legacy .strings files are both user-surface localization sources.
+
+  system_interface:
+    patterns:
+      - "**/Networking/**"
+      - "**/Network/**"
+      - "**/API/**"
+      - "**/Clients/**"
+      - "**/*APIClient.swift"
+      - "**/*Endpoint.swift"
+      - "**/PushNotifications/**"
+      - "**/Notifications/**"
+      - "**/AppDelegate.swift"
+      - "**/SceneDelegate.swift"
+      - "**/App.swift"
+      - "**/*App.swift"
+      - "**/UniversalLinks/**"
+      - "**/DeepLinks/**"
+      - "**/Intents/**"
+      - "**/*Intent.swift"
+      - "**/AppIntents/**"
+      - "**/ShareExtension/**"
+      - "**/NotificationServiceExtension/**"
+      - "**/NotificationContentExtension/**"
+      - "**/IntentsExtension/**"
+      - "**/apple-app-site-association"
+      - "**/*.entitlements"
+      - "**/StoreKit/**"
+      - "**/*StoreKit*.swift"
+    notes: |
+      URLSession wrappers, API clients, APNs registration, Universal Link and
+      custom scheme handling, AppIntents/Shortcuts, StoreKit 2 purchase flows,
+      and all non-UI extension hosts. AASA JSON and `.entitlements` files live
+      here because they are the contract surface with iOS itself.
+
+  information:
+    patterns:
+      - "**/Models/**"
+      - "**/Entities/**"
+      - "**/Domain/**"
+      - "**/Repositories/**"
+      - "**/DataStore/**"
+      - "**/Persistence/**"
+      - "**/*.xcdatamodeld/**"
+      - "**/*.xcdatamodel/**"
+      - "**/*+CoreDataClass.swift"
+      - "**/*+CoreDataProperties.swift"
+      - "**/SwiftData/**"
+      - "**/*Schema.swift"
+      - "**/CloudKit/**"
+      - "**/*CloudKit*.swift"
+      - "**/Keychain/**"
+      - "**/*Keychain*.swift"
+      - "**/UserDefaults+*.swift"
+      - "**/AppGroup/**"
+      - "**/SharedContainer/**"
+      - "**/*.json"
+      - "**/*.plist"
+    notes: |
+      Core Data model bundles, SwiftData `@Model` definitions, CloudKit record
+      type helpers, Keychain wrappers, UserDefaults extensions, and App Group
+      shared containers. `.xcdatamodeld` version changes are the canonical
+      trigger for an information-surface migration plan. Bundled `.json` seeds
+      and configuration `.plist` files are information-surface when they carry
+      domain data; `Info.plist` itself is operational/compliance.
+
+  operational:
+    patterns:
+      - "Package.swift"
+      - "Package.resolved"
+      - "**/*.xcodeproj/project.pbxproj"
+      - "**/*.xcodeproj/xcshareddata/**"
+      - "**/*.xcworkspace/**"
+      - "Podfile"
+      - "Podfile.lock"
+      - "Cartfile"
+      - "Cartfile.resolved"
+      - "fastlane/**"
+      - "Gemfile"
+      - "Gemfile.lock"
+      - "**/ExportOptions.plist"
+      - "**/*.xctestplan"
+      - ".github/workflows/**"
+      - ".gitlab-ci.yml"
+      - "bitrise.yml"
+      - ".xcode-version"
+      - ".swift-version"
+      - ".swiftformat"
+      - ".swiftlint.yml"
+      - "scripts/**"
+      - "Tools/**"
+      - "CHANGELOG.md"
+      - "ROADMAP.md"
+    notes: |
+      Xcode project graph, SPM manifests, CocoaPods/Carthage fallbacks, fastlane
+      lanes, signing export options, test plans, linter configs, toolchain
+      pins, and CI definitions. Changing any of these can alter build output
+      without a single line of Swift changing — they are operational-surface.
+
+stack_extensions:
+
+  asset_surface:
+    patterns:
+      - "**/Assets.xcassets/**/*.imageset/**"
+      - "**/Assets.xcassets/**/*.colorset/**"
+      - "**/Assets.xcassets/**/*.symbolset/**"
+      - "**/Assets.xcassets/**/*.appiconset/**"
+      - "**/*.xcassets/**/Contents.json"
+      - "**/*.sks"
+      - "**/*.scn"
+      - "**/*.usdz"
+      - "**/*.reality"
+      - "**/*.mlmodel"
+      - "**/*.mlmodelc/**"
+      - "**/*.mlpackage/**"
+      - "**/Fonts/**"
+      - "**/*.ttf"
+      - "**/*.otf"
+    notes: |
+      Raster, vector, symbol, and 3D/AR assets plus CoreML models and embedded
+      fonts. App Thinning behavior is driven by tags declared on imagesets, so
+      asset-surface changes can shift download size independently of code.
+
+  compliance_surface:
+    patterns:
+      - "**/Info.plist"
+      - "**/PrivacyInfo.xcprivacy"
+      - "**/*.entitlements"
+      - "**/apple-app-site-association"
+      - "**/.well-known/apple-app-site-association"
+      - "**/StoreKit/Products.storekit"
+      - "**/*.storekit"
+      - "PRIVACY.md"
+      - "privacy-policy.*"
+      - "**/ExportCompliance.plist"
+    notes: |
+      Files that App Store review and on-device iOS policy read directly:
+      Info.plist usage-description strings, PrivacyInfo.xcprivacy manifests,
+      AASA files for Universal Links, entitlements (iCloud, App Groups, Sign in
+      with Apple), and StoreKit product catalogs. Drift here most often causes
+      review rejection or runtime-entitlement crashes, so it is called out
+      separately from general operational-surface churn.
+
+  uncontrolled_external_surface:
+    patterns:
+      - "**/Info.plist"
+      - "**/*.entitlements"
+      - "**/PrivacyInfo.xcprivacy"
+      - "**/apple-app-site-association"
+      - "Package.resolved"
+      - "Podfile.lock"
+    notes: |
+      Pointer-only: these same files also appear in compliance_surface and
+      operational. They are listed here to flag that their effective behavior
+      is governed by Apple policy, iOS version, or upstream SDK releases that
+      no one on the team controls — changes should trigger an explicit
+      uncontrolled-external review per docs/surfaces.md.
