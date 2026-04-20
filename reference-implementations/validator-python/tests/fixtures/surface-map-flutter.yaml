@@ -1,0 +1,15 @@
+schema_version: 1
+stack: flutter
+canonical_surfaces:
+  user:
+    patterns:
+      - "lib/ui/**/*.dart"
+  system_interface:
+    patterns:
+      - "lib/platform/**/*.dart"
+  information:
+    patterns:
+      - "lib/models/**/*.dart"
+  operational:
+    patterns:
+      - "pubspec.yaml"

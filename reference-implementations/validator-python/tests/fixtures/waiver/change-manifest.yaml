@@ -1,0 +1,20 @@
+change_id: 2026-04-20-waiver-demo
+last_updated: "2026-04-20T10:00:00Z"
+phase: observe
+surfaces_touched:
+  - surface: information
+    role: primary
+evidence_plan:
+  - requirement: test
+    status: collected
+    surface: information
+    artifact_location: z.log
+rollback:
+  overall_mode: 2
+  notes: redeploy
+waivers:
+  - rule_id: handoff.narrative_required_for_observe
+    approver_role: human
+    approver_name: release-captain
+    expires_at: "2099-01-01"
+    justification: stub for test
