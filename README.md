@@ -375,6 +375,9 @@ See [`docs/runtime-hook-contract.md`](./docs/runtime-hook-contract.md) for the f
 
 - [`docs/bridges/flutter-stack-bridge.md`](./docs/bridges/flutter-stack-bridge.md)
 - [`docs/bridges/android-kotlin-stack-bridge.md`](./docs/bridges/android-kotlin-stack-bridge.md)
+- [`docs/bridges/android-compose-stack-bridge.md`](./docs/bridges/android-compose-stack-bridge.md)
+- [`docs/bridges/ios-swift-stack-bridge.md`](./docs/bridges/ios-swift-stack-bridge.md)
+- [`docs/bridges/react-nextjs-stack-bridge.md`](./docs/bridges/react-nextjs-stack-bridge.md)
 - [`docs/bridges/ktor-stack-bridge.md`](./docs/bridges/ktor-stack-bridge.md)
 - [`docs/bridges/unity-stack-bridge.md`](./docs/bridges/unity-stack-bridge.md)
 

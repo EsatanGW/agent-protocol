@@ -47,6 +47,8 @@ the repository reads as reinforcement rather than first exposure.
 - `docs/bridges/flutter-stack-bridge.md`
 - `docs/bridges/android-kotlin-stack-bridge.md`
 - `docs/bridges/android-compose-stack-bridge.md`
+- `docs/bridges/ios-swift-stack-bridge.md`
+- `docs/bridges/react-nextjs-stack-bridge.md`
 - `docs/bridges/ktor-stack-bridge.md`
 - `docs/bridges/unity-stack-bridge.md`
 
@@ -206,6 +208,8 @@ Canonical doc list, ordered by when you'll typically read it.
 - `docs/bridges/flutter-stack-bridge.md`
 - `docs/bridges/android-kotlin-stack-bridge.md`
 - `docs/bridges/android-compose-stack-bridge.md`
+- `docs/bridges/ios-swift-stack-bridge.md`
+- `docs/bridges/react-nextjs-stack-bridge.md`
 - `docs/bridges/ktor-stack-bridge.md`
 - `docs/bridges/unity-stack-bridge.md`
 

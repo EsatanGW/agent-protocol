@@ -158,6 +158,8 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 - `docs/examples/mobile-offline-feature-example.md`
 - `docs/examples/flutter-app-example.md` — multi-platform "Save & Share" with platform-channel two-sided contract
 - `docs/examples/android-kotlin-example.md` — offline draft-saving with Room migration + WorkManager + ViewBinding
+- `docs/examples/ios-swift-app-example.md` — CloudKit-synced tag feature + Home Screen Widget, private/public CloudKit rollback asymmetry
+- `docs/examples/react-nextjs-app-example.md` — App Router migration with Server Action, ISR cache tags, Prisma additive migration, and A/B middleware
 - `docs/examples/ktor-server-example.md` — order-lifecycle enum addition with migration + plugin install order + mixed rollback modes
 - `docs/examples/ml-model-training-example.md` — ML retrain / rollout with dataset+weights+config SoT
 - `docs/examples/data-pipeline-example.md` — schema extension with warehouse / feature store / compliance consumers
@@ -173,6 +175,8 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 - `docs/bridges/flutter-stack-bridge.md`
 - `docs/bridges/android-kotlin-stack-bridge.md`
 - `docs/bridges/android-compose-stack-bridge.md` — companion to the Kotlin + XML bridge; inherits Room / WorkManager / FCM / permission / vendor-fork / deep-link sections, adds Compose-specific state-ownership, effect-API, and recomposition deltas
+- `docs/bridges/ios-swift-stack-bridge.md` — iOS/Swift (UIKit + SwiftUI) with Core Data, CloudKit, Widget/Extension multi-process state, and App Store compliance surface
+- `docs/bridges/react-nextjs-stack-bridge.md` — React + Next.js App Router with RSC / Server Actions / Middleware / four-layer cache invalidation
 - `docs/bridges/ktor-stack-bridge.md`
 - `docs/bridges/unity-stack-bridge.md`
 - Template for new stacks: `docs/stack-bridge-template.md`
