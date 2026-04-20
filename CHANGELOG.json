@@ -1,0 +1,320 @@
+{
+  "releases": [
+    {
+      "version": "1.6.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "Non-Claude-Code multi-agent enforcement",
+            "body": "Planner / Implementer / Reviewer role separation is now published for runtimes that cannot gate tool exposure per persona. `reference-implementations/roles/{planner,implementer,reviewer}.md` ship the runtime-neutral role prompts (paste-ready for Cursor Custom Mode, Gemini CLI session, Windsurf mode, Codex profile). `docs/multi-agent-handoff.md` adds a §Enforcement across runtimes matrix distinguishing mechanical enforcement (Claude Code per-agent `tools:` frontmatter; Cursor Custom Mode excluding edit/apply tools) from prose-only enforcement (Gemini CLI / Windsurf / Codex — paired with distinct sessions per role, OS-level read-only working dir for Reviewer, and session-identity recording in `approvals` to keep the anti-collusion rule auditable). `AGENTS.md §7` tightened with the per-runtime bullet list; `.windsurfrules`, `GEMINI.md`, and the Cursor `.cursor/rules/{planner,implementer,reviewer}.mdc` bridges updated so every non-Claude-Code entry point points at the role artifacts."
+          },
+          {
+            "title": "Cross-runtime adapter selftests",
+            "body": "`reference-implementations/hooks-{cursor,gemini-cli,windsurf,codex}/selftests/selftest.sh` ship hermetic TAP-ish smoke tests per adapter. Each selftest runs the runtime adapter's `parse-event.sh` inside a clean subshell with synthetic runtime env vars (CURSOR_HOOK_TRIGGER/CURSOR_TOOL, GEMINI_HOOK_EVENT/GEMINI_TOOL_NAME, WINDSURF_HOOK_EVENT/WINDSURF_TOOL_NAME, CODEX_HOOK_EVENT/CODEX_TOOL_NAME) and asserts `AP_EVENT` / `AP_TOOL` / `AP_STAGED_FILES` / `AP_PHASE` come out correct. Four cases per adapter: unset-env-yields-empty-ap-vars, runtime-env-maps-to-event-and-tool, manifest-yaml-populates-phase (skipped if `yq` absent), missing-manifest-leaves-phase-empty. CI `.github/workflows/validate.yml` now runs all four adapter selftests on every push / PR. Each adapter's `DEVIATIONS.md §\"No runtime-level selftest\"` downgraded from gap to covered-but-narrow: **adapter layer** is now tested; **runtime-wiring layer** (Cursor actually invoking the adapter with the documented env var names) remains an unavoidable per-workspace smoke test because it depends on the runtime's own event wiring."
+          },
+          {
+            "title": "Adoption anti-metrics doc",
+            "body": "`docs/adoption-anti-metrics.md` is a **non-normative** diagnostic aid for catching the specific failure mode where a team adopts the methodology's ceremony without adopting its substance. Names seven anti-signals (evidence paths all pointing at the same artifact; `rollback.overall_mode` always 1; `surfaces_touched` always 4/4 or always 1/4; review notes always `LGTM`; phase-gate ticks land faster than commits; manifests copy-and-renamed across changes; `cross_cutting.*` always boilerplate) paired with counter-signals, \"why this happens\" root-cause paragraphs so readers fix the incentive not the symptom, and non-normative detection sketches. Opens with an explicit warning that operationalizing these as CI gates would create Goodhart targets — they are for review conversations, not gates. `docs/automation-contract.md` and `docs/operational-disciplines.md` cross-reference the new doc; `AGENTS.md` reading order lists it after `docs/adoption-strategy.md`."
+          },
+          {
+            "title": "Security-sensitive worked example",
+            "body": "`templates/change-manifest.example-security-sensitive.yaml` demonstrates the full manifest surface for a JWT signing-key rotation: exercises the `compliance` extension surface alongside the four canonical surfaces; SoT pattern 8 (Dual-Representation) for signing keys with a required `dual_representation` object capturing editor / runtime / sync-step / CI sync-check; pattern 4 for the claims contract; pattern 1 for the audit event schema; `cross_cutting.security` with `impact=high`, `pii_access_added=false` (claims unchanged), `supply_chain_review_needed=true` (verifier-library behavior is the trusted dependency); `breaking_change.level=L1` escalated to L2 structural because long-tail consumers (JWKS cache TTL, mobile app install base) cannot refresh synchronously; `rollback.overall_mode=3` with a compensation_plan because issued tokens cannot be recalled; mixed `per_surface_modes` showing that a single change can be mode-1 on ops config, mode-2 on server deploy, and mode-3 on the public contract; evidence plan citing SAST sarif, threat-model diff, dual-kid integration test, rotation-runbook dry-run, compliance changelog; two resolved `escalations` (`security_or_pii_path` + `rollback_mode_3`). Validates against `schemas/change-manifest.schema.yaml` via the existing `template-conformance` CI job."
+          }
+        ],
+        "changed": [
+          {
+            "title": "Index hygiene for Sprint 3 additions",
+            "body": "`README.md` \"When your situation matches\" block adds three new discovery paths (multi-agent roles on non-Claude-Code runtime → enforcement matrix + role artifacts; security / supply-chain / PII path → appended security-sensitive example; adoption-review path → anti-metrics doc). `docs/onboarding/orientation.md` Navigation map adds bullets for the anti-metrics doc and the `reference-implementations/roles/` directory, appends a worked-example pointer on the security-supply-chain line, and adds an enforcement-across-runtimes callout on the multi-agent-handoff line. `AGENTS.md` reading order lists the anti-metrics doc after adoption-strategy; Structured-output section includes the security-sensitive example; Reference-implementations section includes the roles directory. All additions grep-clean: no orphan link targets."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "iOS/Swift stack bridge + surface map",
+            "body": "`docs/bridges/ios-swift-stack-bridge.md` maps the four canonical surfaces to a Swift 5.9+ / iOS 15+ UIKit + SwiftUI mixed codebase. Covers UIKit ↔ SwiftUI interop as four boundary patterns (UIHostingController, UIViewControllerRepresentable, NotificationCenter bridges, shared `@Observable` view model); multi-process state via App Groups + Widget + Share Extension + Darwin notifications as Pattern 4a + Pattern 8 instances; CloudKit rollback asymmetry (public DB forward-only mode 3 vs private DB effectively mode 2); Core Data `.xcdatamodeld` lightweight vs heavyweight migration as a three-way dual representation (bundle ↔ generated classes ↔ on-device store); App Store compliance surface singling out PrivacyInfo.xcprivacy, Info.plist usage descriptions, AASA, `.entitlements`, and StoreKit catalog as review-gated files; build-time risk (WMO, Swift 6 strict concurrency, DEBUG-only code, App Thinning) and uncontrolled-external register (iOS major, App Store review, StoreKit policy, network reachability variance). Machine-consumable companion `docs/bridges/ios-swift-surface-map.yaml` validates against `schemas/surface-map.schema.yaml` and unblocks validator rule 3.2 for iOS repos."
+          },
+          {
+            "title": "React / Next.js stack bridge + surface map",
+            "body": "`docs/bridges/react-nextjs-stack-bridge.md` covers React 18+ / Next.js 14+ App Router. Pipeline order documented as `middleware → RSC render → route handlers → client hydration → server actions` (Pattern 4a); the four-layer Next.js cache model (Data Cache / Full Route Cache / Router Cache / Browser-CDN) with per-layer invalidator responsibility makes explicit why `revalidateTag` alone is not always sufficient; dual-representation hotspots (DB schema ↔ generated TS types, Zod schema ↔ `z.infer` type, server HTML ↔ hydrated DOM) as Pattern 8 instances; runtime-export (`edge` vs `nodejs`) as a per-route capability contract; rollback modes (client-component change = mode 2, middleware matcher change = mode 3, Server Action shape change = mode 3, nullable-column additive DB migration = mode 2). Pages Router, pure SPA React, and React Native explicitly out of scope with pointers to project-local overlay docs; experimental flags (`ppr`, `dynamicIO`) pinned to project-local addenda. Machine-consumable companion `docs/bridges/react-nextjs-surface-map.yaml` validates against the same schema."
+          },
+          {
+            "title": "iOS/Swift worked example",
+            "body": "`docs/examples/ios-swift-app-example.md` walks through adding a CloudKit-synced tag feature with a Home Screen Widget end-to-end: private CloudKit schema (mode 2), public CloudKit schema (mode 3, staged to next release), Core Data v3 → v4 lightweight migration tested against a 10k-row store, App Group snapshot struct owned in a shared Swift package to prevent Widget ↔ app drift, PrivacyInfo.xcprivacy updates tied to the iCloud data-type change, and Widget AppIntent parameter stability as a user-configuration contract. Phase 0–7 structure identical to other bridge-linked examples."
+          },
+          {
+            "title": "React / Next.js worked example",
+            "body": "`docs/examples/react-nextjs-app-example.md` walks through migrating a Pages Router form to App Router with a Server Action. Exercises belt-and-suspenders `revalidateTag` + `revalidatePath` for Data Cache + Full Route Cache invalidation, middleware pipeline order (A/B assignment must run **after** auth or the bucket flips on sign-in), Server Action shape change as Pattern 4 mode 3 with one-release legacy compat, Prisma schema as the upstream dual-representation SoT (Pattern 8) with CI `prisma generate` diff gate, and Client Component promotion as a performance-budget surface change (bundle analyzer diff in the PR is the evidence)."
+          },
+          {
+            "title": "Bridge/example index updates",
+            "body": "`README.md` stack-bridges list, `docs/onboarding/orientation.md` both bridge-enumeration blocks, and `AGENTS.md` worked-examples + stack-bridges lists now include iOS/Swift and React/Next.js so both additions are reachable from every top-level discovery point."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.4.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "Self-validation CI workflow",
+            "body": "`.github/workflows/validate.yml` runs five jobs on every push / PR to `main`: (1) **schema-syntax** validates every `schemas/*.yaml` against the JSON Schema 2020-12 meta-schema; (2) **template-conformance** validates every `templates/change-manifest.example-*.yaml` AND `examples/starter-repo/change-manifest.yaml` against `schemas/change-manifest.schema.yaml`; (3) **hooks-selftest** runs the hermetic hook bundle selftest with `yq` installed; (4) **validator-python-tests** runs the Python reference validator's pytest suite; (5) **version-consistency** confirms `plugin.json` / `marketplace.json` / README badge / CHANGELOG latest release agree on the same version. Supporting scripts: `.github/scripts/validate-schema-syntax.py`, `.github/scripts/validate-templates.py`, `.github/scripts/check-version-consistency.sh`. The workflow uses **no untrusted event inputs** — every `run:` command invokes a hardcoded script or fixed tool invocation, eliminating injection surface. The repo now holds itself to the same evidence-before-completion contract it preaches."
+          },
+          {
+            "title": "Runnable starter-repo example",
+            "body": "`examples/starter-repo/` is a minimal, self-contained end-to-end demonstration: a schema-valid `change-manifest.yaml` for a tiny change (adding a `/healthz` endpoint), three cited evidence artifacts under `evidence/`, a closed ROADMAP initiative, a 30-line `scripts/validate-manifest.py` using only `pyyaml` + `jsonschema` (no dependency on this repo's packages), and a `Makefile` with `install` / `validate` / `clean` targets. Running `make install && make validate` in a fresh clone produces `ok   change-manifest.yaml` in under a minute, showing the full contract — surface mapping, SoT map with Host-Lifecycle pattern 10 for the uptime counter, rollback mode 1, evidence plan with three collected artifacts, residual-risk acceptance, multi-author provenance — executing against the real schema. Intended as both onboarding material and a seed for consumer projects. README \"What you get\" adds bullet 7 pointing at it."
+          },
+          {
+            "title": "All-pieces-together architectural diagram",
+            "body": "`docs/diagrams.md` §6 adds a four-layer Mermaid stack map showing how the **normative layer** (`AGENTS.md` + `schemas/change-manifest.schema.yaml` + `docs/runtime-hook-contract.md` + `docs/ci-cd-integration-hooks.md`), **execution layer** (the engineering-workflow skill + Phase 0–8 gates), **carrier-artifact layer** (`change-manifest.yaml` + `evidence/*` + `ROADMAP.md`), and **mechanical-enforcement layer** (runtime hooks + CI hooks) plug together. Dashed arrows show the feedback direction — guards refuse, they do not edit. README \"What you get\" and `docs/onboarding/orientation.md` one-paragraph-version both add a top-of-page callout linking into the diagram so readers get the full stack in one scroll before drilling into per-doc detail."
+          },
+          {
+            "title": "Repo-level contribution hygiene",
+            "body": "`.github/SECURITY.md` (threat surface + in-scope / out-of-scope lists + dual-path private reporting preferring GitHub security advisory with email fallback + 30-day disclosure timeline + safe-harbor statement), `.github/ISSUE_TEMPLATE/{bug,doc,bridge}.md` (three purpose-specific templates with YAML frontmatter — bugs for broken scripts / schemas / hooks, doc for cross-doc drift and methodology gaps, bridge for proposing new stack bridges), `.github/ISSUE_TEMPLATE/config.yml` (security-advisory contact link + blank-issue escape hatch), `.github/PULL_REQUEST_TEMPLATE.md` (Lean / Full / Trivial scope classification + 4-surface checklist + SoT impact + scriptable evidence checkboxes + breaking-change level + rollback mode + cross-cutting concerns + ROADMAP-initiative link). Templates mirror the methodology's own vocabulary so a PR to this repo exercises the framework the repo defines."
+          }
+        ],
+        "changed": [
+          {
+            "title": "README version badge realigned",
+            "body": "badge read `1.0.0` through 1.1.0 → 1.3.0 despite the rest of the manifest set advancing; pre-existing drift detected by the new `check-version-consistency.sh` script on its first run. Bumped to `1.4.0` along with this release. The script now enforces consistency across `plugin.json`, `marketplace.json`, the README badge, and the latest CHANGELOG release heading on every CI run, so this drift cannot reappear silently."
+          },
+          {
+            "title": "Template drift fixes uncovered by new CI",
+            "body": "`templates/change-manifest.example-mobile-offline.yaml` had `host_type: android_process` which is not a valid enum value for `host_lifecycle.host_type`; corrected to `mobile_os_process`. `templates/change-manifest.example-multi-agent-handoff.yaml` was using pre-1.0 field names (`info`, `sot_path`, string-form `pattern`, `mode/notes` under rollback) and cross-document YAML aliases that PyYAML does not resolve across `safe_load_all()` documents; rewritten end-to-end against the current schema with each snapshot self-contained. Both drifts were caught by the new `template-conformance` CI job on its first run — the self-validation foundation validating itself."
+          },
+          {
+            "title": "Diagrams page TL;DR realigned",
+            "body": "`docs/diagrams.md` intro previously enumerated six phantom diagrams (SoT pattern taxonomy / breaking-change decision / rollback-mode selection / agent-handoff) against a file containing a different set of five (surfaces / phase flow / Lean-Full decision / SoT relationships / team adoption). Rewrote the TL;DR to match the actual content plus the new §6 stack map."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "Per-bridge surface-map artifacts",
+            "body": "`docs/bridges/flutter-surface-map.yaml`, `docs/bridges/android-kotlin-surface-map.yaml`, `docs/bridges/android-compose-surface-map.yaml`, `docs/bridges/ktor-surface-map.yaml`, `docs/bridges/unity-surface-map.yaml` publish each bridge's mapping from the four canonical surfaces (plus stack extensions such as asset / performance-budget / compliance / experience / data-quality) to machine-consumable file-path globs. The new `schemas/surface-map.schema.yaml` (JSON Schema 2020-12) validates the shape; the artifacts unblock validator rule 3.2 (surface ↔ file-pattern drift) in `docs/automation-contract-algorithm.md`."
+          },
+          {
+            "title": "Hook bundle self-test harness",
+            "body": "`reference-implementations/hooks-claude-code/selftests/` ships a hermetic, framework-free fixture runner (`selftest.sh`, `run-case.sh`, a `git` stub, and eleven fixtures covering all four category-A / B / C / D hooks). The harness PATH-shims `git`, `cd`s into each case directory, and matches against a minimal `expected` grammar (`exit=`, `stderr~=`, `stdout~=`). Closes the `DEVIATIONS.md §1` gap; CI jobs that enable these hooks in `block` mode should now run the selftest on every PR that touches `hooks/` or `selftests/`."
+          },
+          {
+            "title": "Network-degradation reference hook",
+            "body": "`reference-implementations/hooks-claude-code/hooks/consumer-registry-check.sh` demonstrates the runtime-hook-contract clause that \"checks requiring network must degrade to advisory.\" The hook probes every `.consumers[].external_registry_url` in the manifest with `curl --max-time ${AGENT_PROTOCOL_NET_TIMEOUT:-5}` and warns with `exit 2` on timeout, DNS failure, non-HTTP URL, or non-2xx response — never blocks. A `curl` stub + three fixtures (`pass-no-consumers`, `pass-reachable`, `warn-unreachable`) cover the branches hermetically. `settings.example.json` adds a `PreToolUse` + `Bash(git push*)` matcher wiring it at pre-push. Closes `DEVIATIONS.md §4`."
+          },
+          {
+            "title": "Cross-runtime hook adapters",
+            "body": "thin adapter bundles at `reference-implementations/hooks-cursor/`, `reference-implementations/hooks-gemini-cli/`, `reference-implementations/hooks-windsurf/`, and `reference-implementations/hooks-codex/`. Each ships a runtime-native settings example (Cursor / Windsurf / Codex use JSON, Gemini CLI uses TOML), a README, a DEVIATIONS.md documenting the contract-trigger → native-event mapping, and an `adapter/parse-event.sh` that normalizes the runtime's event payload into cross-runtime `AP_EVENT` / `AP_TOOL` / `AP_STAGED_FILES` / `AP_PHASE` env vars. Hook scripts are not duplicated; each adapter's settings point back at the Claude Code bundle's `hooks/` directory so a regression fix propagates everywhere with a single edit. `README.md` hook section and `docs/runtime-hook-contract.md` \"Relationship to other documents\" updated to list the four new adapters; `reference-implementations/hooks-claude-code/DEVIATIONS.md §5` downgraded from \"only Claude Code covered\" to \"cross-runtime coverage — partial\" with wiring smoke tests listed as the remaining gap."
+          },
+          {
+            "title": "Language-native validator",
+            "body": "`reference-implementations/validator-python/` is a Python 3.10+ reference that implements every layer of `docs/automation-contract-algorithm.md`, including the four rules the POSIX reference defers: 2.4 (decomposition graph acyclicity via DFS), 2.5 (`depends_on` ↔ `blocks` bidirectional mirror via sibling manifest scan), 3.2 (surface ↔ file-path drift via `--surface-map docs/bridges/<stack>-surface-map.yaml`), and 3.4 (uncontrolled-interface monitoring-channel staleness via a local `.agent-protocol/monitoring-cache.json`). Exit codes (0 / 1 / 2) stay identical to the POSIX reference. Shipped with a 12-test pytest suite covering every closed-gap rule. `validator-posix-shell/DEVIATIONS.md` now points the four unsupported rows at this validator as the recommended implementation; root `README.md` layout tree updated to list both."
+          },
+          {
+            "title": "Project-local overlay pattern",
+            "body": "`docs/bridges-local-deviations-template.md` is the canonical section skeleton (Parent bridge, Overlay name + purpose, Surface mapping, SoT mapping, Rollback mapping, Drift signals, Anti-patterns, Example stubs, Review + retirement, See also) that consumer projects copy into their own repo as `docs/bridges-local-deviations.md`. `docs/bridges-local-deviations-howto.md` walks through authoring a Flame (Flutter game engine) overlay end-to-end — the worked example shows how a small-audience or stack-adjacent overlay (Flame, Unity UaaL, KMM-iOS depth, visual-scripting graphs, event-sourcing, vendor-specific APM exporter, iOS Swift sibling bridge) stays project-local rather than bloating the mainstream bridge index. Each of the five upstream bridges' \"Known limitations\" sections now links to the template + how-to so the local-overlay path is discoverable from the bridge the consumer is already reading."
+          }
+        ],
+        "changed": [
+          {
+            "title": "Orientation entry point clarified",
+            "body": "`docs/onboarding/orientation.md` is the canonical single-page onboarding doc; README, AGENTS.md, CHANGELOG, and ROADMAP references updated to match. Five-rules + navigation + walkthrough content unchanged."
+          },
+          {
+            "title": "Language policy tightened",
+            "body": "in `README.md`, the `[1.0.0]` Design invariants block, and the orientation page — forward-looking, single-sentence statement without enforcement-mechanism elaboration."
+          },
+          {
+            "title": "Phase-gate discipline examples retargeted",
+            "body": "`docs/phase-gate-discipline.md` now uses an enum-split migration and a JSON-Schema validation command as its illustrative gate examples."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.2.1",
+      "date": "2026-04-20",
+      "sections": {
+        "fixed": [
+          {
+            "title": "Claude Code hook wiring",
+            "body": "`reference-implementations/hooks-claude-code/settings.example.json` used invented event names (`preCommit` / `postToolUse` / `stop`) that Claude Code silently ignores, so hooks never fired. Rewrote the file to use the actual native events (`PreToolUse` / `PostToolUse` / `Stop`, PascalCase) with the correct matcher-grouped structure. `pre-commit` semantics now map to `PreToolUse` with `matcher: \"Bash(git commit*)\"` — this fires **before** the Bash tool runs `git commit`, so exit code 1 actually cancels the commit (the 1.2.0 `postToolUse` mapping would have fired after the commit, giving the hook no blocking power). `docs/runtime-hook-contract.md` registration example updated to match. `reference-implementations/hooks-claude-code/DEVIATIONS.md` notes the historical mismatch."
+          }
+        ],
+        "added": [
+          {
+            "title": "Agent-runtime hooks section in `README.md`",
+            "body": "new top-level section covering: what runtime hooks are (vs. CI hooks), the four reference hooks + their checks + block/warn levels, Claude Code install steps (copy the bundle + merge `settings.example.json`), contract-trigger-to-native-event mapping table, configuration environment variables (`AGENT_PROTOCOL_MANIFEST_PATH` / `MIN_EVIDENCE_PER_PRIMARY` / `LEAN_SKIP_MANIFEST` / `STRUCTURED_OUTPUT`), an adoption-ramp recommendation (weeks 1-4, observe → gate → evidence → completion), and guidance on writing custom hooks. Bullet 7 added to the \"What you get\" section at the top of the README."
+          },
+          {
+            "title": "Correct install-path guidance",
+            "body": "in `reference-implementations/hooks-claude-code/README.md` — the \"What's here\" table now shows both the abstract contract trigger and the concrete Claude Code event + matcher for each of the four hooks; a new note explains why `PreToolUse` (not `PostToolUse`) is the right choice for commit-gating hooks."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-04-19",
+      "sections": {
+        "added": [
+          {
+            "title": "Multi-agent role separation — Claude Code bridge",
+            "body": "`.claude-plugin/agents/planner.md`, `.claude-plugin/agents/implementer.md`, `.claude-plugin/agents/reviewer.md` ship the three canonical Full-mode roles as Claude Code sub-agent definitions. Each definition encodes the role's responsibilities plus its tool-permission envelope: Planner has sub-agent delegation (`Task`) but no edit/write capability; Implementer has edit/write but no sub-agent delegation (cannot spawn reviewers of itself); Reviewer intentionally lacks edit/write entirely so a single AI identity cannot both implement and approve its own change. `docs/multi-agent-handoff.md` adds two normative sections — a capability-category tool-permission matrix and a single-agent anti-collusion rule (Lean-mode exception permits Planner ≡ Implementer; Implementer ≡ Reviewer is forbidden outright). `AGENTS.md` §7 carries the tool-permission matrix + anti-collusion rule so the constraint is runtime-neutral; `GEMINI.md`, `.windsurfrules`, and `.cursor/rules/engineering-workflow.mdc` add per-runtime summaries pointing at the canonical doc."
+          },
+          {
+            "title": "Runtime hook contract + reference bundle",
+            "body": "`docs/runtime-hook-contract.md` defines the complementary of `docs/ci-cd-integration-hooks.md`: how an agent runtime (not CI) consumes manifest events. Four categories (A phase-gate / B evidence / C drift / D completion-audit), JSON-over-stdin event schema, exit-code semantics 0 / 1 / 2 identical to the automation contract, latency budgets (< 500 ms phase-gate & evidence; < 2 s drift), and non-functional requirements (offline, deterministic, no side effects, no model-in-hook). `reference-implementations/hooks-claude-code/` provides an executable bundle: four POSIX-shell hooks (`manifest-required.sh`, `evidence-artifact-exists.sh`, `sot-drift-check.sh`, `completion-audit.sh`), a `settings.example.json` showing Claude Code event wiring with `agentProtocol.category` metadata, a README with install paths + environment variables, and a DEVIATIONS.md. Hooks parse the manifest via `yq` and emit contract-compliant exit codes; bundle is portable to any runtime via its own event-registration mechanism. `docs/ci-cd-integration-hooks.md` gains a \"Relationship to runtime-layer hooks\" section; `docs/automation-contract.md` cross-refs the runtime contract."
+          },
+          {
+            "title": "`strategic_parent` schema field",
+            "body": "`schemas/change-manifest.schema.yaml` adds an optional top-level object anchoring a manifest to an external strategic artifact (ADR / RFC / OKR / design doc / external ticket). Required fields `kind` + `location`; optional `summary` (≤ 400 chars) + `initiative_id` (stable cross-manifest identifier for aggregation queries). `docs/strategic-artifacts.md` (new) explains what the anchor is and what it deliberately is NOT (no ADR / RFC format definition, no \"Phase -1\" ceremony, no parent-content validation), the `part_of` vs `strategic_parent` relationship (internal-epic vs external-decision — complementary), and anti-patterns (stale pointers, PR-URL back-fills, trivial Lean-mode over-use). `docs/change-manifest-spec.md` adds a `strategic_parent` subsection to the Decomposition-relationship fields section."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-04-19",
+      "sections": {
+        "added": [
+          {
+            "title": "Per-stack worked examples",
+            "body": "`docs/examples/flutter-app-example.md` (multi-platform \"Save & Share\" exercising platform-channel two-sided contract and per-target rollback asymmetry), `docs/examples/android-kotlin-example.md` (offline draft-saving exercising Room migration + WorkManager unique-name discipline + ViewBinding dual-representation), `docs/examples/ktor-server-example.md` (order-lifecycle enum + migration + plugin install order + three-rollback-mode discipline within one feature), `docs/examples/unity-game-example.md` (save-data format migration exercising schema versioning + IL2CPP / AOT build-time risk + three-track rollback asymmetry). Each bridge's Reference Worked Example section now points at its dedicated file; the Ktor and Android-Kotlin bridges' \"future update\" placeholders are removed."
+          },
+          {
+            "title": "Jetpack Compose stack bridge",
+            "body": "`docs/bridges/android-compose-stack-bridge.md`. Companion to the Kotlin + XML bridge: inherits Room / WorkManager / FCM / runtime-permission / vendor-fork / deep-link / ProGuard-R8 sections and adds Compose-specific deltas for state ownership (`remember` / `rememberSaveable` / ViewModel + `StateFlow`), recomposition hygiene, effect-API pipeline order (`LaunchedEffect` / `SideEffect` / `DisposableEffect`) as a new Pattern 4a case, `CompositionLocal` provider nesting as a Pattern 4a case, navigation-route strings as a Pattern 3 enum, Compose compiler metrics as a drift signal, and Paparazzi / Roborazzi + `createComposeRule()` verification. XML bridge's \"known limitations\" entry for Compose now cross-references this bridge."
+          },
+          {
+            "title": "Flutter bridge deduction-closure sections",
+            "body": "`docs/bridges/flutter-stack-bridge.md` now covers: Flutter Web target discipline (`dart2js` / `dart2wasm` pipelines, service-worker cache invalidation, CDN-flag rollback vs. store binaries), Flutter Desktop target discipline (window lifecycle, per-OS packaging, signing / notarization asymmetry), federated plugin lifecycle (app-facing / platform-interface / per-platform-impl trio with version-compat tables), code push / dynamic delivery (Shorebird / custom OTA as Pattern 4a + store-policy constraints), and state-management library pipeline-order (Provider / Riverpod / Bloc initialization order as Pattern 4a)."
+          },
+          {
+            "title": "Android Kotlin bridge deduction-closure sections",
+            "body": "`docs/bridges/android-kotlin-stack-bridge.md` now covers: KMM shared-code SoT (`expect` / `actual` declarations as Pattern 4, per-target builds, serialization drift), Play Feature Delivery (install-time / conditional / on-demand / instant-app module rollback characteristics + SoT-split fan-out), and instrumented-test OS-API version discipline (silent-skip anti-pattern, min / mid / max API matrix enforcement)."
+          },
+          {
+            "title": "Ktor bridge deduction-closure sections",
+            "body": "`docs/bridges/ktor-stack-bridge.md` now covers: observability depth discipline (logs / metrics / traces each as Pattern 4 with cardinality budgets, coroutine-context propagation of `trace_id`, PII hashing), multi-tenant / sharding overlay (row-level / schema-per-tenant / DB-per-tenant rollback asymmetry with both default and per-tenant auth-provider pipeline-order variants, cross-tenant drift as a unique failure mode), gRPC parallel IDL overlay (protobuf-specific L0–L4 + dual-IDL manifest fields), GraphQL parallel IDL overlay (SDL as Pattern 4, DataLoader registration as Pattern 4a, GraphQL-specific L0–L4 with no wire-level versioning, subscription lifecycle as Pattern 10, federation / stitching as cross-subgraph contract, N+1 + query-complexity budget), hexagonal / onion / clean architecture overlay (remapping SoT source fields to domain ports), virtual threads (Loom) / alternative concurrency overlay (pinning hazards + reactive-framework substitution), and a JVM / Kotlin / Ktor / coroutines version-drift discipline for the build-time-risk manifest field."
+          },
+          {
+            "title": "Unity bridge deduction-closure sections",
+            "body": "`docs/bridges/unity-stack-bridge.md` now covers: DOTS / ECS overlay (API stability caveat scoped to companion subpackages since core `Entities` is GA 1.x; system update-order graph as canonical Pattern 4a, three-way authoring ↔ baked ↔ archetype dual-representation, Burst + Baker + IL2CPP triple verification), render pipeline variant discipline (URP / HDRP / built-in RP as pipeline-specific asset targets, shader-variant-count budget, pipeline migration as its own change type), and custom engine fork discipline (fork as an additional SoT layer, patch-set contract with upstream, `UPSTREAM.md` requirement, fork-exit-plan expectation). Scope note updated so these are first-class overlays, not deferrals."
+          }
+        ],
+        "changed": [
+          {
+            "title": null,
+            "body": "`README.md`, `AGENTS.md`, and `docs/onboarding/orientation.md` bridge indexes updated to include the Compose bridge."
+          },
+          {
+            "title": null,
+            "body": "`AGENTS.md` worked-examples index updated to include the four new per-stack examples."
+          },
+          {
+            "title": null,
+            "body": "`docs/stack-bridge-template.md` TL;DR bridge list updated to include the Compose bridge."
+          },
+          {
+            "title": null,
+            "body": "Each of the four base bridges' \"Known limitations\" lists rewritten to reflect only residual items after the deduction-closure sections — prior entries that are now covered in-bridge (Flutter web/desktop/federated/code-push/state-mgmt; Android KMM/PFD/instrumented-test API gap; Ktor multi-tenant/sharding/gRPC/hexagonal/Loom; Unity DOTS/ECS/render-pipelines/custom-engine-fork) have been removed or retargeted to narrower residual scopes."
+          }
+        ],
+        "fixed": [
+          {
+            "title": null,
+            "body": "Android Kotlin bridge Scope note no longer calls the Compose bridge \"(future)\" — it is now linked as an existing companion with an inherited-sections summary."
+          },
+          {
+            "title": null,
+            "body": "Unity DOTS / ECS overlay caveat clarified — core `Entities` package is GA 1.x (since 2023) with stable `IComponentData` / `ISystem` / `[UpdateInGroup]`; the volatility is scoped to companion subpackages (Entities Graphics, DOTS Animation, Unity Physics for ECS, Netcode for Entities)."
+          },
+          {
+            "title": null,
+            "body": "Ktor multi-tenant pipeline-order overlay adds the per-tenant auth-provider variant (Keycloak realm-per-tenant, Auth0 organization, per-tenant OIDC issuer, regulated B2B) where `TenantResolution` correctly precedes `Authentication` — the previous guidance presented the single-auth-provider order as universal."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-04-19",
+      "sections": {
+        "notes": [
+          {
+            "title": "Operating contract",
+            "body": "`AGENTS.md` defines the universal runtime contract: honest reporting, scope discipline, source-of-truth rules, surface-first analysis, evidence requirements, Change Manifest contract, phase-gate discipline.",
+            "subsection": "included"
+          },
+          {
+            "title": "Engineering workflow skill",
+            "body": "`skills/engineering-workflow/` provides Lean and Full modes, phase minimums for Phase 0 through Phase 8, capability-category guidance, and spec / plan / test / completion templates. Supporting references cover the mode decision tree, discovery loop, resumption protocol, startup checklist, and misuse signals.",
+            "subsection": "included"
+          },
+          {
+            "title": "Methodology documentation",
+            "body": "`docs/` contains the four canonical surfaces plus nine extension surfaces (asset, experience, performance-budget, data-quality, compliance, hardware-interface, real-world, model, uncontrollable-external), ten Source-of-Truth patterns, the L0–L4 breaking-change severity matrix, three rollback modes (Reversible / Forward-fix / Compensation-only), cross-cutting concerns, the AI operating contract, security and supply-chain disciplines, change decomposition, team / org-scale disciplines, AI project memory, multi-agent handoff, automation contract, and phase-gate discipline.",
+            "subsection": "included"
+          },
+          {
+            "title": "Change Manifest contract",
+            "body": "`schemas/change-manifest.schema.yaml` plus four worked example manifests (CRUD, mobile offline, game gacha, multi-agent handoff progression). The schema enforces human-approver waivers, expiry timestamps, bidirectional decomposition links, and phase-appropriate narrative fields.",
+            "subsection": "included"
+          },
+          {
+            "title": "Stack bridges",
+            "body": "`docs/bridges/` maps the tool-agnostic methodology to concrete stacks: Flutter, Android Kotlin + XML, Ktor, Unity 3D. Bridge files are the only place where specific vendor / framework / language names appear. The stack-bridge template (`docs/stack-bridge-template.md`) supports adding your own stack.",
+            "subsection": "included"
+          },
+          {
+            "title": "Automation contract",
+            "body": "capability-level specification (`docs/automation-contract.md`) plus normative algorithm (`docs/automation-contract-algorithm.md`) defining three forced check layers (structural / cross-reference / drift), exit-code stability, and offline operability. A non-normative reference validator (`reference-implementations/validator-posix-shell/`) built on POSIX shell plus `yq` plus a pluggable schema validator illustrates the contract.",
+            "subsection": "included"
+          },
+          {
+            "title": "Worked examples",
+            "body": "`docs/examples/` covers ten domains: worked (batch-resend invoices), bugfix (pagination-filter desync), refactor (order-status canonical alignment), migration-rollout (structured-preferences SoT transition), game-dev (in-game shop), game-liveops (three-track asset/config/binary strategy), mobile-offline-feature, ml-model-training, data-pipeline, embedded-firmware (OTA with hardware-interface + real-world surfaces).",
+            "subsection": "included"
+          },
+          {
+            "title": "Multi-agent entry points",
+            "body": "packaged simultaneously as a Claude Code plugin (`.claude-plugin/`), a Cursor rules bundle (`.cursor/rules/`), a Gemini CLI instruction set (`GEMINI.md`), Windsurf rules (`.windsurfrules`), and an AGENTS.md-compatible contract for Codex / Aider / OpenCode.",
+            "subsection": "included"
+          },
+          {
+            "title": "English-only.",
+            "body": "All normative content — methodology, skills, schemas, templates, operating contract, READMEs — is authored in English.",
+            "subsection": "design invariants"
+          },
+          {
+            "title": "Tool-agnostic.",
+            "body": "Specific vendor, model, framework, or product names appear only in `docs/bridges/` and `reference-implementations/`, both of which are explicitly marked non-normative. Methodology docs, the skill layer, the schema, and the Change Manifest templates remain stack-neutral.",
+            "subsection": "design invariants"
+          },
+          {
+            "title": "Capability categories, not tool names.",
+            "body": "Every operational instruction names a category (file read, file write, code search, shell execution, sub-agent delegation) rather than a specific tool, so the plugin ports cleanly between AI runtimes.",
+            "subsection": "design invariants"
+          },
+          {
+            "title": "Canonical terminology held fixed.",
+            "body": "Severity L0–L4 (Additive / Behavioral / Structural / Removal / Semantic-reversal), rollback modes 1/2/3 (Reversible / Forward-fix / Compensation-only), four canonical surfaces plus extension surfaces, SoT patterns addressed by number, automation tiers L0–L3, three multi-agent roles by responsibility (Planner / Implementer / Reviewer).",
+            "subsection": "design invariants"
+          }
+        ]
+      }
+    }
+  ]
+}
