@@ -4,13 +4,14 @@ Known gaps between this reference bundle and `docs/runtime-hook-contract.md`. Do
 
 ---
 
-## 1. No selftest suite (yet)
+## 1. Selftest suite — resolved
 
-The contract's "requirements on bridges" section asks for at least one runnable example per category. This bundle ships one example per category (A / B / C / D), but does **not** ship a fixture-based selftest harness.
-
-**Mitigation:** each script is small (< 80 lines) and the rule IDs are declared in the header, so a team can write fixture tests by hand. A future release will add `selftest.sh` + `selftests/fixtures/`.
-
-**Impact:** moderate. Teams adopting these hooks should spot-check on known-good and known-bad manifests before enabling `block`.
+Originally flagged as a gap. As of v1.3.0 the bundle ships a hermetic
+fixture-based harness at `selftests/selftest.sh` with eleven cases
+covering every category (A / B / C / D). See `selftests/README.md` for
+the `expected` grammar and how to add new cases. Teams enabling these
+hooks in `block` mode should run `./selftests/selftest.sh` in CI on any
+PR that edits `hooks/` or `selftests/`.
 
 ---
 

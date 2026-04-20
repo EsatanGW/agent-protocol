@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+# Test double for git. Reads fixture-controlled files in $SELFTEST_CASE_DIR
+# for each of the git invocations the hooks actually use. Anything else
+# falls through to an empty response with exit 0.
+
+set -eu
+
+case_dir="${SELFTEST_CASE_DIR:-}"
+
+emit_file() {
+  if [ -n "$case_dir" ] && [ -f "$case_dir/$1" ]; then
+    cat "$case_dir/$1"
+  fi
+}
+
+case "$*" in
+  "ls-files "*"change-manifest"*)
+    emit_file ls-files
+    exit 0
+    ;;
+  "diff --cached --name-only")
+    emit_file staged
+    exit 0
+    ;;
+  "diff --name-only")
+    emit_file unstaged
+    exit 0
+    ;;
+esac
+
+exit 0

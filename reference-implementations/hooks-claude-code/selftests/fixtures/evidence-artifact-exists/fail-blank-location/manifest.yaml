@@ -1,0 +1,12 @@
+change_id: CHG-0003
+title: Example change with blank evidence
+phase: execute
+surfaces_touched: [information]
+sot_map: []
+evidence_plan:
+  - requirement: integration test run
+    status: collected
+    artifact_location: ""
+rollback:
+  mode: 2
+  notes: redeploy previous revision

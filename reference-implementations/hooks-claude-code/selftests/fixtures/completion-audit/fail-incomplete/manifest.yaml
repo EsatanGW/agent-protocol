@@ -1,0 +1,19 @@
+change_id: CHG-0007
+title: Premature completion attempt
+phase: observe
+surfaces_touched: [information]
+sot_map: []
+evidence_plan:
+  - requirement: integration test run
+    status: pending
+    artifact_location: ""
+residual_risks:
+  - description: unknown failure mode in retry path
+    accepted_by: unaccepted
+escalations:
+  - subject: auth provider outage behaviour
+    raised_at: "2026-04-19T10:00:00Z"
+    resolved_at: ""
+rollback:
+  mode: 2
+  notes: redeploy previous revision

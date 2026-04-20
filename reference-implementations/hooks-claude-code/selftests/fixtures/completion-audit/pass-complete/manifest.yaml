@@ -1,0 +1,16 @@
+change_id: CHG-0006
+title: Completed change
+phase: execute
+surfaces_touched: [information]
+sot_map: []
+evidence_plan:
+  - requirement: integration test run
+    status: collected
+    artifact_location: logs/test.log
+residual_risks:
+  - description: minor latency increase under peak load
+    accepted_by: platform-team
+escalations: []
+rollback:
+  mode: 2
+  notes: redeploy previous revision
