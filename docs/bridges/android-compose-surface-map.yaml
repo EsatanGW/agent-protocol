@@ -1,0 +1,98 @@
+schema_version: 1
+stack: android-compose
+bridge_doc: docs/bridges/android-compose-stack-bridge.md
+
+canonical_surfaces:
+
+  user:
+    patterns:
+      - "app/src/main/kotlin/**/ui/**"
+      - "app/src/main/kotlin/**/compose/**"
+      - "app/src/main/kotlin/**/screen/**"
+      - "app/src/main/kotlin/**/screens/**"
+      - "app/src/main/kotlin/**/composable/**"
+      - "app/src/main/kotlin/**/presentation/**"
+      - "app/src/main/kotlin/**/theme/**"
+      - "app/src/main/java/**/ui/**"
+      - "app/src/main/java/**/compose/**"
+      - "app/src/main/res/values/strings.xml"
+      - "app/src/main/res/values-*/strings.xml"
+      - "app/src/main/res/values/themes.xml"
+      - "app/src/main/res/values/colors.xml"
+      - "app/src/main/res/drawable/**"
+      - "app/src/main/res/font/**"
+      - "app/src/androidTest/**/ui/**"
+      - "app/src/androidTest/**/compose/**"
+    notes: |
+      Compose-first UI: `@Composable` functions, UI state holders, Theme /
+      MaterialTheme, navigation graphs. String resources and drawables
+      remain on the user surface because they are the designer-edited
+      authoring boundary (as with the XML stack bridge).
+
+  system_interface:
+    patterns:
+      - "app/src/main/AndroidManifest.xml"
+      - "app/src/main/kotlin/**/network/**"
+      - "app/src/main/kotlin/**/api/**"
+      - "app/src/main/kotlin/**/service/**"
+      - "app/src/main/kotlin/**/receiver/**"
+      - "app/src/main/kotlin/**/worker/**"
+      - "app/src/main/kotlin/**/platform/**"
+      - "app/src/main/aidl/**"
+      - "app/src/main/proto/**"
+
+  information:
+    patterns:
+      - "app/src/main/kotlin/**/model/**"
+      - "app/src/main/kotlin/**/domain/**"
+      - "app/src/main/kotlin/**/data/**"
+      - "app/src/main/kotlin/**/repository/**"
+      - "app/src/main/kotlin/**/database/**"
+      - "app/src/main/kotlin/**/viewmodel/**"
+      - "app/src/main/kotlin/**/state/**"
+      - "app/schemas/**"
+    notes: |
+      ViewModels and UI state holders are information-surface artifacts:
+      they own the transformation between domain state and UI-consumable
+      state. A change that alters the UiState shape is an information
+      surface change regardless of whether the Composable signature is
+      unchanged.
+
+  operational:
+    patterns:
+      - "build.gradle*"
+      - "settings.gradle*"
+      - "gradle.properties"
+      - "app/build.gradle*"
+      - "gradle/libs.versions.toml"
+      - "gradle/wrapper/**"
+      - ".github/workflows/**"
+      - "fastlane/**"
+      - "scripts/**"
+      - "app/proguard-rules.pro"
+      - "CHANGELOG.md"
+      - "ROADMAP.md"
+
+stack_extensions:
+
+  asset_surface:
+    patterns:
+      - "app/src/main/res/drawable-*/**"
+      - "app/src/main/res/mipmap-*/**"
+      - "app/src/main/res/raw/**"
+      - "app/src/main/assets/**"
+
+  compliance_surface:
+    patterns:
+      - "app/src/main/AndroidManifest.xml"
+      - "app/src/main/res/xml/network_security_config.xml"
+      - "app/src/main/res/xml/data_extraction_rules.xml"
+      - "app/src/main/res/xml/backup_rules.xml"
+      - "PRIVACY.md"
+
+  performance_budget_surface:
+    patterns:
+      - "benchmark/**"
+      - "macrobenchmark/**"
+      - "app/src/androidTest/**/benchmark/**"
+      - "baselineprofile/**"

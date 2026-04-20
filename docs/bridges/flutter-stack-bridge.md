@@ -14,6 +14,10 @@
 
 ## Surface mapping
 
+> Machine-consumable surface → file-glob mapping lives in
+> [`flutter-surface-map.yaml`](./flutter-surface-map.yaml) and is consumed
+> by validator rule 3.2 (surface ↔ file-pattern drift).
+
 ### User surface
 
 | Concept | Concrete implementation |

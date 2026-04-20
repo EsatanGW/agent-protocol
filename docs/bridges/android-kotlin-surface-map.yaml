@@ -1,0 +1,99 @@
+schema_version: 1
+stack: android-kotlin
+bridge_doc: docs/bridges/android-kotlin-stack-bridge.md
+
+canonical_surfaces:
+
+  user:
+    patterns:
+      - "app/src/main/res/layout/**"
+      - "app/src/main/res/drawable/**"
+      - "app/src/main/res/menu/**"
+      - "app/src/main/res/anim/**"
+      - "app/src/main/res/animator/**"
+      - "app/src/main/res/values/strings.xml"
+      - "app/src/main/res/values-*/strings.xml"
+      - "app/src/main/res/values/colors.xml"
+      - "app/src/main/res/values/styles.xml"
+      - "app/src/main/res/values/themes.xml"
+      - "app/src/main/kotlin/**/ui/**"
+      - "app/src/main/kotlin/**/view/**"
+      - "app/src/main/kotlin/**/activity/**"
+      - "app/src/main/kotlin/**/fragment/**"
+      - "app/src/main/java/**/ui/**"
+      - "app/src/main/java/**/view/**"
+      - "app/src/androidTest/**"
+    notes: |
+      XML layouts, drawables, localized strings, and ViewBinding-backed
+      Activity/Fragment code. Instrumented UI tests verify this surface.
+
+  system_interface:
+    patterns:
+      - "app/src/main/AndroidManifest.xml"
+      - "app/src/main/kotlin/**/network/**"
+      - "app/src/main/kotlin/**/api/**"
+      - "app/src/main/kotlin/**/service/**"
+      - "app/src/main/kotlin/**/receiver/**"
+      - "app/src/main/kotlin/**/worker/**"
+      - "app/src/main/java/**/network/**"
+      - "app/src/main/java/**/service/**"
+      - "app/src/main/aidl/**"
+      - "app/src/main/proto/**"
+    notes: |
+      AndroidManifest declares activities, services, receivers, providers,
+      and permissions — the system-interface contract with the OS. AIDL and
+      proto files are explicit IPC contracts.
+
+  information:
+    patterns:
+      - "app/src/main/kotlin/**/model/**"
+      - "app/src/main/kotlin/**/entity/**"
+      - "app/src/main/kotlin/**/data/**"
+      - "app/src/main/kotlin/**/repository/**"
+      - "app/src/main/kotlin/**/database/**"
+      - "app/src/main/kotlin/**/dao/**"
+      - "app/src/main/java/**/model/**"
+      - "app/src/main/assets/schema/**"
+      - "app/src/main/assets/config/**"
+      - "app/schemas/**"
+
+  operational:
+    patterns:
+      - "build.gradle*"
+      - "settings.gradle*"
+      - "gradle.properties"
+      - "app/build.gradle*"
+      - "gradle/libs.versions.toml"
+      - "gradle/wrapper/**"
+      - ".github/workflows/**"
+      - "fastlane/**"
+      - "scripts/**"
+      - "app/proguard-rules.pro"
+      - "app/src/main/assets/crashlytics-build.properties"
+      - "CHANGELOG.md"
+      - "ROADMAP.md"
+
+stack_extensions:
+
+  asset_surface:
+    patterns:
+      - "app/src/main/res/drawable-*/**"
+      - "app/src/main/res/mipmap-*/**"
+      - "app/src/main/res/raw/**"
+      - "app/src/main/assets/**"
+
+  compliance_surface:
+    patterns:
+      - "app/src/main/AndroidManifest.xml"
+      - "app/src/main/res/xml/network_security_config.xml"
+      - "app/src/main/res/xml/data_extraction_rules.xml"
+      - "app/src/main/res/xml/backup_rules.xml"
+      - "PRIVACY.md"
+      - "privacy-policy.*"
+
+  performance_budget_surface:
+    patterns:
+      - "benchmark/**"
+      - "macrobenchmark/**"
+      - "app/src/androidTest/**/benchmark/**"
+      - "baselineprofile/**"

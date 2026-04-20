@@ -16,7 +16,7 @@ Tracks where this POSIX-shell reference differs from `docs/automation-contract-a
 |------|--------|------------|
 | 2.4 Decomposition graph acyclicity | Cycle detection with pure shell requires a topo-sort step that is awkward in POSIX shell without arrays beyond basic use. | Pair with a language-native validator that includes this check, or pre-compute with `tsort`. |
 | 2.5 `depends_on` ↔ `blocks` bidirectional mirror check | Needs to load sibling manifests and compare — extra I/O loop; deferred to language-native implementations. | Run a separate script that loads all manifests in `templates/` and checks the mirror. |
-| 3.2 Surface ↔ file pattern drift | Requires parsing a stack-bridge mapping file, which each bridge must publish in a machine-readable form (e.g. `bridges/<stack>/surface-map.yaml`). Most bridges do not yet ship this artifact. | Add once bridges expose `surface-map.yaml`. |
+| 3.2 Surface ↔ file pattern drift | Requires loading per-bridge `docs/bridges/<stack>-surface-map.yaml` and mapping `git diff --name-only` to surfaces via `fnmatch` globs. Per-bridge artifacts are now published (five bridges covered) and `schemas/surface-map.schema.yaml` validates their shape; a POSIX-shell implementation is practical but deferred to a language-native reference where glob iteration and per-file surface assignment scale better. | Published artifacts unblock any validator implementation; the POSIX reference continues without rule 3.2. |
 | 3.4 Uncontrolled interface monitoring-channel staleness | Needs access to the monitoring channel's last-check timestamp, which varies by provider. | Out of scope for offline POSIX reference; expect language-native tooling. |
 
 ## Non-functional

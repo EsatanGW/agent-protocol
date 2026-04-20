@@ -15,6 +15,12 @@
 
 Unity exercises the **full extension set** of the surface model — the Game Dev example uses asset, experience, and performance-budget surfaces, all of which bind here.
 
+> Machine-consumable surface → file-glob mapping lives in
+> [`unity-surface-map.yaml`](./unity-surface-map.yaml) and is consumed by
+> validator rule 3.2 (surface ↔ file-pattern drift). The Unity map carries
+> the richest stack_extensions set in the repository (asset, performance-
+> budget, experience, compliance).
+
 ### User surface
 
 | Concept | Concrete implementation |

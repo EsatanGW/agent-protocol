@@ -1,0 +1,120 @@
+schema_version: 1
+stack: unity
+bridge_doc: docs/bridges/unity-stack-bridge.md
+
+canonical_surfaces:
+
+  user:
+    patterns:
+      - "Assets/Scenes/**"
+      - "Assets/Prefabs/**"
+      - "Assets/UI/**"
+      - "Assets/Scripts/UI/**"
+      - "Assets/Scripts/View/**"
+      - "Assets/Scripts/Presentation/**"
+      - "Assets/Resources/UI/**"
+      - "Assets/Sprites/**"
+      - "Assets/Fonts/**"
+      - "Assets/Materials/**"
+      - "Assets/Shaders/**"
+      - "Assets/Animations/**"
+      - "Assets/Localization/**"
+    notes: |
+      User surface in Unity spans both code (UI controllers, view scripts)
+      and designer-authored assets (scenes, prefabs, sprites, fonts,
+      materials, shaders). A prefab change that rearranges a UI hierarchy
+      is a user-surface change even if no code was touched.
+
+  system_interface:
+    patterns:
+      - "Assets/Scripts/Network/**"
+      - "Assets/Scripts/Api/**"
+      - "Assets/Scripts/Platform/**"
+      - "Assets/Scripts/Services/**"
+      - "Assets/Plugins/**"
+      - "Assets/Plugins/iOS/**"
+      - "Assets/Plugins/Android/**"
+      - "Assets/StreamingAssets/**"
+      - "Packages/manifest.json"
+      - "Packages/packages-lock.json"
+    notes: |
+      Native plugins (iOS / Android bridge code), networking layer, and the
+      Unity Package Manager manifest. The packages-lock.json pin is the
+      canonical source of truth for which Unity packages are installed.
+
+  information:
+    patterns:
+      - "Assets/Scripts/Model/**"
+      - "Assets/Scripts/Domain/**"
+      - "Assets/Scripts/Data/**"
+      - "Assets/Scripts/Config/**"
+      - "Assets/Resources/Config/**"
+      - "Assets/Resources/Data/**"
+      - "Assets/ScriptableObjects/**"
+      - "Assets/Data/**"
+      - "Assets/**/*.asset"
+    notes: |
+      ScriptableObjects and `.asset` files carry designer-edited domain
+      data (character stats, shop tables, loot tables). They are SoT for
+      configuration-as-data and must be treated as information surface.
+
+  operational:
+    patterns:
+      - "ProjectSettings/**"
+      - "Packages/manifest.json"
+      - "Packages/packages-lock.json"
+      - "Assets/Editor/**"
+      - "Assets/Editor/Build/**"
+      - ".github/workflows/**"
+      - "fastlane/**"
+      - "scripts/**"
+      - "Tools/**"
+      - "BuildScripts/**"
+      - "CHANGELOG.md"
+      - "ROADMAP.md"
+    notes: |
+      ProjectSettings/** carries render-pipeline choice, scripting backend,
+      graphics API list, quality settings — every operational knob.
+
+stack_extensions:
+
+  asset_surface:
+    patterns:
+      - "Assets/Models/**"
+      - "Assets/Textures/**"
+      - "Assets/Audio/**"
+      - "Assets/Music/**"
+      - "Assets/VFX/**"
+      - "Assets/Particles/**"
+      - "Assets/**/*.fbx"
+      - "Assets/**/*.png"
+      - "Assets/**/*.jpg"
+      - "Assets/**/*.wav"
+      - "Assets/**/*.ogg"
+      - "Assets/**/*.mp3"
+      - "Assets/**/*.anim"
+      - "Assets/**/*.controller"
+    notes: |
+      Unity asset-surface files dwarf all other surfaces in bytes and
+      change frequency; treat them as first-class.
+
+  performance_budget_surface:
+    patterns:
+      - "Assets/Tests/Performance/**"
+      - "Assets/Editor/Performance/**"
+      - "ProjectSettings/QualitySettings.asset"
+      - "ProjectSettings/GraphicsSettings.asset"
+
+  experience_surface:
+    patterns:
+      - "Assets/Scripts/Gameplay/**"
+      - "Assets/Scripts/Combat/**"
+      - "Assets/Scripts/AI/**"
+      - "Assets/Tests/Playtest/**"
+
+  compliance_surface:
+    patterns:
+      - "ProjectSettings/ProjectSettings.asset"
+      - "Assets/Plugins/iOS/Info.plist"
+      - "Assets/Plugins/Android/AndroidManifest.xml"
+      - "PRIVACY.md"
