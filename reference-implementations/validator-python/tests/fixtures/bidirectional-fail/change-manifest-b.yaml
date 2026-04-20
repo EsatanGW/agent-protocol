@@ -1,0 +1,14 @@
+change_id: 2026-04-20-b
+last_updated: "2026-04-20T10:00:00Z"
+phase: execute
+surfaces_touched:
+  - surface: information
+    role: primary
+evidence_plan:
+  - requirement: test
+    status: collected
+    surface: information
+    artifact_location: y.log
+rollback:
+  overall_mode: 2
+  notes: redeploy

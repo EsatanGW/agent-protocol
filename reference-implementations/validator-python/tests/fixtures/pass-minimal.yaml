@@ -1,0 +1,15 @@
+change_id: 2026-04-20-minimal-pass
+last_updated: "2026-04-20T10:00:00Z"
+phase: execute
+surfaces_touched:
+  - surface: information
+    role: primary
+sot_map: []
+evidence_plan:
+  - requirement: integration test run
+    status: collected
+    surface: information
+    artifact_location: artifacts/trace.log
+rollback:
+  overall_mode: 2
+  notes: redeploy previous revision

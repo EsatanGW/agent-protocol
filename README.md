@@ -166,8 +166,14 @@ agent-protocol/
 │   ├── change-manifest.example-mobile-offline.yaml
 │   ├── change-manifest.example-game-gacha.yaml
 │   └── change-manifest.example-multi-agent-handoff.yaml
-├── reference-implementations/  # Non-normative example validators
-│   └── validator-posix-shell/  # POSIX shell + yq + pluggable schema validator
+├── reference-implementations/  # Non-normative example validators + hook bundles
+│   ├── validator-posix-shell/  # POSIX shell + yq + pluggable schema validator (minimal)
+│   ├── validator-python/       # Python 3.10+ validator (covers all rules including 2.4, 2.5, 3.2, 3.4)
+│   ├── hooks-claude-code/      # Runtime-hook reference bundle + selftest harness
+│   ├── hooks-cursor/           # Cursor adapter
+│   ├── hooks-gemini-cli/       # Gemini CLI adapter
+│   ├── hooks-windsurf/         # Windsurf adapter
+│   └── hooks-codex/            # Codex adapter
 ├── ROADMAP.md                   # Multi-session tracking artifact for in-flight initiatives
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
