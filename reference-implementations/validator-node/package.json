@@ -1,0 +1,33 @@
+{
+  "name": "agent-protocol-validate",
+  "version": "0.1.0",
+  "description": "Language-native reference validator for the agent-protocol Change Manifest (TypeScript / Node).",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "dist/src/index.js",
+  "bin": {
+    "agent-protocol-validate": "dist/src/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "DEVIATIONS.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test 'dist/tests/**/*.test.js'",
+    "start": "node dist/src/cli.js"
+  },
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "glob": "^10.3.10",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.5"
+  },
+  "license": "MIT"
+}
