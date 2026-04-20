@@ -4,6 +4,8 @@ A single-page orientation to the methodology. Read this before diving into
 any other document in `docs/`. It gives enough structure that the rest of
 the repository reads as reinforcement rather than first exposure.
 
+> **60-second lookup.** If you just need the per-role action list and "when you see X, go to Y" navigation (not the reasoning), jump straight to [`docs/operational-cheat-sheet.md`](../operational-cheat-sheet.md). Come back here for the principles.
+
 ---
 
 ## The one-paragraph version

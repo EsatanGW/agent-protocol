@@ -15,6 +15,43 @@ This document **does not name any specific agent / model / platform** — it def
 
 ---
 
+## Reading-order guide — three pairs that look duplicative but are not
+
+Several newer rules sit next to older rules that look similar. Readers who skim these easily conclude "I am being asked to do the same thing twice" and drop one. Each pair has a specific distinction; neither member replaces the other.
+
+### Pair 1 — Global self-check vs Pre-handoff self-check
+
+| Layer | Where | When it fires | Scope |
+|---|---|---|---|
+| Global self-check | [`docs/ai-operating-contract.md`](ai-operating-contract.md) §10 (6 questions) | Any AI co-author, any delivery boundary | Catches fabricated completion claims, hidden scope expansion, rationalized failure |
+| Pre-handoff self-check | [`agents/implementer.md`](../agents/implementer.md) (5 questions) | Implementer only, before advancing `phase: review` | Catches acceptance-criterion gaps, unverified references, unfilled evidence paths |
+
+**Both apply.** The global check asks "is this delivery honest?"; the Implementer-specific check asks "is the Implementer's specific work complete enough to hand off?" An Implementer must pass both; other roles only pass the global one.
+
+### Pair 2 — Phase re-entry vs Breaking-change migration path
+
+| Layer | Where | Question it answers |
+|---|---|---|
+| Phase re-entry | [`docs/phase-gate-discipline.md`](phase-gate-discipline.md) Rule 6 | "Which earlier phase must I re-open to fix what I just discovered?" |
+| Breaking-change migration path | [`docs/breaking-change-framework.md`](breaking-change-framework.md) Paths A / B / C | "How do new and old coexist across the shipping boundary?" |
+
+**Both may apply to the same change.** Re-entry is about **internal workflow bookkeeping** (which ROADMAP row to open, which manifest fields to rewrite); migration path is about **external consumer handling** (gray rollout, coexistence, deprecation cycle). A change that discovers a higher breaking-change level mid-implementation triggers **both**: re-enter Phase 1 to rewrite `breaking_change`, **and** pick a migration path from Paths A / B / C for the shipping plan.
+
+### Pair 3 — Anti-rationalization rules vs "Rubber-stamp is not a finding"
+
+| Layer | Where | What it does |
+|---|---|---|
+| "Rubber-stamp is not a finding" | Reviewer's "Must not do" list in [`agents/reviewer.md`](../agents/reviewer.md) | Principle statement — every `pass` cites an artifact |
+| Anti-rationalization rules (6 triggers) | Same file's "Anti-rationalization rules" section | Mechanical heuristic — if any of 6 observable patterns appears, the review is reopened |
+
+**Rules refine the principle, do not replace it.** The principle explains the intent; the 6 rules catch the specific language / behavior patterns most likely to slip past even a careful Reviewer. A Reviewer who only remembers the principle can still rationalize quietly; a Reviewer who only remembers the rules may miss a seventh pattern not listed. Both live together.
+
+### The general instinct
+
+If two rules look redundant, read each one's **trigger condition** carefully. The methodology's newer rules are almost always either (a) a **narrower trigger** for a specific role or phase, or (b) a **mechanical heuristic** for catching a failure mode the older principle couldn't enforce mechanically. Neither replaces the other — they stack.
+
+---
+
 ## Three canonical roles
 
 These roles are **defined by responsibility, not by identity.**

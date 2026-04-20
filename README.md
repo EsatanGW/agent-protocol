@@ -237,11 +237,15 @@ Full definitions and extensions: [`docs/surfaces.md`](./docs/surfaces.md).
 
 ## Reading paths
 
+### 30-second lookup
+
+- [`docs/operational-cheat-sheet.md`](./docs/operational-cheat-sheet.md) — per-role top 5 actions + 5-second checks + "when you see X, go to Y" navigation. Use this when you need the decision fast; use the linked docs when you need the reasoning.
+
 ### Quick start (5 min)
 
 1. [`docs/onboarding/orientation.md`](./docs/onboarding/orientation.md) — canonical single-page onboarding; contains the three-minute and one-page summaries as named sections
 2. [`docs/phase-gate-discipline.md`](./docs/phase-gate-discipline.md) — per-phase gate + ROADMAP contract
-3. [`docs/onboarding/when-not-to-use-this.md`](./docs/onboarding/when-not-to-use-this.md) — recognise when the methodology is overkill
+3. [`docs/onboarding/when-not-to-use-this.md`](./docs/onboarding/when-not-to-use-this.md) — recognise when the methodology is overkill (also covers scenarios where the methodology partially fits but has known gaps — incident response, pure research, A/B tests, etc.)
 
 ### Full methodology
 

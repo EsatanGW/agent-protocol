@@ -88,6 +88,27 @@ Even if the task itself would fit, these situations should **pause or skip** the
 
 ---
 
+## Scenarios where the methodology partially fits but has known gaps
+
+Different from the table above (those situations **skip** the methodology). These are scenarios where part of the methodology applies but some mechanism does not yet have a natural home, so mechanically filling every manifest field feels forced. The table says what gap exists and what to do pragmatically while the methodology evolves.
+
+| Scenario | Why it doesn't cleanly fit | Pragmatic path today |
+|----------|---------------------------|---------------------|
+| **Incident response / hotfix under pressure** | Change Manifest + phase gates are too slow when production is actively burning | Stop the bleeding first with whatever is fastest; after stabilization, backfill a Lean manifest as the post-mortem record (within 72h). Do not try to fill Full mode during the incident. |
+| **Pure research / exploratory work** | Methodology presumes clear acceptance criteria; research outcome is "what we learned," not "what we delivered" | Record findings as a Cross-Change Knowledge Note (CCKN, once Stage 2 lands) or equivalent reference doc. Do not open a Change Manifest for a research question unless a concrete change follows. |
+| **A/B test / experiment design** | Evidence semantics misalign — the experiment itself generates the evidence, not a separate verification artifact | Open a Lean manifest at experiment *kickoff* (declaring surface, evidence = experiment result, rollback mode). Record the actual result in a separate observation doc once data is in. Do not try to pre-declare a screenshot-diff artifact for something whose result is unknown. |
+| **Pure content / i18n / copy-only changes** | Full evidence / rollback / breaking change is overkill for a string change | Use the Three-line handoff form above. Escalate to Lean only when the string rename crosses a consumer (renaming an i18n key, changing an enum label consumed by telemetry). |
+| **AI agent / prompt system's own development** | When the *target* of the change is an agent (prompt changes, tool additions, workflow edits), the four-surface map does not cleanly capture "the agent's behavior changed" | Treat agent behavior as a variant of the user or information surface (whichever the change most affects) and document the gap. A dedicated "agent surface" extension is a candidate for a future revision. |
+| **UI / UX design iteration** | Acceptance criteria cannot be written up-front because the design is *being discovered* | Run the design-spike phase outside the methodology. Once a direction is picked and a real surface change is proposed, enter Lean mode for the implementation phase. Do not force acceptance criteria onto a spike. |
+| **ML model training / hyperparameter iteration** | The Model surface exists, but per-iteration evidence is "experiment log + metric delta," not the standard evidence types | Per-iteration: keep experiment logs as the evidence artifact; skip breaking-change / rollback fields that do not apply. At the **ship-to-production event** for a new model version, run Full mode including rollback (mode 2 or 3 is typical for deployed models). |
+| **Open-source library's own development** | Consumers are unpredictable third parties; breaking-change severity is always "worst-case" by definition | Bias toward L2+ for any public-API change; use longer deprecation windows; treat the public API as a hard permanent contract. Consumer classification collapses to "third-party" for every consumer. |
+
+**What this table is not:** a promise that these scenarios will be fixed soon. Each one is a known limitation. The point of listing them is so a reader whose work falls here does not conclude "the methodology does not work" — the honest statement is "this specific fit is evolving; here is the pragmatic path today."
+
+**What this table is:** an invitation to contribute. If your work consistently falls in one of these rows, documenting how you currently handle it (as a CCKN or a bridge doc) is a direct input to the next methodology revision.
+
+---
+
 ## Five signals of over-use
 
 When you see these signals, **immediately downgrade or drop the flow**:

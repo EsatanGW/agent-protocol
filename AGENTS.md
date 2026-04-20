@@ -116,6 +116,10 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 
 ## Recommended reading order
 
+**Fast lookup (30 seconds, when you don't need reasoning):**
+
+- `docs/operational-cheat-sheet.md` — per-role top 5 actions, 5-second checks, and "when you see X, go to Y" navigation table
+
 **Methodology (why and what):**
 
 1. `docs/onboarding/orientation.md` — 5-minute orientation
