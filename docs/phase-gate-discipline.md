@@ -129,6 +129,8 @@ Silent re-entry — fixing the manifest and continuing without a new ROADMAP row
 
 Anti-metric: re-entry frequency per initiative is a useful diagnostic. Consistently high re-entry rates at Phase 1 suggest Planner under-investment; consistently high re-entry rates at Phase 4 for evidence reasons suggest the Implementer's pre-handoff self-check (see `agents/implementer.md`) is being skipped. This metric aligns with Principle 10 (baseline + exit criteria + anti-metrics).
 
+**Machine-readable reference implementation.** A non-normative, pure-function implementation of the decision table above ships at `reference-implementations/re-entry-trigger/`. Given two manifest states (old committed + new in-progress), it returns the structured list of re-entry suggestions — phase, reasons, fields to rewrite. Runtimes that want mechanical re-entry prompting (PR comment, IDE hint, validator advisory) can call it directly or wrap it in a Layer-3 drift rule. It is not integrated into the three reference validators by default because the decision needs two manifest states, not one — runtimes assemble the two states themselves.
+
 ---
 
 ## Gate template

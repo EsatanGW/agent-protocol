@@ -43,3 +43,19 @@ On runtimes where the tool surface cannot be constrained, the human
 process — "use three separate sessions / profiles, and do not let one
 identity review its own implementation" — is the load-bearing
 enforcement. The role prompts make the discipline inspectable.
+
+## Optional: role composition
+
+The three canonical roles above are not the only way to organise work,
+but they remain the only roles with field ownership. When a single
+canonical role is genuinely too large for one agent invocation, the
+role may internally delegate to **non-canonical sub-agents** — research
+sub-agent, code-explorer sub-agent, test-writer sub-agent, reference-
+sampler sub-agent — while retaining full accountability for the
+output.
+
+See [`role-composition-patterns.md`](./role-composition-patterns.md)
+for four sketch patterns, the invariants that must hold, and the
+anti-patterns that convert composition into unratified role
+proliferation. Composition is **non-normative** — teams may use it, or
+not. The three-role contract is the normative surface.

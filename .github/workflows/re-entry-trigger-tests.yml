@@ -1,0 +1,37 @@
+name: re-entry-trigger-tests
+
+# Separate workflow for the reference-implementations/re-entry-trigger/
+# module — introduced in 1.8.0 as a companion to `docs/phase-gate-
+# discipline.md` Rule 6. Kept in its own file rather than added to the
+# main validate.yml because the module is non-normative (optional
+# runtime-side machinery) — treating its job as a sibling workflow
+# keeps the main validate.yml focused on the normative contract layer.
+#
+# Security note: this workflow uses NO untrusted event inputs
+# (no github.event.issue.*, github.event.pull_request.*, github.head_ref,
+# etc.). All run: commands are hardcoded package installs and pytest
+# invocations with fixed paths. No injection surface.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  re-entry-trigger-tests:
+    name: Re-entry trigger pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pyyaml + pytest
+        run: pip install pyyaml pytest
+      - name: Run re-entry-trigger tests
+        run: pytest -q reference-implementations/re-entry-trigger/tests/
