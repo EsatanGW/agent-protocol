@@ -502,16 +502,30 @@ properties:
         description: "Required when level is L2+."
       deprecation_timeline:
         type: object
-        description: "Required when level is L3+."
+        description: |
+          Legacy deprecation form — dates only. Prefer the richer
+          `deprecation` field (→ `$defs.deprecation`) for new manifests;
+          it captures replacement name and migration prose in addition
+          to dates.
         properties:
           announce_date: { type: string, format: date }
           sunset_date: { type: string, format: date }
           escalation_contact: { type: string }
+      deprecation:
+        $ref: "#/$defs/deprecation"
+        description: |
+          Structured deprecation marker — preferred form for L3/L4
+          changes. Rule 2.6 of the automation-contract algorithm
+          accepts either `deprecation_timeline` or `deprecation`;
+          do not populate both.
     allOf:
       - if: { properties: { level: { enum: [L2, L3, L4] } } }
         then: { required: [migration_plan, affected_consumers] }
       - if: { properties: { level: { enum: [L3, L4] } } }
-        then: { required: [deprecation_timeline] }
+        then:
+          anyOf:
+            - required: [deprecation_timeline]
+            - required: [deprecation]
       - if: { properties: { level: { const: L4 } } }
         then:
           properties:
@@ -942,3 +956,53 @@ $defs:
         type: array
         description: "Free-form references to docs/cross-cutting-concerns.md checklist items."
         items: { type: string }
+
+  deprecation:
+    type: object
+    additionalProperties: false
+    description: |
+      Structured deprecation marker. Attach to a manifest whose change
+      deprecates a field, enum value, parameter, or subsection.
+
+      Semantic superset of breaking_change.deprecation_timeline: where
+      deprecation_timeline carries only dates, this object also captures
+      the replacement (`use_instead`) and a prose migration note, which
+      is what downstream consumers and contract catalogs actually need
+      to act on the deprecation.
+
+      Rule 2.6 of the automation-contract algorithm accepts **either**
+      `breaking_change.deprecation_timeline` (legacy form) or
+      `breaking_change.deprecation` (structured form) as satisfying the
+      L3/L4 "must declare a deprecation path" requirement.
+
+      Introduced in schema version 1.7.0. No existing field is marked
+      deprecated using this object in the 1.7.0 release; the marker is
+      published ready for use by subsequent schema changes.
+    required: [since]
+    properties:
+      since:
+        type: string
+        description: |
+          Version where deprecation was announced. Use semver
+          (e.g. `1.7.0`) or the manifest's own `schema_version`
+          scheme if the manifest is not shipping as a semver.
+      remove_in:
+        type: string
+        description: "Planned version for full removal. Optional; omit if not yet decided."
+      use_instead:
+        type: string
+        description: "Name of the replacement field, enum value, or subsection."
+      migration_note:
+        type: string
+        description: "Short prose note explaining the migration path."
+      announce_date:
+        type: string
+        format: date
+        description: "Optional calendar-date mirror of `since`; matches the deprecation_timeline legacy field."
+      sunset_date:
+        type: string
+        format: date
+        description: "Optional calendar-date mirror of `remove_in`; matches the deprecation_timeline legacy field."
+      escalation_contact:
+        type: string
+        description: "Who to page if consumers need help migrating."

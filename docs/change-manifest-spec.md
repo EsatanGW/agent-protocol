@@ -181,7 +181,8 @@ breaking_change:
   affected_consumers: [...]
   migration_path: none | gray_rollout | parallel_switch | deprecation_cycle | rename_and_coexist | custom
   migration_plan: "..."               # required for L2+
-  deprecation_timeline: {...}         # required for L3+
+  deprecation_timeline: {...}         # legacy form; dates only
+  deprecation: {...}                  # preferred form; see below
 ```
 
 ### `self_assessed_vs_worst_case`
@@ -195,10 +196,46 @@ The methodology insists on **worst-case grading**. This field forces the AI / au
 ### Conditional required-ness
 
 - `L2+` → `migration_plan` + `affected_consumers` required.
-- `L3+` → `deprecation_timeline` required.
+- `L3+` → **either** `deprecation_timeline` **or** `deprecation` required (automation-contract rule 2.6 accepts both; do not populate both).
 - `L4` → `migration_path` restricted to `rename_and_coexist | deprecation_cycle`.
 
 > `L4 (Semantic Reversal)` cannot use parallel_switch, because the same name cannot simultaneously mean two things.
+
+### Deprecating a field (the richer `deprecation` marker)
+
+Introduced in schema 1.7.0. `$ref` → `$defs.deprecation`.
+
+```yaml
+breaking_change:
+  level: L3
+  migration_path: deprecation_cycle
+  migration_plan: "Consumers switch from legacy_field to replacement_field by sunset_date."
+  deprecation:
+    since: "1.7.0"
+    remove_in: "2.0.0"
+    use_instead: "replacement_field"
+    migration_note: |
+      Legacy field accepted but emits a warning in the generator. Consumers
+      should read replacement_field; writers should populate both during
+      the deprecation window.
+    announce_date: "2026-04-20"
+    sunset_date:   "2026-10-20"
+    escalation_contact: "@contract-owners"
+```
+
+Use the structured `deprecation` object (not the legacy `deprecation_timeline`) whenever the deprecation has a named replacement or a non-obvious migration path — which is almost always.
+
+**When to attach `deprecation` vs when to bump `breaking_change.level`:**
+
+| Scenario | What to do |
+|---|---|
+| Field added, nothing removed | L0 or L1; no deprecation marker |
+| Field's behavior or default changes | L1/L2; note in `migration_plan`, no deprecation marker |
+| Field deprecated but still accepted; new name shipped | L3; populate `deprecation` with `use_instead` |
+| Field removed outright (no replacement, no window) | L4 with `migration_path: deprecation_cycle`; populate `deprecation`; schedule removal |
+| Field's semantic meaning reversed (same name, inverted sense) | L4 with `migration_path: rename_and_coexist`; populate `deprecation`; do not reuse the old name without renaming |
+
+The `deprecation` marker is the methodology's own instance of the deprecate-then-remove discipline it recommends for every change. Using it keeps the manifest itself honest about what the change is doing.
 
 ---
 

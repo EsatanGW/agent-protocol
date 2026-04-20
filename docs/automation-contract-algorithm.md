@@ -122,10 +122,17 @@ function check_layer_2(manifest, repo_root):
                 detail: dep_id + ".blocks is missing " + manifest.change_id
             })
 
-    # 2.6 Breaking changes at L3/L4 must carry a deprecation_timeline
+    # 2.6 Breaking changes at L3/L4 must declare a deprecation path.
+    #     Accept EITHER the legacy `deprecation_timeline` (dates only)
+    #     OR the richer `deprecation` marker (introduced in schema 1.7.0;
+    #     $ref → $defs.deprecation: {since, remove_in, use_instead,
+    #     migration_note, announce_date, sunset_date, escalation_contact}).
+    #     Both are equally accepting; prefer `deprecation` for new work.
     if manifest.breaking_change.level in ["L3", "L4"]:
-        if not present(manifest.breaking_change.deprecation_timeline):
-            errors.append({ rule: "breaking_change.l3_l4_requires_timeline", severity: "blocking" })
+        has_timeline = present(manifest.breaking_change.deprecation_timeline)
+        has_deprecation = present(manifest.breaking_change.deprecation)
+        if not (has_timeline or has_deprecation):
+            errors.append({ rule: "breaking_change.l3_l4_requires_deprecation", severity: "blocking" })
 
     # 2.7 Rollback mode 3 must carry a compensation_plan
     if manifest.rollback.overall_mode == 3 and not present(manifest.rollback.compensation_plan):

@@ -207,14 +207,20 @@ def _rule_2_5(
 def _rule_2_6(manifest: dict[str, Any]) -> list[Finding]:
     breaking = manifest.get("breaking_change") or {}
     level = breaking.get("level")
-    if level in ("L3", "L4") and not breaking.get("deprecation_timeline"):
-        return [
-            Finding(
-                rule_id="breaking_change.l3_l4_requires_timeline",
-                severity="blocking",
-                detail=f"breaking_change.level={level} with no deprecation_timeline",
-            )
-        ]
+    if level in ("L3", "L4"):
+        has_timeline = bool(breaking.get("deprecation_timeline"))
+        has_deprecation = bool(breaking.get("deprecation"))
+        if not (has_timeline or has_deprecation):
+            return [
+                Finding(
+                    rule_id="breaking_change.l3_l4_requires_deprecation",
+                    severity="blocking",
+                    detail=(
+                        f"breaking_change.level={level} with neither "
+                        "deprecation_timeline nor deprecation marker"
+                    ),
+                )
+            ]
     return []
 
 

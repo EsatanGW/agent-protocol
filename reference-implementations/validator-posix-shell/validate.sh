@@ -116,12 +116,16 @@ while [ "$i" -lt "${ev_count:-0}" ]; do
     i=$((i + 1))
 done
 
-# 2.6 Breaking change L3/L4 requires deprecation_timeline
+# 2.6 Breaking change L3/L4 requires a deprecation path.
+#     Accept either `deprecation_timeline` (legacy, dates only) or
+#     `deprecation` (structured marker introduced in schema 1.7.0).
 level=$(q '.breaking_change.level')
 if [ "$level" = "L3" ] || [ "$level" = "L4" ]; then
     tl=$(qn '.breaking_change.deprecation_timeline')
-    [ "$tl" = "null" ] \
-        && emit blocking "breaking_change.l3_l4_requires_timeline" "level=$level but no deprecation_timeline"
+    dep=$(qn '.breaking_change.deprecation')
+    if [ "$tl" = "null" ] && [ "$dep" = "null" ]; then
+        emit blocking "breaking_change.l3_l4_requires_deprecation" "level=$level but neither deprecation_timeline nor deprecation"
+    fi
 fi
 
 # 2.7 Rollback mode 3 requires compensation_plan
