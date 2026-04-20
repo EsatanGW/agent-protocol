@@ -35,11 +35,18 @@ Every initiative section follows this shape:
 
 ## Active initiatives
 
+_None. Sprint 2 (v1.5.0 — iOS/Swift + React/Next bridges + worked examples) will open its entry when started._
+
+---
+
+## Closed initiatives
+
 ## self-validation-foundation — repo self-validates its own methodology (v1.4.0)
 
 - **Opened:** 2026-04-20
+- **Closed:** 2026-04-20
 - **Driver:** Post-1.3.0 review surfaced that the repo preaches evidence, CI gates, and starter-kit adoption patterns but doesn't self-validate (no `.github/workflows/`), ships no runnable starter example, and lacks top-level security reporting hygiene. Sprint 1 of a 4-sprint improvement plan (tracking 15 issues) — this sprint is the foundation layer other sprints depend on.
-- **Status:** in_progress
+- **Status:** closed
 - **Target version:** 1.4.0 (minor — additive: new CI, new examples dir, new diagram section, new `.github/` hygiene files; no schema changes, no contract changes)
 - **Phases:** table below
 
@@ -50,16 +57,15 @@ Every initiative section follows this shape:
 | P2 | Create `examples/starter-repo/` | `examples/starter-repo/{README,ROADMAP,change-manifest.yaml,Makefile,.gitignore}` + `evidence/{contract-test-output.txt,access-log-sample.txt,screenshot-notes.md}` + `scripts/validate-manifest.py` (30-line validator); root README bullet 7 added; CI `template-conformance` job validates the starter manifest as part of the template suite | `make validate` in fresh venv exits 0 (`ok   change-manifest.yaml`); root CI template job includes starter manifest | ✅ passed | _(this change)_ | Scenario = add `/healthz` endpoint. Exercises 2 surfaces, L0 breaking change, rollback mode 1, host-lifecycle SoT pattern (pattern 10). 30-line validator script is small enough to read end-to-end during onboarding |
 | P3 | Add all-pieces-together architectural diagram | `docs/diagrams.md` §6 Mermaid flow: Contract → Skill → Phase → Manifest → Runtime hooks → CI hooks (four subgraphs: normative / execution / carrier / enforcement); README `What you get` callout + `orientation.md` top-of-page callout link to it; TL;DR realigned to match actual content (pre-existing drift: enumerated 6 phantom diagrams against a file with 5); fixed pre-existing README badge drift (`1.0.0` → `1.3.0`) caught by the P1 version-consistency script | Diagram renders in GitHub-flavored markdown (standard `subgraph` + `-->`/`-. .->` syntax); anchor slug `#6-all-pieces-together--how-the-layers-connect` verified against GitHub's slug algorithm (Python regex reproduction); all 3 self-validation scripts pass locally (schema / templates / version-consistency) | ✅ passed | _(this change)_ | Reader gets "how do these pieces plug together" in one scroll. Version-consistency drift fix was a side benefit of P1 landing — caught by the very script P1 introduced |
 | P4 | Add SECURITY.md + issue + PR templates | `.github/SECURITY.md` (policy + in-scope/out-of-scope + dual-path reporting + 30-day disclosure timeline); `.github/ISSUE_TEMPLATE/{bug,doc,bridge}.md` (YAML frontmatter + purpose-specific body); `.github/ISSUE_TEMPLATE/config.yml` (security-advisory contact link + blank-issue escape hatch); `.github/PULL_REQUEST_TEMPLATE.md` (scope / surfaces / SoT / evidence / BC-level / rollback / cross-cutting / ROADMAP-link checklist) | Frontmatter of 3 issue templates validates via `yaml.safe_load`; SECURITY.md lists 2 reporting paths (GitHub private advisory preferred + email fallback) and a 4-row disclosure timeline; PR template has explicit `Surfaces touched` checklist (4 canonical surfaces) + `Source of Truth impact` section + scriptable evidence checkboxes | ✅ passed | _(this change)_ | Config.yml points at actual repo URL (`EsatanGW/agent-protocol` from `git remote -v`), not a guess; kept `blank_issues_enabled: true` so unusual cases have an escape hatch |
-| P5 | Release v1.4.0 | Version bump in `.claude-plugin/plugin.json` + `marketplace.json` + README badge; `CHANGELOG.md` 1.4.0 Added/Changed entries; this ROADMAP row closed | All 3 version strings consistent (checked by P1 CI job); CHANGELOG entry lists each P1–P4 deliverable; ROADMAP row flipped to `closed` | ⏳ pending | _(pending)_ | Standard minor-release procedure per `VERSIONING.md` |
+| P5 | Release v1.4.0 | Version bump `1.3.0 → 1.4.0` in `.claude-plugin/plugin.json` + `marketplace.json` + README badge; `CHANGELOG.md` `[1.4.0] - 2026-04-20` entry with Added (CI workflow + starter-repo + diagram + `.github` hygiene) + Changed (README badge drift fix + 2 template drift fixes + TL;DR realignment) bullets; ROADMAP initiative Status flipped `in_progress → closed`; Closed date added; block physically moved from "Active" section to "Closed" section | `sh .github/scripts/check-version-consistency.sh` reports `OK: all four declarations agree on 1.4.0`; `python3 .github/scripts/validate-schema-syntax.py` passes (2/2); `python3 .github/scripts/validate-templates.py` passes (4/4 including starter-repo) | ✅ passed | _(this change)_ | Standard minor-release procedure per `VERSIONING.md`. Closed-date preserved per the ROADMAP schema discipline — past initiatives are not deleted |
 
 ### Phase log
 
 - Sprint plan backdrop: this initiative is the first of 4 planned sprints (v1.4.0 → v1.7.0) addressing 15 optimization items organized by impact (P0 foundation / P1 adoption / P2 breadth / P3 hygiene). Sprints 2–4 cover: new bridge stacks (iOS/Swift + React/Next), non-Claude-Code multi-agent enforcement, adapter selftests, TS validator, adoption anti-metric, schema JSON dual format, README slim, CHANGELOG machine-readable, schema deprecation marker.
 - Why this sprint ships as minor not patch: two new user-facing dirs (`examples/starter-repo/`, `.github/workflows/`) and a new top-level `.github/SECURITY.md` qualify as additive features per `VERSIONING.md`.
+- CI caught two pre-existing drifts on its first run (mobile-offline `host_type` enum; multi-agent-handoff schema version mismatch) plus a README badge drift. All three were fixed in-place — the methodology-correct answer per AGENTS.md §3 (SoT before consumers), and the clearest possible validation that the self-validation foundation works.
 
 ---
-
-## Closed initiatives
 
 ## hook-wiring-fix — correct Claude Code hook event names + expand README hook docs (patch 1.2.1)
 
