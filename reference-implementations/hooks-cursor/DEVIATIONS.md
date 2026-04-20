@@ -33,11 +33,22 @@ read the normalized `AP_*` env vars exported by
 
 ---
 
-## 3. No runtime-level selftest
+## 3. Runtime-wiring selftest is still a per-workspace concern
 
-The Claude Code bundle's `selftests/` harness is runtime-agnostic — it
-invokes hooks directly — so it covers the adapter's hook *logic*. It
-does **not** cover the Cursor wiring itself (whether Cursor actually
-fires the command at the right moment). That belongs in a per-workspace
-smoke test: stage a multi-file diff with no manifest, attempt a commit,
-confirm the hook blocks.
+**Covered since v1.6.0:** the adapter's `parse-event.sh` normalization is
+exercised by `selftests/selftest.sh` — a hermetic smoke test that sets
+synthetic runtime env vars and asserts `AP_EVENT` / `AP_TOOL` /
+`AP_STAGED_FILES` / `AP_PHASE` come out right. Run via:
+
+```sh
+sh reference-implementations/hooks-cursor/selftests/selftest.sh
+```
+
+CI runs this alongside the Claude Code bundle selftest.
+
+**Still uncovered:** whether Cursor itself invokes the command at the
+right moment (i.e. the `settings.example.json` wiring). That remains a
+per-workspace smoke test — stage a multi-file diff with no manifest,
+attempt a commit, confirm the hook blocks. A renamed Cursor trigger
+will fail this test but not the adapter selftest, which is the gap this
+section documents.

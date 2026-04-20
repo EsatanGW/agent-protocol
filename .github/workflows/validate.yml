@@ -64,6 +64,14 @@ jobs:
           yq --version
       - name: Run Claude Code hook selftest
         run: sh reference-implementations/hooks-claude-code/selftests/selftest.sh
+      - name: Run Cursor adapter selftest
+        run: sh reference-implementations/hooks-cursor/selftests/selftest.sh
+      - name: Run Gemini CLI adapter selftest
+        run: sh reference-implementations/hooks-gemini-cli/selftests/selftest.sh
+      - name: Run Windsurf adapter selftest
+        run: sh reference-implementations/hooks-windsurf/selftests/selftest.sh
+      - name: Run Codex adapter selftest
+        run: sh reference-implementations/hooks-codex/selftests/selftest.sh
 
   validator-python-tests:
     name: Python validator pytest

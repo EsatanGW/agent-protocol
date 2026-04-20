@@ -21,9 +21,21 @@ If your Windsurf version renames these, adjust
 
 ---
 
-## 2. No runtime-level selftest
+## 2. Runtime-wiring selftest is still a per-workspace concern
 
-The hook-logic selftest lives in the Claude Code bundle's `selftests/`
-and is runtime-agnostic. Wiring verification (does Windsurf actually
-invoke the command at the right moment?) requires a per-workspace
-smoke test.
+**Covered since v1.6.0:** the adapter's `parse-event.sh` normalization is
+exercised by `selftests/selftest.sh` — a hermetic smoke test that sets
+synthetic runtime env vars and asserts `AP_EVENT` / `AP_TOOL` /
+`AP_STAGED_FILES` / `AP_PHASE` come out right. Run via:
+
+```sh
+sh reference-implementations/hooks-windsurf/selftests/selftest.sh
+```
+
+CI runs this alongside the Claude Code bundle selftest.
+
+**Still uncovered:** whether Windsurf itself invokes the command at the
+right moment (i.e. the `settings.example.json` wiring). That remains a
+per-workspace smoke test. A renamed Windsurf trigger will fail this
+test but not the adapter selftest, which is the gap this section
+documents.

@@ -22,9 +22,21 @@ the equivalent native events.
 
 ---
 
-## 2. No runtime-level selftest
+## 2. Runtime-wiring selftest is still a per-environment concern
 
-The hook-logic selftest lives in the Claude Code bundle's
-`selftests/` and is runtime-agnostic. Wiring verification (does Codex
-actually invoke the command at the right moment?) is a per-
-environment smoke test.
+**Covered since v1.6.0:** the adapter's `parse-event.sh` normalization is
+exercised by `selftests/selftest.sh` — a hermetic smoke test that sets
+synthetic runtime env vars and asserts `AP_EVENT` / `AP_TOOL` /
+`AP_STAGED_FILES` / `AP_PHASE` come out right. Run via:
+
+```sh
+sh reference-implementations/hooks-codex/selftests/selftest.sh
+```
+
+CI runs this alongside the Claude Code bundle selftest.
+
+**Still uncovered:** whether Codex itself invokes the command at the
+right moment (i.e. the `settings.example.json` wiring). That remains a
+per-environment smoke test. A renamed Codex trigger will fail this
+test but not the adapter selftest, which is the gap this section
+documents.
