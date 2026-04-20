@@ -50,4 +50,11 @@ Almost every change will touch at least one of:
 - [ ] Outward-facing behavior changes are documented or changelog'd.
 - [ ] rollout / rollback strategy can be stated.
 - [ ] The completion report has genuine handoff value.
+
+## See also
+
+- `adoption-anti-metrics.md` — **non-normative** diagnostic aids for
+  catching ceremonial adoption of the above checklist (evidence paths
+  all pointing at the same artifact, `rollback.overall_mode` always 1,
+  LGTM-only review notes). Not CI gates — review conversations.
 - [ ] Monitoring / alerts have been adjusted where needed.

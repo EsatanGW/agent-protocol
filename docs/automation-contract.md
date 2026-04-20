@@ -174,4 +174,5 @@ Bridge-level implementations **may** name specific tools (that is precisely why 
 - `schemas/change-manifest.schema.yaml` — the actual tier-1 schema.
 - `ai-operating-contract.md` §5 — escalation protocol when AI hits an L3 failure.
 - `adoption-strategy.md` — counter-metric monitoring (bypass rate, waiver expiration rate, etc.).
+- `adoption-anti-metrics.md` — **non-normative** diagnostic aids for detecting ceremonial adoption at the artifact layer (rollback-mode monoculture, LGTM-only review notes, copy-paste manifests). A complement to this document's Anti-patterns section: those are automation-layer, these are artifact-layer.
 - `docs/bridges/*-stack-bridge.md` — actual executable implementations.
