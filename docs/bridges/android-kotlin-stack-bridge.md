@@ -421,6 +421,8 @@ Instrumented tests (`androidTest`) run against a specific emulator or device who
 - **Play Feature Delivery internals beyond the rollback table** — `SplitInstallManager` install-time-error code matrix, `PlayCore` library version compatibility, and instant-app-specific entry points are documented by Google and change per Play services version; project-local addendum recommended.
 - **Play-Console-level controls** (staged rollout, internal testing track, managed publishing) are operational-surface concerns that this bridge references in sections above but does not fully enumerate — treat each control as a `uncontrolled_interfaces` entry with Google Play release-notes as the monitoring channel.
 
+For the project-local overlay pattern (KMM-iOS depth, Play Feature Delivery internals, vendor-fork tooling, etc.), see [`../bridges-local-deviations-template.md`](../bridges-local-deviations-template.md) and the end-to-end walk-through in [`../bridges-local-deviations-howto.md`](../bridges-local-deviations-howto.md).
+
 ---
 
 ## What this bridge does NOT override
