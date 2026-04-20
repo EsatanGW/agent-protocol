@@ -1,8 +1,8 @@
 {
   "releases": [
     {
-      "version": "Unreleased",
-      "date": null,
+      "version": "1.8.0",
+      "date": "2026-04-21",
       "sections": {
         "added": [
           {
