@@ -137,7 +137,8 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 17. `docs/automation-contract-algorithm.md` — normative tool-neutral algorithm, layer-by-layer with rule IDs and exit codes; the bridge from capability contract to executable validator
 17b. `docs/runtime-hook-contract.md` — capability contract for agent-runtime event-driven hooks (pre-tool-use / post-tool-use / pre-commit / on-stop); four categories (phase-gate / evidence / drift / completion-audit); shares exit-code semantics with the automation contract
 18. `docs/adoption-strategy.md` — staged adoption, anti-metrics, decay intervention playbook
-19. `docs/glossary.md` — canonical term definitions
+19. `docs/adoption-anti-metrics.md` — **non-normative** diagnostic aids for catching ceremonial adoption (same-artifact evidence, rollback-mode monoculture, LGTM-only review); explicitly not CI gates
+20. `docs/glossary.md` — canonical term definitions
 
 **Execution layer (when and how):**
 
@@ -153,6 +154,7 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 - `templates/change-manifest.example-mobile-offline.yaml` — offline-first mobile example
 - `templates/change-manifest.example-game-gacha.yaml` — live-ops game example
 - `templates/change-manifest.example-multi-agent-handoff.yaml` — Planner → Implementer → Reviewer progression of one manifest
+- `templates/change-manifest.example-security-sensitive.yaml` — JWT signing-key rotation: SoT pattern 8 (dual-representation), L1 breaking change, mode-3 compensation-only rollback, security / compliance cross-cutting escalations
 
 **Worked examples across domains:**
 
@@ -172,6 +174,7 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 
 - `reference-implementations/` — directory index; every sub-implementation ships `README.md` + `DEVIATIONS.md` + source + self-test.
 - `reference-implementations/validator-posix-shell/` — POSIX-shell reference validator (needs `yq`, `git`, and an external JSON Schema validator via `$SCHEMA_VALIDATOR`). Implements most of the algorithm; `DEVIATIONS.md` documents the three deliberate gaps.
+- `reference-implementations/roles/` — runtime-neutral Planner / Implementer / Reviewer role prompts. Paste-ready for Cursor Custom Mode, Gemini CLI session, Windsurf mode, Codex profile. Mirrors the §7 permission matrix in prose for runtimes that cannot gate tool exposure per persona.
 
 **Stack bridges (opt-in, the only place where tool / framework / language names appear):**
 

@@ -241,9 +241,11 @@ See [`AGENTS.md`](./AGENTS.md) "Recommended reading order".
 ### When your situation matches
 
 - Multiple agents cooperating on one change → [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) + [`templates/change-manifest.example-multi-agent-handoff.yaml`](./templates/change-manifest.example-multi-agent-handoff.yaml)
+- Multi-agent roles on a non-Claude-Code runtime (Cursor / Gemini CLI / Windsurf / Codex) → [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) §Enforcement across runtimes + [`reference-implementations/roles/`](./reference-implementations/roles/)
 - Feature too large to ship as one change → [`docs/change-decomposition.md`](./docs/change-decomposition.md)
-- Security / supply-chain / PII path touched → [`docs/security-supply-chain-disciplines.md`](./docs/security-supply-chain-disciplines.md)
+- Security / supply-chain / PII path touched → [`docs/security-supply-chain-disciplines.md`](./docs/security-supply-chain-disciplines.md) + [`templates/change-manifest.example-security-sensitive.yaml`](./templates/change-manifest.example-security-sensitive.yaml)
 - Team / org-scale concerns (consumer registry, deprecation queue) → [`docs/team-org-disciplines.md`](./docs/team-org-disciplines.md)
+- Adoption review — is the team applying the methodology or going through the motions? → [`docs/adoption-anti-metrics.md`](./docs/adoption-anti-metrics.md) (non-normative diagnostic aids)
 - Long-lived session or cross-session work → [`docs/ai-project-memory.md`](./docs/ai-project-memory.md)
 - Writing a validator / CI gate for this methodology → [`docs/automation-contract.md`](./docs/automation-contract.md) (capability spec) + [`docs/automation-contract-algorithm.md`](./docs/automation-contract-algorithm.md) (normative algorithm) + [`reference-implementations/`](./reference-implementations/) (non-normative example validators)
 - Writing agent-runtime hooks (pre-tool-use, pre-commit, on-stop) → [Agent-runtime hooks](#agent-runtime-hooks) section below + [`docs/runtime-hook-contract.md`](./docs/runtime-hook-contract.md) + [`reference-implementations/hooks-claude-code/`](./reference-implementations/hooks-claude-code/)
