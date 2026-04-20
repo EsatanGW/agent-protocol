@@ -1,0 +1,20 @@
+=== OpenAPI contract test — /healthz =======================================
+Test:  starter-repo backend/tests/health_contract.test.ts
+Run:   2026-04-20T14:02:00Z
+Node:  v20.11.0
+Report: github-actions/run/9876543210
+
+--- Cases ---
+PASS  GET /healthz returns 200 with {status, uptime_seconds, version}
+PASS  GET /healthz response body validates against openapi/health.yaml
+PASS  POST /healthz returns 405 (Method Not Allowed)
+PASS  GET /healthz response time p99 < 5ms (measured 2.1ms over 1000 probes)
+PASS  GET /healthz does not emit /api/v1/ access-log entries (correct mount path)
+
+5 passed, 0 failed, 0 skipped in 812ms
+
+--- Coverage ---
+openapi/health.yaml:      100%
+backend/routes/health.ts:  97% (one untested branch: process.uptime() returning 0 on restart)
+
+=== End ====================================================================

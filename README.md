@@ -35,7 +35,10 @@ Install once; it works across Claude Code, Cursor, Gemini CLI, Windsurf, Codex, 
 6. **Multi-agent bridge (Claude Code)** — [`.claude-plugin/agents/`](./.claude-plugin/agents/)
    Three role-bound sub-agents — `planner`, `implementer`, `reviewer` — with tool-permission matrices that enforce the multi-agent-handoff contract mechanically (Reviewer has no write tools; Planner has no edit tools; Implementer cannot spawn further sub-agents). See [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) §tool-permission-matrix. Other runtimes apply the same matrix using their own agent mechanism (see `AGENTS.md` §7).
 
-7. **Agent-runtime hook contract + reference bundle** — [`docs/runtime-hook-contract.md`](./docs/runtime-hook-contract.md) + [`reference-implementations/hooks-claude-code/`](./reference-implementations/hooks-claude-code/)
+7. **Runnable starter example** — [`examples/starter-repo/`](./examples/starter-repo/)
+   A minimal end-to-end demonstration: a schema-valid Change Manifest for a tiny change (`/healthz` endpoint), cited evidence artifacts, a closed ROADMAP initiative, and a 30-line validator. Clone and run `make validate` to see the full contract execute in under a minute. Use as a seed for your own project.
+
+8. **Agent-runtime hook contract + reference bundle** — [`docs/runtime-hook-contract.md`](./docs/runtime-hook-contract.md) + [`reference-implementations/hooks-claude-code/`](./reference-implementations/hooks-claude-code/)
    A tool-agnostic contract for **event-driven guardrails inside the agent's own loop** (pre-commit, post-tool-use, on-stop). Four categories (phase-gate / evidence / drift / completion-audit), JSON-over-stdin event schema, exit-code semantics `0 = pass / 1 = block / 2 = warn`. A Claude Code reference bundle ships four POSIX-sh hooks wiring these categories onto `PreToolUse` / `PostToolUse` / `Stop` events — see the [Agent-runtime hooks](#agent-runtime-hooks) section below for install steps.
 
 ---

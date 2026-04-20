@@ -1,0 +1,30 @@
+=== Staging access log — /healthz =========================================
+# Sampled from logs.staging.internal, 2026-04-20 14:05-14:11 UTC
+# Format: <timestamp> <remote_ip> <method> <path> <status> <latency_us>
+
+2026-04-20T14:05:00.124Z 10.0.3.42 GET /healthz 200 874
+2026-04-20T14:05:05.119Z 10.0.3.42 GET /healthz 200 802
+2026-04-20T14:05:10.118Z 10.0.3.42 GET /healthz 200 911
+2026-04-20T14:05:15.117Z 10.0.3.42 GET /healthz 200 845
+2026-04-20T14:05:20.117Z 10.0.3.42 GET /healthz 200 826
+2026-04-20T14:06:00.117Z 10.0.3.42 GET /healthz 200 819
+2026-04-20T14:06:30.118Z 10.0.3.55 GET /healthz 200 780
+2026-04-20T14:07:00.118Z 10.0.3.42 GET /healthz 200 890
+2026-04-20T14:07:30.117Z 10.0.3.55 GET /healthz 200 850
+2026-04-20T14:08:00.117Z 10.0.3.42 GET /healthz 200 802
+2026-04-20T14:08:30.116Z 10.0.3.55 GET /healthz 200 793
+2026-04-20T14:09:00.118Z 10.0.3.42 GET /healthz 200 815
+2026-04-20T14:09:30.117Z 10.0.3.55 GET /healthz 200 858
+2026-04-20T14:10:00.118Z 10.0.3.42 GET /healthz 200 837
+2026-04-20T14:10:30.117Z 10.0.3.55 GET /healthz 200 801
+2026-04-20T14:11:00.118Z 10.0.3.42 GET /healthz 200 812
+
+--- Summary over 6 minutes ---
+requests:      16  (2 probe sources, 30s interval)
+all_status:    200
+latency_p50:   818us
+latency_p99:   2.1ms  (from wider 1000-sample contract test)
+no_errors:     true
+no_timeouts:   true
+
+=== End ====================================================================

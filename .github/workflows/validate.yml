@@ -47,6 +47,9 @@ jobs:
         run: pip install pyyaml jsonschema
       - name: Validate every template against change-manifest.schema.yaml
         run: python3 .github/scripts/validate-templates.py
+      - name: Validate starter-repo example manifest
+        working-directory: examples/starter-repo
+        run: python3 scripts/validate-manifest.py
 
   hooks-selftest:
     name: Hook bundle selftest

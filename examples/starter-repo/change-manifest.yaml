@@ -1,0 +1,184 @@
+# yaml-language-server: $schema=../../schemas/change-manifest.schema.yaml
+#
+# Starter-repo manifest — add /healthz liveness endpoint.
+#
+# Scope: one additive endpoint, no DB, no auth, no new dependency.
+# Surfaces:   system_interface (primary), operational (consumer).
+# Pattern:    contract-defined (OpenAPI) + runbook (documentation).
+# Rollback:   mode 1 — route removal is reversible.
+
+change_id: "2026-04-20-add-healthz-endpoint"
+title: "Add /healthz liveness endpoint"
+phase: signoff
+status: accepted
+
+authors:
+  - { name: "alice",             role: human, identifier: "alice@example.com" }
+  - { name: "claude-opus-4-7",   role: ai,    identifier: "claude-opus-4-7" }
+
+last_updated: "2026-04-20T16:30:00Z"
+
+# ─── Surfaces ────────────────────────────────────────────────────────────
+surfaces_touched:
+  - surface: system_interface
+    role: primary
+    notes: "New GET /healthz route, returns {status, uptime_seconds, version}"
+  - surface: operational
+    role: consumer
+    notes: "Runbook updated; access log sample retained as evidence"
+
+# ─── Uncontrolled interfaces ─────────────────────────────────────────────
+uncontrolled_interfaces:
+  - name: "orchestrator liveness probe"
+    kind: platform_os
+    monitoring_channel: "platform release notes + orchestrator changelog"
+
+# ─── SoT Map ─────────────────────────────────────────────────────────────
+sot_map:
+  - info_name: "/healthz response contract"
+    pattern: 4                                  # Contract-Defined
+    source: "backend/openapi/health.yaml"
+    consumers:
+      - { name: "orchestrator probe",  kind: code,          sync_lag: synchronous }
+      - { name: "probes runbook",      kind: documentation, sync_lag: manual }
+    sync_mechanism: "OpenAPI contract test in CI; runbook linked from OpenAPI comment"
+    desync_risk: low
+
+  - info_name: "service uptime counter"
+    pattern: 10                                 # Host-Lifecycle
+    source: "backend/routes/health.ts"
+    consumers:
+      - { name: "orchestrator probe", kind: code, sync_lag: synchronous }
+    sync_mechanism: "In-process monotonic clock; cold-start counter = 0 is correct by definition for liveness"
+    desync_risk: low
+    host_lifecycle:
+      host_type: container
+      death_triggers:
+        - "Pod restart by orchestrator liveness failure"
+        - "Deploy-driven rolling restart"
+        - "Node drain / reschedule"
+      persisted_layer: "none (intentional — uptime is host-local and resets on restart)"
+      restoration_path: "counter starts from 0 on every new process; orchestrator observes the reset as expected"
+
+# ─── Cross-Cutting ───────────────────────────────────────────────────────
+cross_cutting:
+
+  security:
+    impact: low
+    notes: "No auth on /healthz is intentional; response contains no user / tenant data; see residual_risks"
+
+  performance:
+    impact: none
+    notes: "Handler is ~200 bytes; no DB call, no cache lookup"
+    budget:
+      p99_latency_ms: 5
+
+  observability:
+    impact: low
+    new_events: []
+    new_dashboards: []
+    notes: "Access log carries /healthz by default; dedicated dashboard deferred (follow-up)"
+
+  testability:
+    impact: low
+    test_levels: [unit, contract]
+
+  error_handling:
+    impact: none
+    classification_updated: false
+    cancellation_propagation_reviewed: false
+
+  build_time_risk:
+    impact: none
+    codegen_touched: false
+    codegen_artifacts_committed: false
+    minification_rules_touched: false
+    asset_pipeline_touched: false
+    release_build_verified: true
+    determinism_considerations: []
+
+# ─── Breaking Change ─────────────────────────────────────────────────────
+breaking_change:
+  level: L0                                     # Purely additive route
+  self_assessed_vs_worst_case: matches
+  affected_consumers: []
+  migration_path: none
+
+# ─── Rollback ────────────────────────────────────────────────────────────
+rollback:
+  overall_mode: 1                               # Reversible — remove the route
+  per_surface_modes:
+    - { surface: system_interface, mode: 1, rationale: "Route can be removed; orchestrator fails closed to the pre-probe contract" }
+    - { surface: operational,      mode: 1, rationale: "Runbook revert is a doc-only change" }
+  kill_switch:
+    available: true
+    mechanism: "feature flag 'healthz_enabled'"
+    tested: true
+
+# ─── Evidence ────────────────────────────────────────────────────────────
+evidence_plan:
+
+  - type: contract_test
+    surface: system_interface
+    status: collected
+    artifact_location: "evidence/contract-test-output.txt"
+    summary: "OpenAPI contract test passes; response shape matches probe spec"
+    validated_by: "github-actions/contract-test"
+    collected_at: "2026-04-20T14:02:00Z"
+
+  - type: log_sample
+    surface: system_interface
+    status: collected
+    artifact_location: "evidence/access-log-sample.txt"
+    summary: "Access log shows 200 responses at sub-ms latency on staging"
+    validated_by: "alice"
+    collected_at: "2026-04-20T14:11:00Z"
+
+  - type: runbook_update
+    surface: operational
+    status: collected
+    artifact_location: "evidence/screenshot-notes.md"
+    summary: "Runbook section 'Liveness probes' added; describes expected response + orchestrator behavior"
+    validated_by: "alice"
+    collected_at: "2026-04-20T15:20:00Z"
+
+# ─── AI Hygiene ──────────────────────────────────────────────────────────
+assumptions:
+  - statement: "Orchestrator will only probe /healthz with HTTP GET; no POST/PUT semantics needed"
+    confidence: high
+    validation_plan: "Confirmed against orchestrator docs; contract test asserts 405 on non-GET"
+
+residual_risks:
+  - description: "No rate-limit on /healthz; a malicious or runaway client can generate cheap 200s"
+    severity: low
+    mitigation: "Route is narrow (200-byte body, no side effects); upstream load balancer can shed"
+    accepted_by: "alice@example.com"
+
+# ─── Review ──────────────────────────────────────────────────────────────
+review_notes:
+  - topic: "Cross-cutting: observability"
+    finding: pass_with_followup
+    detail: "Dashboard for /healthz latency + error rate deferred to a separate change"
+  - topic: "Cross-cutting: security"
+    finding: pass
+    detail: "No-auth decision documented as residual risk and accepted"
+  - topic: "SoT: /healthz response contract"
+    finding: pass
+    detail: "OpenAPI spec owns the contract; runbook is a consumer"
+
+approvals:
+  - approver: "alice@example.com"
+    role: human
+    scope: "full change accepted including the no-auth residual risk"
+    timestamp: "2026-04-20T16:25:00Z"
+
+implementation_notes:
+  - type: plan_delta
+    description: "Mounted at /healthz (root), not /api/v1/healthz"
+    scope_delta: acknowledged_and_approved
+    rationale: "Liveness probes should hit the shortest stable path; avoid coupling probe contract to API versioning"
+
+handoff_narrative: |
+  Endpoint deployed to staging; orchestrator probes green for 24h.
+  Production rollout behind `healthz_enabled` flag at 0% -> 100% over one release window.
+  Follow-up tracked: dashboard for /healthz latency + error rate (separate manifest).
