@@ -35,11 +35,18 @@ Every initiative section follows this shape:
 
 ## Active initiatives
 
+_(none — Sprint 3 closed 2026-04-20; Sprint 4 opens when work starts)_
+
+---
+
+## Closed initiatives
+
 ## enforcement-and-observability — close the "Claude-Code-only" enforcement gap + add adoption-honesty instrumentation (v1.6.0)
 
 - **Opened:** 2026-04-20
+- **Closed:** 2026-04-20
 - **Driver:** Post-1.5.0 review surfaced four structural gaps: (1) multi-agent role-and-tool enforcement is only runtime-verifiable on Claude Code (via `.claude-plugin/agents/*.md` tool frontmatter); the other four runtimes document the rule but ship nothing that prevents a single identity from writing and reviewing its own change; (2) the four non-Claude hook adapters each declare in their `DEVIATIONS.md §3` that the `parse-event.sh` wiring has no smoke test, so a silently-renamed runtime event surface would only be caught by the first person who tried to use it; (3) the methodology gives teams no way to tell whether they are applying it substantively or ceremonially — a repo that fills in every manifest field with the same three symbols is indistinguishable at the CI layer from a repo that actually thinks about the change; (4) the four shipped `templates/change-manifest.example-*.yaml` cover CRUD / mobile-offline / game-gacha / multi-agent-handoff but not security-sensitive work, so teams facing threat-model / supply-chain / PII decisions have no same-stack example to copy. Sprint 3 of 4.
-- **Status:** in_progress
+- **Status:** closed
 - **Target version:** 1.6.0 (minor — additive: four role artifacts under `.cursor/rules/` + role-prompt files for three other runtimes + adapter selftests + new doc + new template + index updates; no schema changes, no contract changes)
 - **Phases:** table below
 
@@ -51,17 +58,16 @@ Every initiative section follows this shape:
 | P3 | Adoption anti-metrics doc | `docs/adoption-anti-metrics.md` — defines anti-signals (rollback mode always 1; surfaces_touched always 4/4 or always 1/4; evidence paths all point at the same artifact; review notes always `LGTM`; phase gates check off faster than commits land; manifests copied-and-renamed across changes; `cross_cutting.*` always boilerplate) paired with counter-signals and **non-normative** detection sketches | Doc is linked from `docs/automation-contract.md` and `docs/operational-disciplines.md`; explicitly marked non-normative; each anti-metric carries a "why this happens" root-cause paragraph so readers fix the incentive, not the symptom | ✅ passed | _(this change)_ | Anti-metrics are diagnostic aids, not gates. A CI job that fails on "too many rollback mode 1" would itself be ceremonial — pick the measurement layer that creates awareness without creating a new gaming target |
 | P4 | Security-sensitive manifest example | `templates/change-manifest.example-security-sensitive.yaml` — scenario: rotate the JWT signing key while preserving session continuity for in-flight users (exercises `compliance` extension surface, PII / supply-chain concerns in `cross_cutting.security`, specific evidence types — SAST, threat-model diff, dual-kid integration test, rotation-runbook dry-run — and a mode-3 rollback because key rotation is compensation-only once issued tokens are in the wild); validates against `schemas/change-manifest.schema.yaml` | `python3 .github/scripts/validate-templates.py` reports `ok templates/change-manifest.example-security-sensitive.yaml`; CI `template-conformance` job picks it up automatically per the existing glob; example's `cross_cutting.security.supply_chain_review_needed` is `true` with rationale (verifier-library behavior is the dependency being trusted), `pii_access_added` is `false` with rationale (claims unchanged, only signing material rotates) | ✅ passed | _(this change)_ | JWT key rotation is the single most common security-sensitive change I can demonstrate without inventing a fictional product; covers the mode-3 rollback asymmetry (issued tokens cannot be recalled) that teams most often get wrong |
 | P5 | Update cross-references | `README.md` "When your situation matches" bullets (add anti-metrics, security-sensitive template, runtime enforcement matrix); `docs/onboarding/orientation.md` Navigation map; `AGENTS.md` reading order; `docs/multi-agent-handoff.md` §Enforcement matrix | All new artifacts discoverable from every top-level index page; `grep` for orphan link targets returns clean | ✅ passed | _(this change)_ | Same pattern as Sprint 2 P5 — index hygiene so new material is not hidden |
-| P6 | Release v1.6.0 | `.claude-plugin/plugin.json` + `marketplace.json` + README badge `1.5.0 → 1.6.0`; `CHANGELOG.md` `[1.6.0] - 2026-04-20` entry; this ROADMAP initiative closed and moved to Closed section | `sh .github/scripts/check-version-consistency.sh` reports `OK: all four declarations agree on 1.6.0`; all self-validation scripts pass | ⏳ pending | _(pending)_ | Standard minor-release procedure per `VERSIONING.md` |
+| P6 | Release v1.6.0 | `.claude-plugin/plugin.json` + `marketplace.json` + README badge `1.5.0 → 1.6.0`; `CHANGELOG.md` `[1.6.0] - 2026-04-20` entry; this ROADMAP initiative closed and moved to Closed section | `sh .github/scripts/check-version-consistency.sh` reports `OK: all four declarations agree on 1.6.0`; all self-validation scripts pass | ✅ passed | _(this change)_ | Standard minor-release procedure per `VERSIONING.md` |
 
 ### Phase log
 
 - Sprint 3 of 4 per the post-1.3.0 improvement plan. Sprint 4 covers: TS/Node validator, schema JSON dual format, CHANGELOG.json, README slim, onboarding merge, schema deprecation marker.
 - Why this sprint ships as minor not patch: four additive deliverables crossing execution (role artifacts), verification (selftests), methodology (anti-metrics doc), and reference material (new template) — each independently usable, not a bugfix set.
 - Scope boundary: this sprint does **not** try to make non-Claude-Code runtimes mechanically enforce the tool-permission matrix where their runtime cannot; it ships the best-available enforcement per runtime and documents the gap honestly. Teams that need full mechanical enforcement should plan their multi-agent work on a runtime that supports it and run read-only verification on others.
+- Closed 2026-04-20 at commit `(this release)` after all six phases passed. P6 release verified via `sh .github/scripts/check-version-consistency.sh` reporting `OK: all four declarations agree on 1.6.0`.
 
 ---
-
-## Closed initiatives
 
 ## web-and-ios-bridges — ship iOS/Swift + React/Next stack bridges and worked examples (v1.5.0)
 
