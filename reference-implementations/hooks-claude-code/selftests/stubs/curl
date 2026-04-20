@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+# Test double for curl. Reads $SELFTEST_CASE_DIR/curl-exit if present and
+# exits with that status. Otherwise exits 0 (simulates a reachable 2xx).
+# Arguments are accepted but ignored — this shim only cares about the
+# fixture-declared exit code.
+
+set -eu
+
+case_dir="${SELFTEST_CASE_DIR:-}"
+
+if [ -n "$case_dir" ] && [ -f "$case_dir/curl-exit" ]; then
+  ec=$(head -n1 "$case_dir/curl-exit" | tr -d '[:space:]')
+  exit "${ec:-0}"
+fi
+
+exit 0

@@ -13,6 +13,7 @@ These hooks are deliberately **shell scripts with zero runtime dependencies** (P
 | [`hooks/manifest-required.sh`](./hooks/manifest-required.sh) | A: phase-gate | `pre-commit` | `PreToolUse` + `matcher: "Bash(git commit*)"` | block (exit 1) |
 | [`hooks/evidence-artifact-exists.sh`](./hooks/evidence-artifact-exists.sh) | B: evidence | `pre-commit` | `PreToolUse` + `matcher: "Bash(git commit*)"` | block (exit 1) |
 | [`hooks/sot-drift-check.sh`](./hooks/sot-drift-check.sh) | C: drift | `post-tool-use:Edit` | `PostToolUse` + `matcher: "Edit\|Write\|MultiEdit"` | warn (exit 2) |
+| [`hooks/consumer-registry-check.sh`](./hooks/consumer-registry-check.sh) | C: drift (network) | `pre-tool-use:Bash("git push*")` | `PreToolUse` + `matcher: "Bash(git push*)"` | warn (exit 2) |
 | [`hooks/completion-audit.sh`](./hooks/completion-audit.sh) | D: completion-audit | `on-stop` | `Stop` (no matcher) | block (exit 1) |
 
 **Why `PreToolUse` and not `PostToolUse` for commit gating:** Claude Code's `PreToolUse` runs *before* the Bash tool invokes `git commit`; exit code 1 cancels the tool call. `PostToolUse` would fire *after* the commit was already written, giving the hook no blocking power. Use `PreToolUse` for any hook whose purpose is to prevent an action.
@@ -67,6 +68,7 @@ Each hook reads these optional env vars to stay contract-compliant when the Clau
 | `AGENT_PROTOCOL_MANIFEST_PATH` | Path to the Change Manifest relative to repo root | auto-discover via `git ls-files change-manifest*.yaml \| head -1` |
 | `AGENT_PROTOCOL_MIN_EVIDENCE_PER_PRIMARY` | Integer — minimum evidence items per primary surface | `1` |
 | `AGENT_PROTOCOL_LEAN_SKIP_MANIFEST` | If set to `1`, `manifest-required.sh` passes when `lean-mode.flag` exists at repo root | unset (manifest always required) |
+| `AGENT_PROTOCOL_NET_TIMEOUT` | Seconds before `consumer-registry-check.sh` declares a registry unreachable (never escalates past `exit 2`) | `5` |
 
 Set these in your shell profile or per-project `.envrc` (direnv) — **not** inside the hooks themselves.
 
