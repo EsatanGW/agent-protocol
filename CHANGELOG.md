@@ -6,6 +6,13 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-04-20
+
+### Fixed
+
+- **`consumer-registry-check` hook yq query** — the recursive-descent filter `.. | .external_registry_url? // empty` uses jq syntax that mikefarah/yq v4 rejects (`lexer: invalid input text "empty"`). The hook swallowed the yq error via `2>/dev/null`, leaving `urls` empty so every invocation silently exited 0 — the `warn-unreachable` selftest fixture never triggered a warning, but the failure was masked because the repo's CI had not yet run the selftest on a machine with yq installed. Replaced with the yq-v4-idiomatic filter `.. | select(has("external_registry_url")) | .external_registry_url`. Pre-existed from 1.3.0; surfaced on the first post-push CI run, which is how CI earns its keep.
+- **`validator-node` test script glob** — the `test` script invoked `node --test 'dist/tests/**/*.test.js'`; the single-quoted pattern is opaque to bash (no expansion) and Node 20's `--test` does not parse glob patterns as paths, so the CI job failed with `Could not find '.../dist/tests/**/*.test.js'`. Replaced with an explicit file path (`node --test dist/tests/rules.test.js`) which Node 20+ handles directly. Pre-existed from 1.7.0 Sprint 4 P6; same "first real CI run exposes it" dynamic as above.
+
 ## [1.7.1] - 2026-04-20
 
 ### Fixed

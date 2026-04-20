@@ -41,6 +41,32 @@ _None._
 
 ## Closed initiatives
 
+## first-ci-run-bug-fixes — fix two pre-existing bugs exposed by first-ever CI run (patch 1.7.2)
+
+- **Opened:** 2026-04-20
+- **Closed:** 2026-04-20
+- **Driver:** The 1.7.1 push was the first time the full validate.yml workflow ever ran against origin/main (26 prior commits across v1.4.0-v1.7.0 were staged locally before being pushed in one batch at v1.7.1). CI immediately surfaced two real, pre-existing bugs that local development missed:
+    1. `reference-implementations/hooks-claude-code/hooks/consumer-registry-check.sh` used jq-syntax `yq -r '.. | .external_registry_url? // empty'` that mikefarah/yq v4 rejects (`lexer: invalid input text "empty"`); the error was swallowed via `2>/dev/null` so `urls` came back empty and the hook always exited 0, never triggering the `warn-unreachable` selftest assertion. Pre-existed from 1.3.0.
+    2. `reference-implementations/validator-node/package.json` test script used a single-quoted glob (`node --test 'dist/tests/**/*.test.js'`); bash does not expand inside single quotes, and Node 20's `--test` does not parse glob patterns itself, so CI failed with `Could not find '.../dist/tests/**/*.test.js'`. Pre-existed from 1.7.0 Sprint 4 P6.
+  Both tests passed locally on my dev box — the hook-selftest fix in 1.7.1 skipped them when yq was absent, and my Node was 25 (not 20 LTS). The bugs are structural, not regressions; CI is doing exactly the job the methodology says it should.
+- **Status:** closed
+- **Target version:** 1.7.2 (patch — two isolated bug fixes, no contract, schema, or API changes)
+- **Mode:** lean (two single-line source edits; no consumer-facing impact)
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P1 | Fix yq recursive-descent filter | `reference-implementations/hooks-claude-code/hooks/consumer-registry-check.sh` — `.. | .external_registry_url? // empty` → `.. | select(has("external_registry_url")) | .external_registry_url` (yq-v4 idiomatic) | `sh selftests/selftest.sh` on a dev box with `yq` installed reports `14 cases, 0 failed`; `warn-unreachable` now emits the expected `[agent-protocol/drift.consumer-registry-stale]` marker and exits 2 | ✅ passed | _(this change)_ | Three manifest fixtures exercise the query: pass-no-consumers (empty), pass-reachable (one URL, curl stub exits 0), warn-unreachable (one URL, curl stub exits 28). Verified `select(has(...))` handles scalar nodes during `..` traversal without error |
+| P2 | Fix validator-node test script | `reference-implementations/validator-node/package.json` — `node --test 'dist/tests/**/*.test.js'` → `node --test dist/tests/rules.test.js` | `npm test` reports `tests 13, pass 13, fail 0`; works on Node 20 LTS (CI) and Node 25 (local) | ✅ passed | _(this change)_ | Explicit path is robust across Node versions; future test files require an explicit add, which is a deliberate cost for not relying on undefined glob semantics |
+| P3 | Release 1.7.2 | version bump across `plugin.json` + `marketplace.json` + README badge + CHANGELOG + CHANGELOG.json regeneration | `sh check-version-consistency.sh` reports `OK: all five declarations agree on 1.7.2`; full self-validation suite passes; CI green on push | ✅ passed | _(this change)_ | Standard patch-release procedure |
+
+### Phase log
+
+- Lean-mode patch: two single-surface fixes for pre-existing bugs CI caught on its first-ever run.
+- Lesson: the repo's evidence-driven methodology requires CI to actually run — and until 1.7.1's push, CI had no commits to run against. The first run is therefore the most valuable: it tells the truth about what was merged "because it passed locally." This is a textbook case for the methodology's own "green locally ≠ green on CI" discipline.
+- Closed 2026-04-20 at commit `(this release)` after all phases passed.
+
+---
+
 ## hook-selftest-yq-skip-polish — skip yq-dependent selftest cases cleanly on local dev (patch 1.7.1)
 
 - **Opened:** 2026-04-20

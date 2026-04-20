@@ -36,7 +36,7 @@ fi
 
 timeout_s="${AGENT_PROTOCOL_NET_TIMEOUT:-5}"
 
-urls=$(yq -r '.. | .external_registry_url? // empty' "$MANIFEST_PATH" 2>/dev/null | grep -v '^$' || true)
+urls=$(yq -r '.. | select(has("external_registry_url")) | .external_registry_url' "$MANIFEST_PATH" 2>/dev/null | grep -v '^$' || true)
 if [ -z "$urls" ]; then
   exit 0
 fi
