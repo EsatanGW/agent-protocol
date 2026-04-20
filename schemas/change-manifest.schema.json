@@ -1471,6 +1471,14 @@
       "type": "string",
       "description": "Free-form human-readable summary for the next operator: what shipped,\nhow to observe it, residual risks, rollback trigger. See docs/operational-disciplines.md.\n"
     },
+    "knowledge_notes_touched": {
+      "type": "array",
+      "description": "Paths of Cross-Change Knowledge Notes (CCKN) created, extended, or\nsuperseded by this change. Optional \u2014 a change that only *references*\nexisting CCKNs (without modifying them) does not fill this field.\nUsed for reverse-lookup: given a CCKN, trace the changes that\ncontributed to it. See docs/cross-change-knowledge.md.\n",
+      "items": {
+        "type": "string",
+        "description": "Repository-relative path to a CCKN markdown file."
+      }
+    },
     "waivers": {
       "type": "array",
       "description": "Explicit exceptions to otherwise-required rules. Each waiver MUST name\na human approver (role != ai) and a rationale. See docs/automation-contract.md.\n",

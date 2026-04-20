@@ -831,6 +831,20 @@ properties:
       Free-form human-readable summary for the next operator: what shipped,
       how to observe it, residual risks, rollback trigger. See docs/operational-disciplines.md.
 
+  # ─── Cross-change knowledge link (docs/cross-change-knowledge.md) ──────
+
+  knowledge_notes_touched:
+    type: array
+    description: |
+      Paths of Cross-Change Knowledge Notes (CCKN) created, extended, or
+      superseded by this change. Optional — a change that only *references*
+      existing CCKNs (without modifying them) does not fill this field.
+      Used for reverse-lookup: given a CCKN, trace the changes that
+      contributed to it. See docs/cross-change-knowledge.md.
+    items:
+      type: string
+      description: "Repository-relative path to a CCKN markdown file."
+
   # ─── Waiver protocol (docs/automation-contract.md §waiver) ─────────────
 
   waivers:

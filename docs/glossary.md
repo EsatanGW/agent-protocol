@@ -102,6 +102,10 @@ The core deliverable of Phase 3. Each acceptance criterion maps to a concrete ve
 
 The core deliverable of Phase 7. The narrative version of delivery: what was done, how it was verified, what residual risk remains, what is handed to whom next.
 
+### Cross-Change Knowledge Note (CCKN)
+
+A single-file artifact recording **reusable knowledge that spans multiple changes** — library gotchas, third-party API quirks, platform-specific behavior, domain rules discovered once and referenced repeatedly. Distinct from the Change Manifest (per-change) and from the temporal memory tiers in `ai-project-memory.md` (session / project / organizational, which describe lifespan not topic). Every CCKN carries a `topics` index, a `scope` tag (library / domain-rule / external-api / platform-quirk), a verified-references section with dates, and a changelog tracking which change_ids extended it. Full definition: `docs/cross-change-knowledge.md`. Referenced from the Change Manifest via the optional `knowledge_notes_touched` field.
+
 ---
 
 ## Classification terms

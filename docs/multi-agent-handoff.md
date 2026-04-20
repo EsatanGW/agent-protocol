@@ -233,6 +233,50 @@ Violation of this rule during Full-mode changes is a Tier-2 escalation per the C
 
 ---
 
+## Optional machine-readable pre-filter
+
+Some teams want a cheap mechanical check between the Implementer's handoff and the Reviewer's audit — not to *replace* the Reviewer, but to catch structural incompleteness before a human or high-cost reviewer spends time on it. This section defines that optional layer and the hard limits that keep it from drifting into the Reviewer's role.
+
+### What it is
+
+A pre-filter is a sub-agent invocation with capabilities limited to **file read** and **code search** (and optionally **network fetch** for external-reference checks). It runs after `phase: review` is set and before a Reviewer is summoned. Its job is **binary structural verification** — a list of "present / absent" and "resolves / does not resolve" answers.
+
+Typical checks a pre-filter performs:
+
+- Every acceptance criterion in the Task Prompt has a matching `evidence_plan` entry.
+- Every `evidence_plan.artifacts[*].artifact_location` resolves to a real file or URL.
+- Every identifier cited in `implementation_notes` resolves via code search to an existing `path:line`.
+- The five questions of the Implementer's pre-handoff self-check (`agents/implementer.md`) have documented answers, not placeholders.
+- Declared `surfaces_touched` is consistent with files actually changed in the diff.
+
+### Hard limits
+
+Four rules keep the pre-filter from collapsing into a Reviewer:
+
+1. **Pre-filter is not Reviewer.** A passing pre-filter proves only that the manifest is **structurally complete** — every required field is filled, every path resolves. It does *not* prove the field contents are correct. A Reviewer must still audit.
+2. **Pre-filter cannot replace Reviewer.** A Reviewer who writes "pre-filter passed, approving" in their `review_notes` has triggered Anti-Rationalization Rule 4 (read-only review without personal verification, `agents/reviewer.md`). The pre-filter's output is an input to the Reviewer's audit, not its output.
+3. **Pre-filter outputs binary findings only.** Present / absent, resolves / does not resolve, matches / does not match. A pre-filter that emits a score, a grade, or a subjective quality judgment has exceeded its scope and must be treated as an untrusted input — subjective evaluation is the Reviewer's role.
+4. **Pre-filter is disabled in Zero-ceremony and Lean modes.** Adding a pre-filter to a trivial change increases ceremony without reducing risk. Pre-filter is a Full-mode option only.
+
+### Anti-collusion for pre-filter
+
+The pre-filter sub-agent's identity must differ from all three canonical roles (`Planner / Implementer / Reviewer`) in the same change. A pre-filter that shares identity with the Implementer it is checking collapses back into self-review. The anti-collusion rule above extends to the pre-filter without modification.
+
+### When to adopt
+
+A team should consider a pre-filter only if both conditions hold:
+
+- The team is consistently in **Full mode** for most changes (Lean-mode-dominant teams gain nothing).
+- Reviewer capacity is a bottleneck, not evidence quality (if evidence quality is the bottleneck, the fix is to tighten the Implementer's pre-handoff self-check, not to add another layer).
+
+A pre-filter adopted for the wrong reason becomes another mechanical box to tick and drifts the team toward ceremony. The Reviewer's anti-rationalization rules exist precisely because mechanical checks cannot substitute for audit; the pre-filter adds **prefix** to that audit, not **replacement**.
+
+### Relation to hooks and validators
+
+The runtime-hook contract (`docs/runtime-hook-contract.md`) and the automation contract (`docs/automation-contract.md`) already provide machine-readable structural checks that run **before** the Implementer advances `phase: review`. A pre-filter invocation is a *separate* check that runs **after** the handoff — its purpose is to confirm the Implementer did not forget the things the pre-handoff hooks were supposed to catch. If a team's hooks are comprehensive and disciplined, the pre-filter is redundant; the option exists for teams whose hook coverage is incomplete.
+
+---
+
 ## Manifest progression phases
 
 A manifest moves from birth to delivery through the following stages, each with a **minimum field threshold**:

@@ -291,6 +291,18 @@ Before delivering, the AI must run this against itself:
 
 Any "yes" or "unsure" → **not allowed to deliver**. Go back and patch, or escalate.
 
+### Machine-readable pre-filter (adjacent, not substitute)
+
+Some deployments insert a machine-readable pre-filter between the Implementer's handoff and the Reviewer's audit (see `docs/multi-agent-handoff.md` §Optional machine-readable pre-filter). A pre-filter runs binary structural checks — does every `artifact_location` resolve, does every cited identifier exist — and produces present/absent findings, not subjective judgments.
+
+The pre-filter is **adjacent to this self-check, not a replacement**:
+
+- The self-check above is the AI co-author's own honesty audit; it applies whether or not a pre-filter exists.
+- A pre-filter passing does not satisfy the self-check. An AI that answers the six questions with "the pre-filter approved" has rationalized a failure (question 6) — the pre-filter can verify that paths resolve, but it cannot verify that the paths point at the *right* artifact.
+- A pre-filter failing does not bypass the self-check either — the AI must still trace the failure to one of the six questions and address the root cause, not just re-run the pre-filter until it passes.
+
+Pre-filter is a Full-mode option; in Zero-ceremony / Lean mode the self-check above is the complete audit surface on the AI side.
+
 ---
 
 ## Interface with human collaborators

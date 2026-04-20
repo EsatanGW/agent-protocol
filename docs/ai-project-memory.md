@@ -86,6 +86,23 @@ AI memory splits into three tiers, differing in origin, lifespan, and intended u
 
 ---
 
+## Adjacent artifact: Cross-Change Knowledge Notes
+
+The three tiers above classify memory by **lifespan** (session / project-lifetime / organizational). A separate artifact classifies knowledge by **topic**: a Cross-Change Knowledge Note (CCKN) records a fact that applies to many changes within a project — library gotchas, third-party API quirks, platform-specific behavior — and is referenced by any Change Manifest that needs it.
+
+CCKNs sit adjacent to Tier 2 (project memory) but are not the same thing:
+
+| Dimension | Tier 2 project memory | CCKN |
+|---|---|---|
+| Organizing axis | Temporal (when was this decided / observed) | Topical (what library / API / domain does this describe) |
+| Granularity | Per-change-manifest history | Per-topic note, reusable across many manifests |
+| Retrieval | "What did we decide for change X six months ago?" | "What do we know about library Y right now?" |
+| Staleness model | Historical — old manifests stay as they were | Live — references older than 12 months must be re-verified |
+
+A Tier 2 manifest *references* a CCKN when the CCKN contains the reusable knowledge the manifest needs; the CCKN does not replace the manifest's own `sot_map` or `implementation_notes`. Full definition and worked example: [`docs/cross-change-knowledge.md`](cross-change-knowledge.md).
+
+---
+
 ## What is memory-worthy
 
 Not everything needs to be remembered. The AI should retain:
