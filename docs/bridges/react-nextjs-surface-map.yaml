@@ -1,0 +1,250 @@
+schema_version: 1
+stack: react-nextjs
+bridge_doc: docs/bridges/react-nextjs-stack-bridge.md
+
+canonical_surfaces:
+
+  user:
+    patterns:
+      - "app/**/page.tsx"
+      - "app/**/page.jsx"
+      - "app/**/layout.tsx"
+      - "app/**/layout.jsx"
+      - "app/**/template.tsx"
+      - "app/**/loading.tsx"
+      - "app/**/error.tsx"
+      - "app/**/global-error.tsx"
+      - "app/**/not-found.tsx"
+      - "app/**/default.tsx"
+      - "app/**/opengraph-image.*"
+      - "app/**/icon.*"
+      - "app/**/apple-icon.*"
+      - "app/**/favicon.*"
+      - "app/**/manifest.*"
+      - "app/**/sitemap.ts"
+      - "app/**/robots.ts"
+      - "components/**"
+      - "src/components/**"
+      - "src/app/**/page.tsx"
+      - "src/app/**/layout.tsx"
+      - "src/app/**/error.tsx"
+      - "src/app/**/loading.tsx"
+      - "src/app/**/not-found.tsx"
+      - "src/app/**/template.tsx"
+      - "**/*.module.css"
+      - "**/*.module.scss"
+      - "**/globals.css"
+      - "**/tailwind.config.*"
+      - "**/postcss.config.*"
+      - "messages/**"
+      - "locales/**"
+      - "public/**"
+      - "stories/**"
+      - "**/*.stories.tsx"
+      - "**/*.test.tsx"
+      - "**/*.spec.tsx"
+      - "e2e/**"
+      - "tests/e2e/**"
+      - "playwright.config.*"
+      - "cypress/**"
+      - "cypress.config.*"
+    notes: |
+      App Router user-facing tree plus components directory, styling, copy,
+      static public assets, and front-end test harnesses. Special files
+      (loading / error / not-found / default / opengraph-image / icon /
+      manifest / sitemap / robots) live here because they are part of the
+      user-visible contract. Storybook stories are included but are editor
+      aids, not verification artifacts on their own.
+
+  system_interface:
+    patterns:
+      - "app/**/route.ts"
+      - "app/**/route.js"
+      - "app/api/**"
+      - "src/app/**/route.ts"
+      - "src/app/api/**"
+      - "middleware.ts"
+      - "middleware.js"
+      - "src/middleware.ts"
+      - "instrumentation.ts"
+      - "instrumentation.js"
+      - "src/instrumentation.ts"
+      - "instrumentation-client.ts"
+      - "**/actions/**"
+      - "**/*.actions.ts"
+      - "**/server-actions/**"
+      - "lib/auth/**"
+      - "src/lib/auth/**"
+      - "auth.ts"
+      - "auth.config.ts"
+      - "lib/api/**"
+      - "src/lib/api/**"
+      - "lib/fetch/**"
+      - "lib/http/**"
+      - "lib/webhooks/**"
+      - "lib/integrations/**"
+      - "lib/clients/**"
+      - "**/edge-config.ts"
+      - "**/feature-flags.ts"
+    notes: |
+      Everything that crosses the process boundary: route handlers, API
+      routes, middleware, Server Actions ("use server" modules), auth
+      wiring, third-party SDK clients, webhook receivers, and Next.js
+      instrumentation entry points. Server Actions are system-interface
+      even when colocated with components — the directive is the boundary.
+
+  information:
+    patterns:
+      - "prisma/schema.prisma"
+      - "prisma/migrations/**"
+      - "prisma/seed.*"
+      - "drizzle/**"
+      - "drizzle.config.*"
+      - "db/schema/**"
+      - "db/migrations/**"
+      - "migrations/**/*.sql"
+      - "lib/db/**"
+      - "src/lib/db/**"
+      - "lib/schemas/**"
+      - "lib/validators/**"
+      - "src/lib/validators/**"
+      - "**/*.schema.ts"
+      - "**/zod/**"
+      - "types/**"
+      - "src/types/**"
+      - "**/*.types.ts"
+      - "**/*.model.ts"
+      - "**/models/**"
+      - "content/**"
+      - "data/**"
+      - "config/**"
+      - "**/feature-flags/*.json"
+    notes: |
+      Persistent data definitions, schemas, migrations, derived TS types,
+      and content / config that carries domain data. Prisma and Drizzle
+      schema files are the canonical upstream SoT; generated types belong
+      next to them. Zod / Valibot validators are information-surface
+      because they define the shape of transit data, even when imported
+      from route handlers.
+
+  operational:
+    patterns:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "yarn.lock"
+      - "package-lock.json"
+      - "bun.lockb"
+      - ".npmrc"
+      - ".nvmrc"
+      - ".node-version"
+      - "tsconfig.json"
+      - "tsconfig.*.json"
+      - "next.config.js"
+      - "next.config.mjs"
+      - "next.config.ts"
+      - "next-env.d.ts"
+      - ".eslintrc*"
+      - "eslint.config.*"
+      - ".prettierrc*"
+      - "prettier.config.*"
+      - "vitest.config.*"
+      - "jest.config.*"
+      - "vercel.json"
+      - "Dockerfile"
+      - "docker-compose*.yml"
+      - ".github/workflows/**"
+      - ".gitlab-ci.yml"
+      - "turbo.json"
+      - "nx.json"
+      - "pnpm-workspace.yaml"
+      - "sentry.*.config.*"
+      - "scripts/**"
+      - "CHANGELOG.md"
+      - "ROADMAP.md"
+    notes: |
+      Build tooling, dep pins, toolchain pins, linter/formatter/test runner
+      configs, framework config (next.config.*), deploy manifests, CI
+      definitions, monorepo orchestration, and error-reporting wiring.
+      Note that next.config.* also shapes runtime behavior (redirects,
+      headers, rewrites) — treat it as operational because the change
+      site is build/deploy, but review the downstream surface it affects.
+
+stack_extensions:
+
+  asset_surface:
+    patterns:
+      - "public/**/*.png"
+      - "public/**/*.jpg"
+      - "public/**/*.jpeg"
+      - "public/**/*.webp"
+      - "public/**/*.avif"
+      - "public/**/*.svg"
+      - "public/**/*.gif"
+      - "public/**/*.ico"
+      - "public/**/*.mp4"
+      - "public/**/*.webm"
+      - "public/fonts/**"
+      - "**/fonts/**/*.woff"
+      - "**/fonts/**/*.woff2"
+      - "**/fonts/**/*.ttf"
+    notes: |
+      Static assets served from the public directory and self-hosted fonts.
+      Next.js Image optimization means raw assets and served assets may
+      differ in size/format; both paths are asset-surface.
+
+  compliance_surface:
+    patterns:
+      - "PRIVACY.md"
+      - "privacy-policy.*"
+      - "TERMS.md"
+      - "terms-of-service.*"
+      - "app/**/privacy/**"
+      - "app/**/terms/**"
+      - "public/robots.txt"
+      - "app/**/robots.ts"
+      - "app/**/sitemap.ts"
+      - "**/cookie-consent/**"
+      - "**/gdpr/**"
+      - "next.config.*"
+      - "vercel.json"
+      - ".well-known/**"
+      - "public/.well-known/**"
+    notes: |
+      User-facing legal pages, consent flows, robots/sitemap directives,
+      and `.well-known` resources. `next.config.*` and `vercel.json` are
+      listed again here because their `headers` / `redirects` blocks are
+      where CSP, HSTS, and regulatory-jurisdiction routing live — those
+      are compliance-surface even though the file itself is operational.
+
+  performance_budget_surface:
+    patterns:
+      - "lighthouserc.*"
+      - ".lighthouseci/**"
+      - "perf/**"
+      - "bench/**"
+      - "**/*.bench.ts"
+      - ".github/workflows/*lighthouse*"
+      - ".github/workflows/*perf*"
+      - "**/bundle-analyzer*"
+    notes: |
+      LCP / INP / CLS budgets, bundle-size budgets, and the CI gates that
+      enforce them. Next.js has strong performance defaults, so most
+      regressions come from Client Component promotion or accidental
+      dynamic imports — the budget surface is where that is caught.
+
+  uncontrolled_external_surface:
+    patterns:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "yarn.lock"
+      - "package-lock.json"
+      - ".nvmrc"
+      - "vercel.json"
+      - "next.config.*"
+    notes: |
+      Pointer-only: these same files also appear in operational. They are
+      listed here to flag that their effective behavior is governed by
+      upstream npm releases, Node runtime changes, Vercel platform
+      changes, and framework-level behavior shifts that no one on the
+      team controls — changes should trigger an explicit
+      uncontrolled-external review per docs/surfaces.md.
