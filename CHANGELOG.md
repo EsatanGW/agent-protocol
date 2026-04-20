@@ -38,7 +38,7 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ### Changed
 
-- `README.md`, `AGENTS.md`, and `docs/onboarding/english-quick-start.md` bridge indexes updated to include the Compose bridge.
+- `README.md`, `AGENTS.md`, and `docs/onboarding/orientation.md` bridge indexes updated to include the Compose bridge.
 - `AGENTS.md` worked-examples index updated to include the four new per-stack examples.
 - `docs/stack-bridge-template.md` TL;DR bridge list updated to include the Compose bridge.
 - Each of the four base bridges' "Known limitations" lists rewritten to reflect only residual items after the deduction-closure sections — prior entries that are now covered in-bridge (Flutter web/desktop/federated/code-push/state-mgmt; Android KMM/PFD/instrumented-test API gap; Ktor multi-tenant/sharding/gRPC/hexagonal/Loom; Unity DOTS/ECS/render-pipelines/custom-engine-fork) have been removed or retargeted to narrower residual scopes.
@@ -66,7 +66,7 @@ Initial public release. Tool-agnostic engineering workflow plugin for AI coding 
 
 ### Design invariants
 
-- **English-only.** All normative content — methodology, skills, schemas, templates, operating contract, READMEs — is English. No mixed-language documents; no translation companions.
+- **English-only.** All normative content — methodology, skills, schemas, templates, operating contract, READMEs — is authored in English.
 - **Tool-agnostic.** Specific vendor, model, framework, or product names appear only in `docs/bridges/` and `reference-implementations/`, both of which are explicitly marked non-normative. Methodology docs, the skill layer, the schema, and the Change Manifest templates remain stack-neutral.
 - **Capability categories, not tool names.** Every operational instruction names a category (file read, file write, code search, shell execution, sub-agent delegation) rather than a specific tool, so the plugin ports cleanly between AI runtimes.
 - **Canonical terminology held fixed.** Severity L0–L4 (Additive / Behavioral / Structural / Removal / Semantic-reversal), rollback modes 1/2/3 (Reversible / Forward-fix / Compensation-only), four canonical surfaces plus extension surfaces, SoT patterns addressed by number, automation tiers L0–L3, three multi-agent roles by responsibility (Planner / Implementer / Reviewer).

@@ -172,7 +172,7 @@ _(none active)_
 ## bridge-deduction-closure — close self-declared bridge deductions across all four base stacks
 
 - **Opened:** 2026-04-19
-- **Driver:** User-initiated follow-up after scoring each bridge against the repo's own specs; user explicit instruction "請幫我完善這四項" (close all four bridges' deduction items, including items previously marked "keep as known limitation").
+- **Driver:** User-initiated follow-up after scoring each bridge against the repo's own specs; user explicit instruction to close all four bridges' deduction items, including items previously marked "keep as known limitation".
 - **Status:** closed
 - **Target version:** 1.1.0 (same minor as per-stack-examples-and-compose-bridge, bundled for release)
 - **Phases:** table below
@@ -208,7 +208,7 @@ _(none active)_
 |---|---|---|---|---|---|---|
 | P0 | Clarify which bridge gaps are worth filling vs. leaving as project-local addenda | Recommendation in conversation + scope agreed with user | User agreement on items 1 (worked examples) and 2 (Compose bridge); DOTS/ECS, Flutter web/desktop-as-new-bridge, KMM, Ktor hexagonal explicitly deferred | ✅ passed | _(pre-commit)_ | Deferred items remain project-local per each bridge's own known-limitations guidance |
 | P1 | Draft four worked examples + Compose bridge; flesh out the outlines that the XML and Ktor bridges already had as "future update" placeholders | `docs/examples/{flutter-app,android-kotlin,ktor-server,unity-game}-example.md`, `docs/bridges/android-compose-stack-bridge.md` | Each example's structure and length sit within the `docs/examples/` corpus baseline (137–313 lines); Compose bridge structure mirrors `android-kotlin-stack-bridge.md` and uses cross-references instead of duplication | ✅ passed | _(this change)_ | Compose bridge explicitly inherits XML bridge sections rather than duplicating them |
-| P2 | Wire new files into consumers: bridge Reference Worked Example sections, README bridges list, AGENTS.md bridges + examples lists, `english-quick-start.md` bridges list, stack-bridge-template TL;DR, CHANGELOG entry | Edits to README.md, AGENTS.md, docs/onboarding/english-quick-start.md, docs/stack-bridge-template.md, CHANGELOG.md, all four bridge files | Bridge lists consistent across README, AGENTS.md, onboarding, and template TL;DR; no orphan "future update" placeholders remain in bridges | ✅ passed | _(this change)_ | Cross-cutting-term discipline applied per CLAUDE.md §5 |
+| P2 | Wire new files into consumers: bridge Reference Worked Example sections, README bridges list, AGENTS.md bridges + examples lists, `orientation.md` bridges list, stack-bridge-template TL;DR, CHANGELOG entry | Edits to README.md, AGENTS.md, docs/onboarding/orientation.md, docs/stack-bridge-template.md, CHANGELOG.md, all four bridge files | Bridge lists consistent across README, AGENTS.md, onboarding, and template TL;DR; no orphan "future update" placeholders remain in bridges | ✅ passed | _(this change)_ | Cross-cutting-term discipline applied per CLAUDE.md §5 |
 
 ### Phase log
 

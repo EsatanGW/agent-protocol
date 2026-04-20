@@ -1,6 +1,8 @@
-# English Quick Start
+# Orientation
 
-> Most of `docs/` is written in Chinese. This is a minimum English entry point so an English-speaking contributor or AI runtime can navigate the methodology without reading Chinese first. For the full depth, a human-translated version of each doc is planned; until then, use this page plus `AGENTS.md` (already in English) as your operating contract.
+A single-page orientation to the methodology. Read this before diving into
+any other document in `docs/`. It gives enough structure that the rest of
+the repository reads as reinforcement rather than first exposure.
 
 ---
 
@@ -23,10 +25,10 @@
 ## Navigation map
 
 **You must read:**
-- `AGENTS.md` — universal operating contract (English)
-- `docs/surfaces.md` — four-surface model (Chinese; key terms are cognates, headings are navigable)
-- `docs/glossary.md` — term definitions (Chinese)
-- `docs/ai-operating-contract.md` — AI co-author behavior (Chinese)
+- `AGENTS.md` — universal operating contract
+- `docs/surfaces.md` — four-surface model
+- `docs/glossary.md` — term definitions
+- `docs/ai-operating-contract.md` — AI co-author behavior
 
 **You should read when you hit that situation:**
 - `docs/source-of-truth-patterns.md` — 10 SoT patterns
@@ -159,46 +161,46 @@ A new status value `pending_review` must be introduced; the existing `active` va
 
 ---
 
-## Full English file index
+## Full file index
 
 Canonical doc list, ordered by when you'll typically read it.
 
 ### Entry + philosophy (read first)
 
-- `docs/product-engineering-operating-system.md` — the six preamble principles. *English TL;DR.*
-- `docs/system-change-perspective.md` — why surface-first, not layer-first. *English TL;DR.*
-- `docs/surfaces.md` — canonical four-surface model + extensions (full English, canonical).
+- `docs/product-engineering-operating-system.md` — the six preamble principles.
+- `docs/system-change-perspective.md` — why surface-first, not layer-first.
+- `docs/surfaces.md` — canonical four-surface model + extensions.
 
 ### Core methodology (read when you hit the situation)
 
-- `docs/source-of-truth-patterns.md` — 10 SoT patterns. *English TL;DR.*
-- `docs/breaking-change-framework.md` — L0-L4 severity matrix + consumer classification. *English TL;DR.*
-- `docs/rollback-asymmetry.md` — modes 1 / 2 / 3. *English TL;DR.*
-- `docs/cross-cutting-concerns.md` — six concerns applied per-surface. *English TL;DR.*
+- `docs/source-of-truth-patterns.md` — 10 SoT patterns.
+- `docs/breaking-change-framework.md` — L0-L4 severity matrix + consumer classification.
+- `docs/rollback-asymmetry.md` — modes 1 / 2 / 3.
+- `docs/cross-cutting-concerns.md` — six concerns applied per-surface.
 
 ### Per-surface disciplines
 
-- `docs/user-surface-disciplines.md` — user-surface checklist. *English TL;DR.*
-- `docs/implementation-disciplines.md` — implementation checkpoints. *English TL;DR.*
-- `docs/operational-disciplines.md` — operational-surface checklist. *English TL;DR.*
-- `docs/playtest-discipline.md` — experience-surface verification (for game/consumer apps). *English TL;DR.*
+- `docs/user-surface-disciplines.md` — user-surface checklist.
+- `docs/implementation-disciplines.md` — implementation checkpoints.
+- `docs/operational-disciplines.md` — operational-surface checklist.
+- `docs/playtest-discipline.md` — experience-surface verification (for game/consumer apps).
 
 ### Process + coordination
 
-- `docs/concurrent-changes.md` — multiple overlapping tickets. *English TL;DR.*
-- `docs/adoption-strategy.md` — phased team rollout. *English TL;DR.*
-- `docs/post-delivery-observation.md` — Phase 8. *English TL;DR.*
-- `docs/ci-cd-integration-hooks.md` — hook-point spec. *English TL;DR.*
+- `docs/concurrent-changes.md` — multiple overlapping tickets.
+- `docs/adoption-strategy.md` — phased team rollout.
+- `docs/post-delivery-observation.md` — Phase 8.
+- `docs/ci-cd-integration-hooks.md` — hook-point spec.
 
 ### Contract + automation
 
-- `docs/change-manifest-spec.md` — machine-readable output contract. *English TL;DR.*
-- `docs/automation-contract-algorithm.md` — normative validator algorithm (English-native).
-- `reference-implementations/` — non-normative example validators (English-native).
+- `docs/change-manifest-spec.md` — machine-readable output contract.
+- `docs/automation-contract-algorithm.md` — normative validator algorithm.
+- `reference-implementations/` — non-normative example validators.
 
 ### Stack bridges (pick one for your stack)
 
-- `docs/stack-bridge-template.md` — template for new bridges. *English TL;DR.*
+- `docs/stack-bridge-template.md` — template for new bridges.
 - `docs/bridges/flutter-stack-bridge.md`
 - `docs/bridges/android-kotlin-stack-bridge.md`
 - `docs/bridges/android-compose-stack-bridge.md`
@@ -207,11 +209,11 @@ Canonical doc list, ordered by when you'll typically read it.
 
 ### Visual + reference
 
-- `docs/diagrams.md` — Mermaid visualizations. *English TL;DR.*
+- `docs/diagrams.md` — Mermaid visualizations.
 - `docs/glossary.md` — term definitions.
 
 ---
 
-## Status of English coverage
+## Language policy
 
-All normative content in this repository — operating contracts (`AGENTS.md`, automation algorithm, reference implementations), methodology documents (every `docs/*.md` page), the engineering-workflow skill, schemas, Change Manifest templates, and the stack bridges — is **English-only**. There are no translation companions and no mixed-language documents. Any CJK in normative files is treated as a release-gate failure by the full-repo scan encoded in `docs/phase-gate-discipline.md`.
+All normative content in this repository — the operating contract (`AGENTS.md`), the automation algorithm, reference implementations, methodology documents (every `docs/*.md` page), the engineering-workflow skill, schemas, Change Manifest templates, and the stack bridges — is authored in English. New contributions MUST be English.

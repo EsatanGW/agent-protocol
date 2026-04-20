@@ -25,7 +25,7 @@ This file answers those four.
 
 A phase is not closed by declaration. It is closed by a **gate check** that either **passes** or **fails**. A passing gate has three properties:
 
-- The check is a **named, repeatable action**, not a feeling. Examples: "`grep -P '\p{Han}'` over the batch returns zero lines," "the test file referenced in the Change Manifest exists and the runner reports pass," "the reviewer named in the manifest left an `approvals[*]` entry with `approver_role: human`." If the agent cannot name the check, the gate has not been defined yet.
+- The check is a **named, repeatable action**, not a feeling. Examples: "the JSON-Schema validation command returns zero blocking findings," "the test file referenced in the Change Manifest exists and the runner reports pass," "the reviewer named in the manifest left an `approvals[*]` entry with `approver_role: human`." If the agent cannot name the check, the gate has not been defined yet.
 - The check produces an **artifact**: a log line, a test-runner output, a screenshot, an approval entry in the manifest, a metric snapshot. The artifact's location is recorded in the ROADMAP row.
 - The check is **tied to the phase's declared exit criteria**, not invented after the fact. If the phase's exit criteria were not stated at phase start, the gate cannot be honestly evaluated.
 
@@ -48,7 +48,7 @@ The ROADMAP is **not** the Change Manifest. A Change Manifest describes one chan
 
 If the execution environment has version control available:
 
-- Every **passed** phase gate produces a commit. The commit message references the ROADMAP phase (e.g. `docs(i18n): P3 passed — core methodology translated`).
+- Every **passed** phase gate produces a commit. The commit message references the ROADMAP phase (e.g. `docs(migration): P3 passed — enum consumer migration complete`).
 - The commit's SHA is written back into the ROADMAP row before the next phase starts.
 - Failed gates do **not** produce a commit. Fix first; commit the fix; then re-run the gate; commit again only on pass.
 - Pre-commit hooks and signing are **not** bypassed at gates. If a hook refuses the commit, that is itself a gate failure — fix the underlying issue.
@@ -86,9 +86,9 @@ Every phase declares, at phase start, the following. These go into the ROADMAP r
 | Field | Content | Example |
 |---|---|---|
 | **Entry criteria** | What must be true to enter this phase | "Phase 0 has passed gate; initiative has a ROADMAP entry" |
-| **Scope** | What this phase changes, in files / artifacts / surfaces | "Translate files A, B, C to English; delete Chinese originals" |
-| **Exit criteria** | The conditions that define a passing gate | "`grep -P '\p{Han}' A B C` returns zero; A/B/C compile if executable; reader can navigate without Chinese" |
-| **Verification command** | The exact check that will be run at gate time | "`grep -P '\p{Han}' A B C \| wc -l`" |
+| **Scope** | What this phase changes, in files / artifacts / surfaces | "Split `OrderStatus` enum into `OrderStatus` + `OrderReviewState`; update three consumers; add contract tests" |
+| **Exit criteria** | The conditions that define a passing gate | "All three consumers build green; contract-test suite passes for both old and new enum closure; no uncovered surface in the manifest" |
+| **Verification command** | The exact check that will be run at gate time | "`make contract-test && make build-consumers`" |
 | **Evidence artifact** | Where the check's output is stored | "ROADMAP row `Notes` field; commit message body" |
 | **Commit reference** | Where the commit SHA will be recorded on pass | "Same ROADMAP row, `Commit` column" |
 

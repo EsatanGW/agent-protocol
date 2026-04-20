@@ -115,7 +115,7 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 
 **Methodology (why and what):**
 
-1. `docs/onboarding/english-quick-start.md` — 5-minute orientation
+1. `docs/onboarding/orientation.md` — 5-minute orientation
 2. `docs/phase-gate-discipline.md` — the per-phase verification, ROADMAP, commit-at-gate, and spec-review-before-plan contract
 3. `docs/principles.md` — first principles (11 rules with derivations)
 4. `docs/surfaces.md` — canonical surface definitions

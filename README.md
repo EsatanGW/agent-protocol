@@ -9,7 +9,7 @@
 A **tool-agnostic engineering workflow plugin** for AI coding agents.
 **Not bound to any language, framework, runtime, AI agent, model, or cloud.**
 
-> **Language policy.** All normative content — methodology docs, skills, schemas, templates, operating contract — is English-only. New contributions MUST be English; any CJK in normative files is treated as a release-gate failure by the full-repo scan encoded in `docs/phase-gate-discipline.md`.
+> **Language policy.** All normative content — methodology docs, skills, schemas, templates, operating contract — is authored in English. New contributions MUST be English.
 
 Install once; it works across Claude Code, Cursor, Gemini CLI, Windsurf, Codex, Aider, OpenCode, or any agent that reads `AGENTS.md`.
 
@@ -143,7 +143,7 @@ agent-protocol/
 │   ├── phase-gate-discipline.md  # Per-phase gate + ROADMAP contract
 │   ├── adoption-strategy.md
 │   ├── glossary.md
-│   ├── onboarding/             # Fast-path docs (incl. english-quick-start.md)
+│   ├── onboarding/             # Fast-path docs (incl. orientation.md)
 │   ├── bridges/                # Stack-specific bridges (ONLY place with tool names)
 │   │   ├── flutter-stack-bridge.md
 │   │   ├── android-kotlin-stack-bridge.md
@@ -219,7 +219,7 @@ Full definitions and extensions: [`docs/surfaces.md`](./docs/surfaces.md).
 
 ### Quick start (5 min)
 
-1. [`docs/onboarding/english-quick-start.md`](./docs/onboarding/english-quick-start.md)
+1. [`docs/onboarding/orientation.md`](./docs/onboarding/orientation.md)
 2. [`docs/phase-gate-discipline.md`](./docs/phase-gate-discipline.md) — per-phase gate + ROADMAP contract
 3. [`docs/onboarding/quick-start.md`](./docs/onboarding/quick-start.md)
 
