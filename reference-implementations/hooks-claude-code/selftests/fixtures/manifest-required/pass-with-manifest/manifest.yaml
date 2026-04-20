@@ -1,0 +1,9 @@
+change_id: CHG-0001
+title: Example change
+phase: execute
+surfaces_touched: [system_interface]
+sot_map: []
+evidence_plan: []
+rollback:
+  mode: 2
+  notes: redeploy previous revision

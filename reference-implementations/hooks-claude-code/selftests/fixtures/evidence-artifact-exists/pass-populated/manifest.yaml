@@ -1,0 +1,15 @@
+change_id: CHG-0002
+title: Example change
+phase: execute
+surfaces_touched: [information]
+sot_map: []
+evidence_plan:
+  - requirement: integration test run
+    status: collected
+    artifact_location: evidence.txt
+  - requirement: remote artifact
+    status: collected
+    artifact_location: https://example.test/evidence/build-42.log
+rollback:
+  mode: 2
+  notes: redeploy previous revision

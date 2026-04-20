@@ -9,6 +9,7 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 ### Added
 
 - **Per-bridge surface-map artifacts** — `docs/bridges/flutter-surface-map.yaml`, `docs/bridges/android-kotlin-surface-map.yaml`, `docs/bridges/android-compose-surface-map.yaml`, `docs/bridges/ktor-surface-map.yaml`, `docs/bridges/unity-surface-map.yaml` publish each bridge's mapping from the four canonical surfaces (plus stack extensions such as asset / performance-budget / compliance / experience / data-quality) to machine-consumable file-path globs. The new `schemas/surface-map.schema.yaml` (JSON Schema 2020-12) validates the shape; the artifacts unblock validator rule 3.2 (surface ↔ file-pattern drift) in `docs/automation-contract-algorithm.md`.
+- **Hook bundle self-test harness** — `reference-implementations/hooks-claude-code/selftests/` ships a hermetic, framework-free fixture runner (`selftest.sh`, `run-case.sh`, a `git` stub, and eleven fixtures covering all four category-A / B / C / D hooks). The harness PATH-shims `git`, `cd`s into each case directory, and matches against a minimal `expected` grammar (`exit=`, `stderr~=`, `stdout~=`). Closes the `DEVIATIONS.md §1` gap; CI jobs that enable these hooks in `block` mode should now run the selftest on every PR that touches `hooks/` or `selftests/`.
 ### Changed
 
 - **Orientation entry point clarified** — `docs/onboarding/orientation.md` is the canonical single-page onboarding doc; README, AGENTS.md, CHANGELOG, and ROADMAP references updated to match. Five-rules + navigation + walkthrough content unchanged.

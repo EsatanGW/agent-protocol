@@ -1,0 +1,5 @@
+exit=1
+stderr~=completion.evidence-complete
+stderr~=completion.unaccepted-risk
+stderr~=completion.unresolved-escalation
+stderr~=completion.observe-needs-narrative
