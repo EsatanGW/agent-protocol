@@ -352,6 +352,8 @@ If any item fails, record the gap in a project-local `docs/bridges-local-deviati
 - **Mobile-first framing remains in subtle places.** `user surface` tables above assume a touch-first interaction model; keyboard / pointer / large-screen layouts on desktop & Web tablet need extra care in project-local UX guidelines beyond what this bridge prescribes.
 - **Linux distribution fragmentation.** The Desktop section names the major package managers but does not enumerate per-distro quirks (libc version spread, desktop-environment IME behavior) — add a project-local deviations entry if you ship broad Linux support.
 
+For the project-local overlay pattern (Flame, code-push provider specifics, state-management library internals, etc.), see [`../bridges-local-deviations-template.md`](../bridges-local-deviations-template.md) and the end-to-end walk-through in [`../bridges-local-deviations-howto.md`](../bridges-local-deviations-howto.md).
+
 ---
 
 ## What this bridge does NOT override

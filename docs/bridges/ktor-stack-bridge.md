@@ -534,6 +534,8 @@ Ktor's version catalog and lock file describe *what* is pinned; `cross_cutting.b
 - **Specific reactive frameworks** — the virtual-threads / alternative-concurrency overlay flags the *shape* of the substitution (cancellation, context propagation, pinning). Concrete Reactor / RxJava / Mutiny migration playbooks are project-local.
 - **Framework-internal coroutine dispatching inside Ktor plugins** — the bridge treats `install(Plugin)` as a black box at the pipeline-order level; plugin internals (how a given plugin launches work) are left to plugin-specific documentation.
 
+For the project-local overlay pattern (vendor-specific APM exporters, tenant-registry implementations, event-sourcing on top of Ktor, etc.), see [`../bridges-local-deviations-template.md`](../bridges-local-deviations-template.md) and the end-to-end walk-through in [`../bridges-local-deviations-howto.md`](../bridges-local-deviations-howto.md).
+
 ### What to log as a deviation (vs. upstream to this bridge)
 
 - **Project-local deviation** (stays in your repo): unusual in-house frameworks, custom DI glue, compliance overlays specific to your regulated market.

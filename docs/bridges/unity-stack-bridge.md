@@ -535,6 +535,8 @@ A custom fork adds a new authoritative axis: *this project's Unity* is not the s
 - **Shader / asset-store vendor compatibility matrices** — the render-pipeline overlay covers pipeline targeting; per-asset-vendor (e.g., specific Asset Store pack) compatibility matrices are project-local.
 - **Fork-specific tooling ecosystems** — the custom-fork overlay covers the SoT and drift discipline. Fork-specific internal tooling (custom editor extensions, asset importers) inherits its own documentation requirement beyond this bridge's scope.
 
+For the project-local overlay pattern (Unity UaaL, visual-scripting graphs, platform-specific cross-progression, asset-vendor compatibility matrices, etc.), see [`../bridges-local-deviations-template.md`](../bridges-local-deviations-template.md) and the end-to-end walk-through in [`../bridges-local-deviations-howto.md`](../bridges-local-deviations-howto.md).
+
 ---
 
 ## What this bridge does NOT override

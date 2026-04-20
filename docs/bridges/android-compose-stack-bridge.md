@@ -231,6 +231,8 @@ Until a Compose-specific worked example is authored, use:
 - **Strong skipping / stability inference evolution** — the Compose compiler's stability rules change across versions; this bridge pins discipline but not specific compiler-version guidance.
 - **Custom `Modifier` chains with undocumented pipeline order** — adding a new custom modifier is a pipeline-order contract and must be reviewed as such.
 
+For the project-local overlay pattern (Compose Multiplatform, Wear OS / TV deltas, custom-modifier pipeline-order addenda, etc.), see [`../bridges-local-deviations-template.md`](../bridges-local-deviations-template.md) and the end-to-end walk-through in [`../bridges-local-deviations-howto.md`](../bridges-local-deviations-howto.md).
+
 ---
 
 ## What this bridge does NOT override
