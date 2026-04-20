@@ -1,0 +1,367 @@
+# yaml-language-server: $schema=../schemas/change-manifest.schema.yaml
+#
+# Example 5 — Security-sensitive change: JWT signing key rotation.
+#
+# Scenario:
+#   Rotate the JWT signing key used by the identity service while preserving
+#   session continuity for in-flight users. The new key is introduced
+#   alongside the old one (dual-issuer, dual-verifier) and the old key is
+#   retired after the TTL of the longest live token.
+#
+# What this example exercises:
+#   - Extension surface `compliance` (audit log + retention policy touched)
+#   - uncontrolled_interfaces: the JWT verifier library (upstream)
+#   - SoT pattern 4 (Contract-Defined — the JWT contract) + pattern 8 (Dual-
+#     Representation — private keys are in a secret store, the public key set
+#     is served at a JWKS endpoint; both representations must agree)
+#   - Breaking change L1 (behavioral — reissued tokens have a different `kid`)
+#   - Rollback mode 3 — compensation-only: once a token has been issued with
+#     the new key, you cannot recall it. Revocation is the compensation, not
+#     reversal.
+#   - Evidence includes: SAST, secret-scanning, threat-model diff,
+#     rotation-runbook dry-run
+#   - cross_cutting.security with pii_access_added + supply_chain_review_needed
+#     set to true with rationale — the two fields that adoption-anti-metrics
+#     calls out as "always answered boilerplate" in ceremonial adoption.
+#
+# What this example does NOT exercise:
+#   - Playtest / experience surface
+#   - Long-lived native client (mobile apps accepting JWTs are handled via
+#     the verifier update — they read JWKS dynamically, so no client release)
+
+change_id: "2026-04-20-jwt-signing-key-rotation"
+title: "Rotate JWT signing key (old → new) with dual-issuer + dual-verifier window"
+phase: implement
+status: in_progress
+
+authors:
+  - { name: "abel",            role: human }
+  - { name: "claude-opus-4-7", role: ai, identifier: "claude-opus-4-7" }
+
+last_updated: "2026-04-20T14:00:00Z"
+
+# ─── Surfaces ────────────────────────────────────────────────────────────
+surfaces_touched:
+  - surface: system_interface
+    role: primary
+    notes: |
+      /oauth/token issues tokens with a new `kid`; /.well-known/jwks.json now
+      serves both keys during the overlap window.
+  - surface: information
+    role: primary
+    notes: |
+      Key material in secret store (not a DB schema) + the published JWKS
+      document. Both must agree — dual-representation (SoT pattern 8).
+  - surface: operational
+    role: primary
+    notes: |
+      New runbook for rotation; audit-log event `jwt_signing_key_rotated`;
+      new dashboard panel tracking per-`kid` issuance and verification rates.
+  - surface: compliance
+    role: primary
+    notes: |
+      Internal key-rotation policy has a 90-day rotation cadence; this
+      rotation is the Q2-2026 scheduled execution. Audit trail is retained
+      per retention policy.
+  - surface: user
+    role: incidental
+    notes: |
+      No visible UX change. Existing sessions continue; new logins transparently
+      receive tokens with the new `kid`.
+
+uncontrolled_interfaces:
+  - name: "JWT verifier library (identity-platform-sdk)"
+    kind: third_party_sdk
+    monitoring_channel: "security-team quarterly review; Dependabot alerts"
+  - name: "OAuth / OIDC spec (RFC 7517 JWKS)"
+    kind: regulation
+    monitoring_channel: "standards-watch internal mailing list"
+
+# ─── SoT Map ────────────────────────────────────────────────────────────
+sot_map:
+
+  - info_name: "JWT signing private keys (`old_kid`, `new_kid`)"
+    pattern: 8                                    # Dual-Representation
+    source: "secret-store://identity/jwt-signing-keys"
+    consumers:
+      - { name: "identity service (issuer)",             kind: code,          sync_lag: synchronous }
+      - { name: "/.well-known/jwks.json (public half)",  kind: code,          sync_lag: near_real_time }
+      - { name: "downstream API gateways (JWKS cache)",  kind: code,          sync_lag: batch }
+      - { name: "mobile + SPA clients (JWKS on open)",   kind: code,          sync_lag: batch }
+      - { name: "SIEM audit ingester",                   kind: data_pipeline, sync_lag: near_real_time }
+    sync_mechanism: |
+      Rotation runbook adds `new_kid` to the secret store, waits for JWKS
+      replication (≤2 min), starts dual-issue, monitors for kid-unknown
+      verification errors at verifiers, then retires `old_kid` after longest
+      token TTL (24h) + safety margin.
+    desync_risk: high
+    dual_representation:
+      editor_form: "private signing keys held in the secret store (two live kids during rotation)"
+      runtime_form: "published JWKS document served at /.well-known/jwks.json with the public halves"
+      sync_step: |
+        Rotation runbook step 2 — publish JWKS with both keys; verifier-cache TTL ≤ 10 min
+        governs the propagation delay.
+      ci_sync_check: true
+
+  - info_name: "JWT claim contract (iss / aud / exp / sub / scope)"
+    pattern: 4                                    # Contract-Defined
+    source: "docs/security/jwt-claims-contract.md"
+    consumers:
+      - { name: "identity service",                            kind: code,           sync_lag: synchronous }
+      - { name: "downstream API gateways",                     kind: code,           sync_lag: batch }
+      - { name: "partner integrations (claims unchanged here)", kind: external_party, sync_lag: manual }
+    sync_mechanism: "Contract test in CI verifies claim shape unchanged across rotation."
+    desync_risk: low
+    notes: "Claims themselves are not mutated in this rotation; only the `kid` used to sign changes."
+
+  - info_name: "Key-rotation audit event schema (`jwt_signing_key_rotated`)"
+    pattern: 1                                    # Schema-Defined
+    source: "services/identity/events/audit-events.proto"
+    consumers:
+      - { name: "SIEM ingester",      kind: data_pipeline, sync_lag: near_real_time }
+      - { name: "compliance runbook", kind: documentation, sync_lag: manual }
+    sync_mechanism: "protoc codegen + SIEM schema registry sync."
+    desync_risk: low
+
+# ─── Cross-Cutting ──────────────────────────────────────────────────────
+cross_cutting:
+
+  security:
+    impact: high
+    pii_access_added: false
+    supply_chain_review_needed: true
+    notes: |
+      The key change is narrowly security-scoped: rotating signing material.
+      `supply_chain_review_needed: true` because the verifier library
+      (identity-platform-sdk) is an upstream dependency whose multi-kid
+      handling behavior we depend on — verified via SAST + explicit
+      integration test against that version.
+      `pii_access_added: false` because the rotation does not change what
+      claims tokens carry — only the signing material.
+    checklist_items_touched:
+      - "secrets rotation cadence"
+      - "audit logging of privileged operations"
+      - "dependency multi-kid verification behavior"
+      - "threat model: compromised-old-key scenario"
+
+  performance:
+    impact: low
+    notes: |
+      Dual-verifier adds one extra signature-verification attempt on kid
+      miss (~100µs on p99 path). Negligible against the 30ms gateway p95.
+    budget:
+      verification_p95_latency_ms: 3
+      verification_p99_latency_ms: 8
+
+  observability:
+    impact: medium
+    new_events: ["jwt_signing_key_rotated", "jwt_verification_kid_unknown"]
+    new_dashboards: ["JWT rotation — issuance by kid", "JWT rotation — verification failures"]
+    notes: |
+      New dashboards are load-bearing during the overlap window; the runbook
+      cites their URLs as stop-conditions for proceeding to old-key retirement.
+
+  testability:
+    impact: medium
+    test_levels: [unit, integration, contract]
+    notes: |
+      Integration test against the real verifier library with both kids
+      present; contract test that both kids serve JWKS correctly.
+
+  error_handling:
+    impact: medium
+    classification_updated: true
+    cancellation_propagation_reviewed: false
+    notes: |
+      New error class `kid_unknown` distinguishes "token forged" from
+      "verifier has stale JWKS cache." Differentiating these two is the
+      single most important reason for a dedicated error class — without
+      it, on-call cannot tell an incident from a cache-refresh delay.
+
+  build_time_risk:
+    impact: low
+    codegen_touched: true
+    codegen_artifacts_committed: true
+    minification_rules_touched: false
+    asset_pipeline_touched: false
+    release_build_verified: true
+    determinism_considerations: []
+
+# ─── Breaking Change ────────────────────────────────────────────────────
+breaking_change:
+  level: L1                                       # Behavioral — `kid` changes
+  self_assessed_vs_worst_case: escalated
+  affected_consumers:
+    - { category: internal_sync,     identifier: "API gateways",           notes: "Must honor JWKS Cache-Control; dual-kid during overlap." }
+    - { category: first_party_client, identifier: "mobile + SPA clients",   notes: "Already re-fetch JWKS on unknown kid; no release needed." }
+    - { category: third_party_external, identifier: "partner integrations", notes: "Signaled 30 days in advance; provided test tokens signed by new key." }
+    - { category: data_downstream,   identifier: "SIEM ingester",           notes: "`kid` field now has two observed values during overlap." }
+  migration_path: parallel_switch
+  migration_plan: |
+    1. Introduce `new_kid` in secret store (not yet issuing).
+    2. Publish updated JWKS with both keys (verifiers now accept both).
+    3. Wait 10 min for global JWKS cache warm.
+    4. Flip issuer to `new_kid` (feature flag `jwt_issuer_key=new_kid`).
+    5. Monitor verification-failure dashboards for 24h + 2h safety margin.
+    6. Remove `old_kid` from JWKS (verifiers can no longer accept old tokens).
+    7. Purge `old_kid` from secret store after 72h quarantine.
+
+# ─── Rollback ───────────────────────────────────────────────────────────
+rollback:
+  overall_mode: 3                                 # Compensation Only
+  per_surface_modes:
+    - surface: system_interface
+      mode: 3
+      rationale: |
+        Once a token has been signed with `new_kid` and handed to a client,
+        it exists in the wild. Flipping the issuer back to `old_kid` does
+        not invalidate already-issued `new_kid` tokens — those must either
+        be explicitly revoked (compensation) or allowed to expire.
+    - surface: information
+      mode: 2
+      rationale: |
+        The secret-store state (both keys present) is forward-fix: removing
+        `new_kid` from the secret store prevents further issuance but cannot
+        un-sign tokens already in circulation.
+    - surface: operational
+      mode: 1
+      rationale: "Runbook + audit event are additive and reversible."
+    - surface: compliance
+      mode: 2
+      rationale: |
+        The audit record of "rotation attempted on <timestamp>" is retained
+        per retention policy; an abort produces an audit record of the
+        abort. The audit trail itself is forward-only.
+  kill_switch:
+    available: true
+    mechanism: "feature flag `jwt_issuer_key` — values {old_kid, new_kid}. Flipping back STOPS new `new_kid` issuance but does not recall existing tokens."
+    tested: true
+  compensation_plan: |
+    If a compromise is discovered in `new_kid` *after* issuance has started:
+    1. Immediately flip feature flag `jwt_issuer_key=old_kid` to stop new issuance.
+    2. Remove `new_kid` from JWKS so verifiers reject existing `new_kid` tokens.
+    3. Broadcast revocation event to all sessions (existing revocation plumbing).
+    4. Users with active `new_kid` sessions are forced to re-authenticate.
+    5. Audit log entry `jwt_signing_key_emergency_revoked` with incident reference.
+    This is the mode-3 acknowledgment: there is no blue/green revert for
+    already-issued credentials; the cost is a forced re-login for the
+    affected user cohort. Revocation is the compensation.
+
+# ─── Evidence ───────────────────────────────────────────────────────────
+evidence_plan:
+
+  - type: security_scan
+    surface: system_interface
+    status: collected
+    artifact_location: "ci/reports/sast-identity-2026-04-20.sarif"
+    summary: "SAST + secret-scanning green; no hard-coded key material; new flag gated via secret store."
+    validated_by: "github-actions/sast"
+    collected_at: "2026-04-20T09:15:00Z"
+
+  - type: security_scan
+    surface: information
+    status: collected
+    artifact_location: "evidence/threat-model/jwt-rotation-diff-2026-04-20.md"
+    summary: |
+      Threat model diff vs baseline: two new threats enumerated (compromised
+      new key mid-rotation; stale verifier JWKS cache); both mapped to the
+      compensation_plan and the `kid_unknown` error class.
+    validated_by: "security-team@internal"
+    collected_at: "2026-04-20T11:30:00Z"
+
+  - type: integration_test
+    surface: system_interface
+    status: collected
+    artifact_location: "ci/reports/jwt-dual-kid-integration-2026-04-20.html"
+    summary: |
+      Integration test: issue-with-old / verify-with-old; issue-with-new /
+      verify-with-new; issue-with-new / verify-with-old-only (expected
+      fail); issue-with-old / verify-with-new-only (expected fail with
+      kid_unknown). All four expected outcomes observed.
+    validated_by: "github-actions/integration"
+    collected_at: "2026-04-20T12:00:00Z"
+
+  - type: runbook_update
+    surface: operational
+    status: collected
+    artifact_location: "docs/runbooks/jwt-rotation.md"
+    summary: |
+      Runbook dry-run against staging identity service: full 7-step
+      sequence executed, including abort at step 4, producing both the
+      success path and the abort-audit path. Stop conditions cite
+      dashboards by URL.
+    validated_by: "sre-team@internal"
+    collected_at: "2026-04-20T13:20:00Z"
+
+  - type: changelog_entry
+    surface: compliance
+    status: collected
+    artifact_location: "compliance/audit-trail/2026-Q2-rotations.md"
+    summary: "Q2-2026 key-rotation entry added; references change_id + runbook; signed off by compliance officer."
+    validated_by: "compliance-team@internal"
+    collected_at: "2026-04-20T13:40:00Z"
+
+# ─── AI Hygiene ─────────────────────────────────────────────────────────
+assumptions:
+  - statement: "Longest live token TTL is 24h (refresh-token-issued access token)."
+    confidence: high
+    validation_plan: "Verified against oauth-config; JWT `exp` claim capped at 24h in issuer."
+  - statement: "All downstream API gateways use identity-platform-sdk >= v3.2 (multi-kid capable)."
+    confidence: high
+    validation_plan: "dependency-graph query; one edge case (internal batch processor on v3.1) upgraded in preparatory change `2026-04-19-batch-sdk-bump`."
+  - statement: "JWKS cache TTL at all verifiers is ≤ 10 min."
+    confidence: medium
+    validation_plan: "Cache-Control header enforced server-side; but we cannot verify every downstream's local override. Dashboard will catch stragglers during the 24h monitoring window."
+
+escalations:
+  - trigger: security_or_pii_path
+    description: |
+      Per ai-operating-contract.md §5 — this change modifies authentication
+      cryptographic material. AI produced the manifest, dual-issuer code,
+      and runbook; human security-team review required before the
+      feature-flag flip at step 4.
+    resolved_at: "2026-04-20T10:45:00Z"
+    resolved_by: "security-team@internal"
+  - trigger: rollback_mode_3
+    description: |
+      Per ai-operating-contract.md §5 — mode-3 rollback (compensation only)
+      requires explicit human acknowledgment of the irreversibility.
+      Compensation plan reviewed and accepted; dashboard-driven stop
+      conditions defined so the decision to proceed to step 6 (old-key
+      retirement) is a human one.
+    resolved_at: "2026-04-20T10:50:00Z"
+    resolved_by: "security-team@internal"
+
+residual_risks:
+  - description: |
+      A verifier cluster with a stale JWKS cache (> 10 min) could reject
+      valid `new_kid` tokens during the overlap window. Mitigation:
+      `jwt_verification_kid_unknown` dashboard is watched continuously
+      through the 24h window; on-call is paged on any spike > baseline.
+    severity: medium
+    mitigation: "Continuous monitoring + documented rollback via feature flag."
+    accepted_by: "security-team@internal"
+  - description: |
+      Partner integrations that pin JWKS by URL but cache locally without
+      honoring Cache-Control may see verification failures after old-key
+      retirement. 30-day advance notice + test-token distribution reduces
+      but does not eliminate this risk.
+    severity: low
+    mitigation: "Partner-integration smoke-test program before step 6."
+    accepted_by: "compliance-team@internal"
+
+handoff_narrative: |
+  This change implements the Q2-2026 scheduled JWT signing key rotation.
+  The Implementer has landed the dual-issuer code, dual-verifier JWKS
+  endpoint, `kid_unknown` error class, runbook, and audit event schema;
+  SAST/threat-model/integration/runbook-dry-run evidence is attached.
+
+  The next gate is a human go/no-go at runbook step 4 (feature-flag flip
+  from `old_kid` to `new_kid` as active issuer). Do NOT proceed without
+  security-team sign-off and live dashboards on the two new panels.
+
+  Rollback is mode-3 compensation: once step 4 has flipped, already-issued
+  `new_kid` tokens exist in the wild and can only be invalidated by
+  broadcast revocation (forcing re-authentication). This is why the
+  feature flag exists — to narrow the blast radius before step 4 by
+  verifying the full verifier path is healthy.
