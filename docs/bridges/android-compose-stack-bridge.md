@@ -15,6 +15,16 @@
 
 ---
 
+## Surface mapping
+
+> Machine-consumable surface → file-glob mapping lives in
+> [`android-compose-surface-map.yaml`](./android-compose-surface-map.yaml)
+> and is consumed by validator rule 3.2 (surface ↔ file-pattern drift). The
+> Compose map diverges from the XML map primarily in the user surface (code
+> under `ui/` / `compose/` / `screen/` dirs instead of `res/layout/`).
+
+---
+
 ## Delta summary vs. the XML bridge
 
 | Concern | XML bridge answer | Compose bridge answer |

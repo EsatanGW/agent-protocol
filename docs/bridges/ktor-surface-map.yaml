@@ -1,0 +1,106 @@
+schema_version: 1
+stack: ktor
+bridge_doc: docs/bridges/ktor-stack-bridge.md
+
+canonical_surfaces:
+
+  user:
+    patterns:
+      - "src/main/kotlin/**/route/**"
+      - "src/main/kotlin/**/routes/**"
+      - "src/main/kotlin/**/routing/**"
+      - "src/main/kotlin/**/handler/**"
+      - "src/main/kotlin/**/handlers/**"
+      - "src/main/kotlin/**/controller/**"
+      - "src/main/resources/templates/**"
+      - "src/main/resources/static/**"
+      - "src/main/resources/public/**"
+      - "src/main/resources/openapi/**"
+    notes: |
+      For a Ktor server, the "user surface" is the API consumer's view:
+      route definitions, OpenAPI documents, HTML templates, static assets.
+      OpenAPI / GraphQL SDL lives here because it is the external-facing
+      contract that consumers see first; the wire-level schema itself also
+      counts as system_interface.
+
+  system_interface:
+    patterns:
+      - "src/main/kotlin/**/plugin/**"
+      - "src/main/kotlin/**/plugins/**"
+      - "src/main/kotlin/**/filter/**"
+      - "src/main/kotlin/**/interceptor/**"
+      - "src/main/kotlin/**/serialization/**"
+      - "src/main/kotlin/**/client/**"
+      - "src/main/proto/**"
+      - "src/main/graphql/**"
+      - "src/main/resources/openapi/**"
+      - "src/main/resources/application.conf"
+      - "src/main/resources/application.yaml"
+      - "src/main/resources/application.yml"
+      - "src/main/resources/logback.xml"
+      - "src/main/resources/logback.groovy"
+    notes: |
+      Ktor `install(...)` call sites, Authentication providers, Content
+      Negotiation, CORS, StatusPages, plus every out-of-process contract
+      (protobuf, GraphQL SDL, HTTP clients, message-queue consumers).
+      Installation order is contract (Pattern 4a); any file touching the
+      install order is a system_interface change.
+
+  information:
+    patterns:
+      - "src/main/kotlin/**/model/**"
+      - "src/main/kotlin/**/domain/**"
+      - "src/main/kotlin/**/entity/**"
+      - "src/main/kotlin/**/dto/**"
+      - "src/main/kotlin/**/data/**"
+      - "src/main/kotlin/**/repository/**"
+      - "src/main/kotlin/**/db/**"
+      - "src/main/kotlin/**/database/**"
+      - "src/main/kotlin/**/migration/**"
+      - "src/main/resources/db/migration/**"
+      - "src/main/resources/flyway/**"
+      - "src/main/resources/liquibase/**"
+
+  operational:
+    patterns:
+      - "build.gradle*"
+      - "settings.gradle*"
+      - "gradle.properties"
+      - "gradle/libs.versions.toml"
+      - "gradle/wrapper/**"
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - "docker-compose.*.yml"
+      - "k8s/**"
+      - "helm/**"
+      - "charts/**"
+      - "terraform/**"
+      - ".github/workflows/**"
+      - ".gitlab-ci.yml"
+      - "scripts/**"
+      - "deploy/**"
+      - "CHANGELOG.md"
+      - "ROADMAP.md"
+
+stack_extensions:
+
+  performance_budget_surface:
+    patterns:
+      - "src/jmh/**"
+      - "benchmark/**"
+      - "load-test/**"
+      - "k6/**"
+      - "gatling/**"
+
+  data_quality_surface:
+    patterns:
+      - "src/main/resources/db/migration/**"
+      - "src/main/kotlin/**/validation/**"
+      - "src/test/kotlin/**/contract/**"
+
+  compliance_surface:
+    patterns:
+      - "src/main/kotlin/**/audit/**"
+      - "src/main/resources/application*.conf"
+      - "docs/compliance/**"
+      - "SECURITY.md"

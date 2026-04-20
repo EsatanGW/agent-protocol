@@ -1,0 +1,103 @@
+schema_version: 1
+stack: flutter
+bridge_doc: docs/bridges/flutter-stack-bridge.md
+
+canonical_surfaces:
+
+  user:
+    patterns:
+      - "lib/ui/**"
+      - "lib/widgets/**"
+      - "lib/screens/**"
+      - "lib/pages/**"
+      - "lib/routes/**"
+      - "lib/l10n/**"
+      - "lib/presentation/**"
+      - "assets/fonts/**"
+      - "assets/images/**"
+      - "test/widget_test.dart"
+      - "test/**/widget_test.dart"
+      - "integration_test/**"
+    notes: |
+      Platform-channel UI callbacks stay under user surface; the channel
+      contract itself lives in system_interface. Golden-image tests and
+      integration tests are user-surface verification artifacts.
+
+  system_interface:
+    patterns:
+      - "lib/platform/**"
+      - "lib/infrastructure/**"
+      - "lib/network/**"
+      - "lib/api/**"
+      - "lib/services/**"
+      - "ios/Runner/**"
+      - "android/app/src/main/kotlin/**"
+      - "android/app/src/main/java/**"
+      - "linux/**"
+      - "macos/**"
+      - "windows/**"
+      - "web/**"
+    notes: |
+      Platform channels, OS integration, push / deep-link receivers, native
+      host bridges. Flutter web/desktop entry points live here because their
+      primary role is OS integration.
+
+  information:
+    patterns:
+      - "lib/models/**"
+      - "lib/domain/**"
+      - "lib/data/**"
+      - "lib/entities/**"
+      - "lib/repositories/**"
+      - "lib/**/*.g.dart"
+      - "lib/**/*.freezed.dart"
+      - "assets/config/**"
+      - "assets/data/**"
+
+  operational:
+    patterns:
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "analysis_options.yaml"
+      - ".github/workflows/**"
+      - ".gitlab-ci.yml"
+      - "fastlane/**"
+      - "scripts/**"
+      - "tool/**"
+      - "ios/Podfile"
+      - "ios/Podfile.lock"
+      - "ios/Runner.xcodeproj/project.pbxproj"
+      - "android/build.gradle*"
+      - "android/app/build.gradle*"
+      - "android/gradle.properties"
+      - "CHANGELOG.md"
+      - "ROADMAP.md"
+
+stack_extensions:
+
+  asset_surface:
+    patterns:
+      - "assets/**/*.png"
+      - "assets/**/*.jpg"
+      - "assets/**/*.webp"
+      - "assets/**/*.svg"
+      - "assets/**/*.json"
+      - "assets/**/*.riv"
+      - "assets/**/*.glb"
+      - "assets/**/*.gltf"
+    notes: "Flutter-declared assets in pubspec.yaml fall here; raster + vector + Rive + 3D."
+
+  performance_budget_surface:
+    patterns:
+      - "perf/**"
+      - "benchmark/**"
+      - "integration_test/perf/**"
+      - ".github/workflows/*perf*"
+      - ".github/workflows/*bench*"
+
+  compliance_surface:
+    patterns:
+      - "ios/Runner/Info.plist"
+      - "android/app/src/main/AndroidManifest.xml"
+      - "PRIVACY.md"
+      - "privacy-policy.*"

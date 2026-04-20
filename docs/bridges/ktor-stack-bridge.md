@@ -13,6 +13,10 @@
 
 ## Surface mapping
 
+> Machine-consumable surface → file-glob mapping lives in
+> [`ktor-surface-map.yaml`](./ktor-surface-map.yaml) and is consumed by
+> validator rule 3.2 (surface ↔ file-pattern drift).
+
 ### User surface (limited — server is backend)
 
 | Concept | Concrete implementation |

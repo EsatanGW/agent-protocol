@@ -6,6 +6,15 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **Per-bridge surface-map artifacts** — `docs/bridges/flutter-surface-map.yaml`, `docs/bridges/android-kotlin-surface-map.yaml`, `docs/bridges/android-compose-surface-map.yaml`, `docs/bridges/ktor-surface-map.yaml`, `docs/bridges/unity-surface-map.yaml` publish each bridge's mapping from the four canonical surfaces (plus stack extensions such as asset / performance-budget / compliance / experience / data-quality) to machine-consumable file-path globs. The new `schemas/surface-map.schema.yaml` (JSON Schema 2020-12) validates the shape; the artifacts unblock validator rule 3.2 (surface ↔ file-pattern drift) in `docs/automation-contract-algorithm.md`.
+### Changed
+
+- **Orientation entry point clarified** — `docs/onboarding/orientation.md` is the canonical single-page onboarding doc; README, AGENTS.md, CHANGELOG, and ROADMAP references updated to match. Five-rules + navigation + walkthrough content unchanged.
+- **Language policy tightened** in `README.md`, the `[1.0.0]` Design invariants block, and the orientation page — forward-looking, single-sentence statement without enforcement-mechanism elaboration.
+- **Phase-gate discipline examples retargeted** — `docs/phase-gate-discipline.md` now uses an enum-split migration and a JSON-Schema validation command as its illustrative gate examples.
+
 ## [1.2.1] - 2026-04-20
 
 ### Fixed
