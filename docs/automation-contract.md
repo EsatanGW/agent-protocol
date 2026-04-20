@@ -133,6 +133,18 @@ All three tiers must be executable under:
 This keeps the discipline usable on disconnected, offline CI runners, and restricted environments.
 Checks that genuinely require network (e.g. remote contract-registry lookup) must **degrade to advisory**, not block.
 
+The Change Manifest schema ships in **two synchronised forms** to
+support validators that cannot read YAML without an extra dependency:
+
+- `schemas/change-manifest.schema.yaml` — canonical source (authored with comments and readable anchors).
+- `schemas/change-manifest.schema.json` — generated mirror; identical semantics, no YAML parser required.
+
+Runtimes that ship with a JSON parser but no YAML parser (Node /
+browser tooling, GitHub Actions `actions/github-script`, various
+CI linters) SHOULD consume the `.json` form and trust the repo's
+drift check (`.github/scripts/generate-schema-json.py --check`,
+wired into CI as the `schema-drift` job) to keep the two in sync.
+
 ---
 
 ## Non-functional requirements
