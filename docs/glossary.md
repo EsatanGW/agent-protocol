@@ -72,6 +72,8 @@ Whether every surface affected by this change has been analyzed, planned, implem
 
 Transferring the state, decisions, evidence, and residual risk of this change to the next operator, successor, or your future self. **The quality of the handoff is the cost of returning to this situation later.**
 
+A handoff **prompt** (the text the outgoing session sends to the incoming session) is not the same as the Change Manifest. The prompt is a compact pointer block (soft cap: 400 words; hard cap: 800) whose job is to point the incoming session at the Manifest. Handoff content — decisions made, escalations open, evidence collected — belongs in the Manifest; the prompt only references it. See `skills/engineering-workflow/templates/handoff-prompt-template.md` for the format.
+
 ---
 
 ## Process terms
@@ -89,6 +91,16 @@ The nine phases of Full mode: Clarify / Investigate / Plan / Test Plan / Impleme
 ### Discovery loop
 
 The fallback mechanism for discovering that scope has grown during implementation. Distinct from the fix-retest loop (fix a bug, rerun the tests): a discovery loop goes **back to an earlier phase**, while a fix-retest loop stays inside the same phase.
+
+### Resume mode
+
+One of five declared modes — **Lazy / Targeted / Role-scoped / Full / Minimal** — that the incoming session names as its first action when resuming after a session break. The mode determines what must be read before work continues (Lazy = Manifest only; Targeted = Manifest + the entering phase's input artifacts; Role-scoped = Manifest + upstream role's single output; Full = disaster-recovery fallback requiring explicit justification; Minimal = Lean-spec only).
+
+Declaring a mode is mandatory to prevent the session-handoff context-collapse failure pattern: a verbose handoff prompt + a sequential re-read of every referenced artifact exhausts the new session's context before real work begins. Canonical definition: `skills/engineering-workflow/references/resumption-protocol.md`.
+
+### State snapshot
+
+A single document sufficient to let a new session resume work without reading any other artifact. The Change Manifest plays this role for a change in Full mode; the Lean-spec note plays it for Lean mode. The state-snapshot discipline (see `docs/change-manifest-spec.md` §State-snapshot discipline) holds that if the snapshot is insufficient to resume from, it is **incomplete** — fix the snapshot, do not read more.
 
 ### Change map
 

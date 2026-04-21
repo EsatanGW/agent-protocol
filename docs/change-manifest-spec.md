@@ -38,6 +38,44 @@ The manifest compresses "the methodology's thinking result" into a YAML with fix
 
 ---
 
+## State-snapshot discipline
+
+The Change Manifest is **the single state snapshot** for a change. If the manifest is insufficient to let a new session resume work without reading any other artifact, the manifest is **incomplete** — fix the manifest, not the reading ritual.
+
+This discipline exists because a common failure mode at session boundaries is: the outgoing session produces a verbose handoff prompt pointing at many artifacts; the incoming session reads them sequentially and exhausts its context window before any real work begins. The remedy is **Manifest completeness**, not a longer read list. The full resumption protocol (incoming session) and handoff template (outgoing session) are normatively defined in `skills/engineering-workflow/references/resumption-protocol.md` and `skills/engineering-workflow/templates/handoff-prompt-template.md`; the discipline below is what the manifest itself must satisfy to make those protocols workable.
+
+### What the manifest must carry as a state snapshot
+
+All of the following must be answerable from the manifest alone, without opening any other file:
+
+- **Current `phase`** — what the change is currently doing.
+- **Current `status`** — whether the current phase is `draft`, `in_progress`, `review_ready`, etc.
+- **Next action** — either explicit in `handoff_narrative` when one is set, or implicit via `implementation_notes[*].type: plan_delta` entries that describe what comes next.
+- **Outstanding escalations** — every `escalations[*]` entry with no resolution record is a blocker the incoming session must address.
+- **Invalidated assumptions** — `implementation_notes[*].type: assumption_invalidated` entries change the plan; they belong in the manifest, not in ambient prose.
+- **Evidence gaps** — `evidence_plan[*].status: planned` (vs `collected`) tells the incoming session what verification still owes.
+
+### Pointer completeness checklist
+
+Every manifest of a non-trivial change must point to the artifacts the resumption protocol's Targeted / Role-scoped / Full modes will want to read. These use **existing fields** — no schema change — but the manifest author must populate them consistently:
+
+| Pointer | Where it lives in the manifest | When it becomes required |
+|---|---|---|
+| Spec path | `evidence_plan[*]` with a `type` of `spec_draft` / equivalent, or a `handoff_narrative` pointer | Phase 1+ (once a spec exists) |
+| Plan path | `evidence_plan[*]` with a `type` of `plan` / equivalent | Phase 2+ |
+| Test plan path | `evidence_plan[*]` with a `type` of `test_plan` / equivalent | Phase 3+ |
+| Latest test report path | `evidence_plan[*]` with `status: collected` and matching `artifact_location` | Phase 4+ |
+| Completion report path | `evidence_plan[*]` with a `type` of `completion_report`, or referenced from `handoff_narrative` | Phase 7+ |
+| ROADMAP row | `part_of.change_id` or a pointer in `handoff_narrative` | Any multi-phase initiative (per `docs/phase-gate-discipline.md` Rule 2) |
+
+If a pointer is missing when the checklist says it is required, that is **not** a reason to re-read the repo at resume time — it is a Manifest-drift signal. The incoming session should stop and fix the manifest before proceeding (see `skills/engineering-workflow/references/resumption-protocol.md` Step 2a).
+
+### Anti-pattern: the fat handoff prompt
+
+A handoff prompt that contains more than a short pointer block (identity header + resume mode + next action + ≤ 3 open items + ≤ 3 read paths) is a signal that the manifest is underfilled and the prompt is compensating. The fix is always to push content into the manifest, not to accept the verbose prompt. See `skills/engineering-workflow/templates/handoff-prompt-template.md` for the compact form.
+
+---
+
 ## Top-level field semantics
 
 ### `change_id` / `title` / `phase` / `status`

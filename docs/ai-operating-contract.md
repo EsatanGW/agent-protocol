@@ -305,6 +305,44 @@ Pre-filter is a Full-mode option; in Zero-ceremony / Lean mode the self-check ab
 
 ---
 
+## 11. Action continuity — narration is not action
+
+### Why this rule exists
+
+At transition points — after a TodoWrite update, after a plan is approved, at the start of a new phase, immediately after receiving a handoff prompt — an AI can generate a narrative sentence like "calling X" or "about to run Y" and then end the turn without emitting the tool call. From the user's side this looks like a silent session break: the AI said it would act and then stopped. The model has in effect mistaken **stating an action** for **performing the action**. This is the verbal-completion illusion. It is distinct from context exhaustion, permission denial, and tool-availability errors; those have observable causes. This failure has none — the model simply chose `end_turn` when it should have emitted the tool-call block.
+
+### Must do
+
+- When you state an action intent, the **next emitted tokens must be the tool call itself**, in the same turn. The sentence and the tool call belong together — neither is complete without the other.
+- Keep narration at action points short and avoid terminal-looking punctuation. A colon before a tool call is safer than a period; a period reads as a section close and invites turn-end.
+- At known risk points — immediately after a task-list update, after plan approval, at the start of a new phase, after any confirmation-shaped sentence ("ready to proceed", "now calling the planner") — **do not end the turn** without the intended tool call.
+
+### Must not do
+
+- Emit "I will now call X." and end the turn without the tool call.
+- Treat the completion of a bookkeeping step (task-list update, plan approval, TODO check-off) as a stopping point when the work itself requires your next action.
+- Use language that semantically resembles handoff to a human ("Now calling X. Ready to proceed.") at points where the runtime has already delegated the next action to you; such sentences statistically invite turn-end.
+
+### Relation to other sections
+
+- §6 (Stop conditions) names when to stop. §11 names when **not** to stop — specifically the moment immediately after stating an action intent.
+- §9 (Non-fabrication list) forbids fabricating completion. §11 extends that to **fabrication by silence**: claiming to act and then not acting is a silent fabrication of completion, even when no explicit "done" is emitted.
+- §7 (Communication style) prefers fact over self-narrative. §11 applies that preference to action transitions: the action is the fact; the narration about it can be dropped entirely.
+
+### Risk-point inventory
+
+Agents observing themselves should treat the following transitions as high-risk for this failure:
+
+- Immediately after a task-list / TODO tool call returns.
+- Immediately after a Plan-mode approval (or equivalent runtime-level "proceed" signal).
+- The first action of a newly-opened phase or a resumed session.
+- Any point where the prior sentence ended with a period and described an intended tool call.
+- The transition between the outgoing session's handoff prompt and the incoming session's first action.
+
+At each of these, couple the narration (if any) with the tool call in the same turn. Do not allow a sentence describing action to stand alone.
+
+---
+
 ## Interface with human collaborators
 
 Human collaborators should provide the AI with:

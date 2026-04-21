@@ -101,6 +101,8 @@ Runtime-specific bridges (`docs/bridges/*`) should document the recommended work
 
 Rules 1–5 govern **closing** a phase. Rule 6 governs **re-opening** one. When the Implementer or Reviewer discovers a problem that requires returning to an earlier phase, the re-entry point, the manifest fields to rewrite, and the commit-history treatment are not a judgment call — they follow the decision table below.
 
+**Re-entry vs resumption.** Re-entry (this rule) re-opens a *closed* phase because new information invalidated prior work. Resumption (`skills/engineering-workflow/references/resumption-protocol.md`) reattaches context across a session break without re-opening a phase. A session can resume without re-entry; a re-entry always resumes afterward into the re-opened phase. Do not confuse them: a fresh session that declares Lazy-mode resume into Phase 4 is not a re-entry even if the prior Phase 4 commit was hours earlier.
+
 Discovery of a problem has three sources that all feed the same table:
 
 - **Implementer's Discovery loop** — a plan gap detected during implementation (missing surface, unfamiliar SoT, unexpected consumer, infeasible approach).

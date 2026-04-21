@@ -30,6 +30,8 @@ It is tool-agnostic: wherever a capability is named (e.g. "file read", "code sea
 6. If public behavior changed, handoff obligations increase
 7. Close every phase with an explicit gate; track multi-phase work in the repo's `ROADMAP.md`; commit at every passed gate when version control is available (`docs/phase-gate-discipline.md`)
 8. When the user hands over a spec document, read it in full before planning and re-reference it at every subsequent phase
+9. **Batch independent tool calls in a single message.** Serialize only when a later call needs the output of an earlier one. Unnecessary serialization pays the runtime's per-call round-trip cost for no gain; this is a real, measurable contributor to long-running stages.
+10. **Narration is not action.** When you state an intended action at a handoff or role-transition point (e.g. "calling X", "about to run Y"), the next emitted tokens must be the tool call itself — not a new sentence and not end-of-turn. See `docs/ai-operating-contract.md` §11 for the full rule; this is the specific failure mode that produced real-world "session stopped responding" crashes at role-handoff points.
 
 Quick refresher:
 - `references/core-principles.md`
@@ -322,17 +324,16 @@ Phase-specific Lean / Full minimums are embedded in the phase docs and also summ
 
 ## Resumption rule
 
-If a session resumes mid-task, do not continue patching blindly.
-First:
-- confirm it is the same task
-- re-read the relevant artifacts
-- determine current mode
-- determine current phase
-- identify missing evidence
-- only then continue
+If a session resumes mid-task, do not continue patching blindly. Before any work:
+
+- **Declare a resume mode** (Lazy / Targeted / Role-scoped / Full / Minimal) and read only what that mode requires. Re-reading every artifact is the failure mode this rule replaces; the session-handoff context-collapse failure pattern is specifically what the mode system exists to prevent.
+- **The Change Manifest is the state snapshot.** If the manifest cannot answer "what comes next" without opening another file, fix the manifest — do not compensate by reading more.
+- **Respect the context budget.** If the planned reads exceed roughly 30% of the session's context window, downgrade one tier and say so explicitly.
 
 Reference:
-- `references/resumption-protocol.md`
+- `references/resumption-protocol.md` — full decision table, per-phase / per-role read lists, Full-mode fallback.
+- `references/lazy-resume-checklist.md` — 60-second checklist for the incoming session.
+- `templates/handoff-prompt-template.md` — compact handoff format for the outgoing session.
 
 ## Misuse protection
 
@@ -341,6 +342,7 @@ Actively avoid these mistakes:
 - Treating high-risk work as Lean patching
 - Using the skill for non-engineering tasks
 - Continuing after interruption without reloading context
+- Producing a verbose handoff prompt that re-explains prior phases and lists many files to read, instead of pointing at the Change Manifest (see `templates/handoff-prompt-template.md`)
 
 Reference:
 - `references/misuse-signals.md`

@@ -356,16 +356,18 @@ The original manifest is retained as `status: retired`, not deleted (historical 
 
 **Reading is mandatory (cannot be skipped):**
 
-1. Read the manifest handed over from upstream in full.
-2. If the manifest references spec / plan / test report, read those too.
-3. Compare the manifest against repo reality (check for drift: manifest says "A was changed" but the repo has not moved).
-4. If drift exists, **stop and report** — do not proceed.
+1. **Declare a resume mode** — Lazy / Targeted / Role-scoped / Full / Minimal — per `skills/engineering-workflow/references/resumption-protocol.md`. Most cross-role handoffs are **Role-scoped** (new role reading Manifest + upstream role's single output).
+2. Read the Manifest handed over from upstream in full. The Manifest is the state snapshot.
+3. Read only the artifacts the chosen resume mode requires. Do **not** sequential-read every artifact referenced in the Manifest; that is the session-handoff context-collapse failure mode the resume-mode system exists to prevent.
+4. Compare the Manifest against repo reality (check for drift: Manifest says "A was changed" but the repo has not moved).
+5. If drift exists or the Manifest is insufficient to name the next action without further reads, **stop and report** — do not widen the read set to compensate.
 
 **Prohibited:**
 
-- Reading only the summary because the manifest is long.
+- Reading only the summary because the manifest is long. Conversely: reading every artifact listed because "to be safe" — both are failures.
 - Assuming upstream is correct and starting work immediately.
 - Treating upstream judgment as unchallengeable.
+- Accepting a verbose handoff prompt that re-explains prior phases and lists many files. A handoff prompt beyond roughly 400 words is a signal the Manifest is underfilled; fix the Manifest before proceeding (see `skills/engineering-workflow/templates/handoff-prompt-template.md`).
 
 ### Write discipline
 
