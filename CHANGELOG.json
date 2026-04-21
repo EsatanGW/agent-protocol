@@ -1,6 +1,60 @@
 {
   "releases": [
     {
+      "version": "1.9.0",
+      "date": "2026-04-21",
+      "sections": {
+        "added": [
+          {
+            "title": "Resume-mode protocol (`skills/engineering-workflow/references/resumption-protocol.md` rewrite)",
+            "body": "Step 2 of the resumption protocol rewritten from an unconditional \"re-read at minimum\" artifact dump into a **five-mode decision table** (Lazy / Targeted / Role-scoped / Full / Minimal). The incoming session's first action is now to *declare* which mode applies; only the artifacts that mode requires are read. Per-phase artifact map (Targeted) and per-role artifact map (Role-scoped) hard-coded in the protocol so the new session does not have to chase through phase files to find what to read. Full mode is preserved but **downgraded to an explicitly-declared disaster-recovery fallback** — every Full-mode resume must state *why* (Manifest absent / stale / drift suspected) in the first message, or it counts as a gate-discipline failure per Rule 1. A new Step 2a manifest-completeness check and Step 2b context-budget rule (~30% soft ceiling; downgrade one tier when breached) close the \"I'll read everything just to be safe\" reflex that was causing session-handoff context collapse on Full-mode work. Fixes the real-world failure where a 7+ surface / 50+ file Full-mode change produced a verbose handoff prompt whose sequential file-reads exhausted the incoming session's context before any implementation work began — both reported \"session stopped responding\" crashes happened in this window."
+          },
+          {
+            "title": "Compact handoff-prompt template (`skills/engineering-workflow/templates/handoff-prompt-template.md`)",
+            "body": "new template for the *outgoing* session. Enforces a 400-word soft cap / 800-word hard cap on handoff prompts (measured in words, not tokens, to stay tokenizer-independent). MUST include: change_id, phase, Manifest path, resume mode + one-sentence reason, one-line next action, ≤ 3 open items (each pointing at a Manifest field), ROADMAP row reference, and a read block of ≤ 3 paths limited to what the next action genuinely needs. MUST NOT include: re-explanations of prior phases, inline copies of spec / plan / test report, re-statements of methodology rules, long file-path lists. A read block needing more than 3 paths is a Manifest-completeness failure — the fix is to populate the Manifest, not to expand the prompt. A Lean-mode variant (Minimal resume, ≤ 1 path read, Lean-spec as the snapshot) collapses into the same file. Worked Phase 3 → Phase 4 example at 94 words demonstrates the budget is comfortable in practice."
+          },
+          {
+            "title": "Lazy-resume checklist (`skills/engineering-workflow/references/lazy-resume-checklist.md`)",
+            "body": "new 60-second per-mode checklist for the *incoming* session. Five steps: (1) name the mode without reading anything yet; (2) apply the per-mode read list (Lazy = Manifest only; Targeted / Role-scoped = hard-coded tables; Full = disaster fallback with stated reason; Minimal = Lean-spec + current task item); (3) drift detection (six mechanical triggers: prompt over 800 words, read block over 3 paths, unresolvable Manifest path, phase mismatch, stale `last_updated`, missing listed file — any one stops the resume); (4) context-budget check (~30% ceiling, downgrade one tier when breached); (5) announce mode + phase + next action before any code touches. Replaces the pre-1.9.0 reflex of \"re-read spec, plan, test plan, latest test report, completion report, then figure out where you left off.\""
+          },
+          {
+            "title": "State-snapshot discipline (`docs/change-manifest-spec.md` §State-snapshot discipline)",
+            "body": "new normative section after \"One manifest per change\" that elevates the Change Manifest to its **role as the single state snapshot** for a change. Core rule: if the manifest cannot answer \"what comes next\" without opening another file, the manifest is incomplete — fix the manifest, not the reading ritual. Includes a pointer-completeness checklist enumerating which manifest fields serve as pointers for each required artifact (spec, plan, test plan, latest test report, completion report, ROADMAP row) and at which phase each becomes required. Uses **existing manifest fields only** — `evidence_plan[*].artifact_location`, `handoff_narrative`, `part_of` — so **no schema change** is required. Anti-pattern callout names the fat handoff prompt as the visible symptom of an underfilled manifest."
+          },
+          {
+            "title": "Glossary entries — Resume mode, State snapshot, Handoff extension (`docs/glossary.md`)",
+            "body": "new canonical definitions for `Resume mode` (the five-mode system) and `State snapshot` (the Manifest's role in it). The existing `Handoff` entry gains a sentence distinguishing the handoff *prompt* (compact pointer block, capped at 400 / 800 words) from the handoff *content* (which lives in the Manifest). Cross-references into the resumption protocol, handoff template, and state-snapshot discipline ensure other docs defer to the glossary as the canonical term source per the glossary's own usage rules."
+          },
+          {
+            "title": "Action continuity rule (`docs/ai-operating-contract.md` §11)",
+            "body": "new normative section addressing the **verbal-completion illusion**: an AI narrates \"I'll now call X\" and emits end-of-turn instead of the tool call. Diagnosed from real-world usage where both \"session stopped responding\" incidents happened at role-handoff transition points immediately after verbose narrative sentences — not context exhaustion, not permission denial, but the model mistaking *stating an action* for *performing it*. The rule is mechanical: when stating an action intent, the next emitted tokens must be the tool call itself, in the same turn. Risk-point inventory enumerates the five transitions where this failure concentrates (after task-list updates, after plan approval, at new phase start, after confirmation-shaped sentences, across handoff-prompt boundaries). Cross-referenced from §6 (stop conditions — §6 says when to stop; §11 says when not to), §9 (non-fabrication — §11 extends to fabrication by silence), and §7 (fact > self-narrative applied to action transitions)."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` resumption rule + misuse-protection bullet",
+            "body": "the 5-bullet resumption rule collapses into 3 bullets that name the discipline at the right level of abstraction: (1) declare a resume mode; (2) the Manifest is the state snapshot; (3) respect the context budget. Pointers link to the detailed protocol, checklist, and handoff template. Misuse-protection list gains a new entry naming the verbose handoff prompt as a failure mode to watch for."
+          },
+          {
+            "title": "`docs/multi-agent-handoff.md` downstream-agent minimum actions",
+            "body": "replaced the unconditional \"read manifest in full + read any referenced spec / plan / test report\" rule with a five-step mode-aware variant: declare resume mode first; read Manifest; read only what the chosen mode requires; check for drift; stop and report if Manifest insufficient. Most cross-role handoffs map to Role-scoped mode. The `Prohibited` list now names two symmetric failures — reading only the summary, *and* reading every listed artifact \"to be safe\" — and explicitly rejects handoff prompts over ~400 words as a Manifest-completeness signal."
+          },
+          {
+            "title": "`docs/phase-gate-discipline.md` Rule 6 — re-entry vs resumption",
+            "body": "new paragraph immediately after the rule header distinguishes **re-entry** (re-opening a closed phase because new information invalidated prior work — Rule 6's subject) from **resumption** (reattaching context across a session break without re-opening a phase — the resumption-protocol's subject). A session can resume without re-entry; a re-entry always resumes afterward into the re-opened phase. Closes a confusion that otherwise lets agents conflate the two and open unnecessary ROADMAP re-entry rows on routine session boundaries."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` — two new core operating principles",
+            "body": "principle 9 (batch independent tool calls in a single message; serialize only when a later call depends on an earlier one's output) and principle 10 (narration is not action; cross-references `docs/ai-operating-contract.md` §11). Principle 9 addresses the measurable cost of serialized tool calls in long-running stages; principle 10 surfaces the single root cause of observed role-handoff crashes in Full-mode work."
+          },
+          {
+            "title": "Version bump",
+            "body": "`plugin.json`, `marketplace.json`, `README.md` badge, and `CHANGELOG` latest-release heading now all agree on `1.9.0`. Verified by the existing `version-consistency` CI job. No schema change: `schemas/change-manifest.schema.yaml` and its JSON mirror have zero diff in this release — every new pointer requirement fits existing fields."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.8.0",
       "date": "2026-04-21",
       "sections": {
