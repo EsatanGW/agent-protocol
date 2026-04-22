@@ -41,6 +41,34 @@ _None._
 
 ## Closed initiatives
 
+## cckn-query-timing — make Phase 1 startup query CCKN a named step (minor 1.14.0)
+
+- **Opened:** 2026-04-22
+- **Closed:** 2026-04-22
+- **Driver:** CCKN (1.8.0) ships with asymmetric lifecycle documentation: the **write** side is prescribed (`docs/cross-change-knowledge.md` §Relation to Change Manifest §3 says "the Planner creates or extends a CCKN as part of the Phase 1 Investigate re-entry"; §Ceremony scaling says "the Planner evaluates during Phase 1 Investigate whether the change's learning content belongs in a CCKN"). The **query** side is not prescribed — `cross-change-knowledge.md` mentions "Any manifest field that benefits from pre-existing knowledge cites the CCKN by path" which is passive, not a named step. `skills/engineering-workflow/phases/phase1-investigate.md` does not mention CCKN at all. Result: agents re-discover facts that a CCKN would have supplied because there is no procedural step saying "query first." This is precisely the cost CCKN exists to eliminate, but with no query-timing rule the infrastructure sits unused on the query side. Closing the gap: one new Phase 1 startup step + one new §When to query section in cross-change-knowledge.md + one glossary pointer update.
+- **Status:** closed
+- **Target version:** 1.14.0 (minor — new workflow guidance + new procedural step + new section in canonical reference; no schema change; fully backward-compatible — existing manifests without `knowledge_notes_touched` remain valid, teams without a CCKN directory continue to operate unchanged)
+- **Mode:** Full (normative methodology change touching phase file + canonical reference + glossary — cross-reference sweep per `CLAUDE.md §5`)
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Open this ROADMAP entry | `ROADMAP.md` initiative row | Initiative section renders per `docs/phase-gate-discipline.md` Rule 1 | ✅ passed | _(this change)_ | Opened before any edits per phase-gate discipline |
+| P1 | Investigate | Read `docs/cross-change-knowledge.md` in full, `skills/engineering-workflow/phases/phase1-investigate.md` in full, `docs/glossary.md` CCKN entry, schema `knowledge_notes_touched` field. Confirmed: (1) write-side timing is prescribed at Phase 1 Investigate re-entry; (2) query-side has no named step; (3) no existing procedure says "grep CCKN directory before investigation proper begins"; (4) glossary entry references the doc but does not distinguish query vs write operations | `grep -i "cckn\\|knowledge_note" skills/engineering-workflow/phases/phase1-investigate.md` returned nothing (pre-edit); `grep -i "when to query\\|query.*cckn\\|cckn.*query" docs/cross-change-knowledge.md` returned nothing (pre-edit) | ✅ passed | _(this change)_ | Gap confirmed; no pre-existing content to conflict with |
+| P2 | Add §When to query section to `docs/cross-change-knowledge.md` | New section between §Relation to the Change Manifest and §What a CCKN is not, covering: query-at-Phase-1-startup timing rule; match-handling (fresh / stale / partial); no-match fall-through; anti-patterns table with 5 entries | `grep -n "^## When to query" docs/cross-change-knowledge.md` returned line 103; section contains 4 subsections (At Phase 1 Investigate startup / What to do on a match / What to do on no match / Anti-patterns specific to query timing) | ✅ passed | _(this change)_ | Substantive content change; findable from both glossary pointer and phase file pointer |
+| P3 | Add startup CCKN query step to `skills/engineering-workflow/phases/phase1-investigate.md` | New "Startup: query CCKN precedent" section before "Investigation dimensions"; keeps existing Required steps / fan-out / overlap-zone sections unchanged | `grep -n "Startup: query CCKN" skills/engineering-workflow/phases/phase1-investigate.md` returned line 22; file is 60 lines (under the 70-line phase-file norm) | ✅ passed | _(this change)_ | Step is ~8 lines — matches phase-file terse style |
+| P4 | Cross-reference sweep | `docs/glossary.md` CCKN entry gains the asymmetric-lifecycle paragraph pointing at §When to query; `skills/engineering-workflow/SKILL.md` Investigate phase block gains a bolded "Startup: query CCKN precedent" paragraph with match-handling summary | `grep -n "When to query" docs/glossary.md` returned line 132; `grep -n "CCKN\\|cross-change-knowledge" skills/engineering-workflow/SKILL.md` returned line 161 | ✅ passed | _(this change)_ | Cross-cutting-term discipline per `CLAUDE.md §5`: query-timing rule discoverable from glossary + SKILL.md + phase file + canonical reference |
+| P5 | CHANGELOG + version bump + close ROADMAP | `CHANGELOG.md` new `[1.14.0] - 2026-04-22` entry with Added / Changed / Why-minor sections; `plugin.json` + `marketplace.json` + `README.md` badge `1.13.1 → 1.14.0`; `CHANGELOG.json` regenerated (20 releases); this initiative moved to Closed | `sh .github/scripts/check-version-consistency.sh` reported `OK: all five declarations agree on 1.14.0`; full validation suite (schema-syntax + schema-drift + templates + cluster-disjointness) all pass | ✅ passed | _(this change)_ | Standard minor-release procedure per `VERSIONING.md` |
+
+### Phase log
+
+- Why minor, not patch: introduces a new named procedural step (Phase 1 startup query) and a new canonical-reference section (§When to query) — both in VERSIONING.md's "new workflow guidance" category, which is minor. Matches the 1.12.0 scale precedent (new reference doc + phase-file cues + glossary / SKILL.md cross-refs).
+- Why no schema change: the query-timing rule uses existing manifest fields (`knowledge_notes_touched` for extensions, `implementation_notes` for inline cites, `sot_map[].notes` for per-SoT references). A new "query_log" field would add bookkeeping ceremony without downstream consumers — YAGNI.
+- Why not extend to Phase 5 Reviewer CCKN-sampling: the Reviewer already has CCKN inspection rights (§Reviewer's role in cross-change-knowledge.md), and the Phase 1 query-timing rule surfaces CCKNs the Reviewer would then audit. Adding a new Reviewer-side procedural step would duplicate the existing inspection right without new value.
+- Scope boundary: this initiative does NOT modify the write-side CCKN rules (what triggers creating a CCKN, what the Implementer records during Discovery-loop), which are already prescriptive and working. Pure query-side addition.
+- Closed 2026-04-22 at commit `(this change)` after all five phases passed.
+
+---
+
 ## cluster-disjointness-validator — close the "validator-enforced" integrity gap shipped with 1.13.0 (patch 1.13.1)
 
 - **Opened:** 2026-04-22

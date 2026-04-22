@@ -19,6 +19,16 @@ Trace the real impact surface — no guesswork.
 - Candidate solutions.
 - Recommended approach with trade-offs.
 
+## Startup: query CCKN precedent
+
+Before tracing the main flow, grep the repo's CCKN directory (default: `docs/knowledge/` per [`../../../docs/cross-change-knowledge.md §Location and naming`](../../../docs/cross-change-knowledge.md)) for `topics` overlap with the anticipated `surfaces_touched`, any `uncontrolled_interfaces`, or the libraries / third-party APIs / platforms the change will touch. One pass, before investigation proper begins.
+
+- **Fresh match**: cite via `sot_map[].notes` or `implementation_notes` prose; skip re-discovery of the covered aspect.
+- **Stale match** (any reference > 12 months): cite AND inherit the refresh obligation; record the CCKN path in `knowledge_notes_touched[]`.
+- **No match**: continue with the full investigation; evaluate at change end whether this change produced new reusable knowledge.
+
+See [`../../../docs/cross-change-knowledge.md §When to query a CCKN`](../../../docs/cross-change-knowledge.md) for match-handling details and anti-patterns. Querying late (Phase 4 mid-implementation) is the primary anti-pattern — decisions the CCKN should have informed have already been made.
+
 ## Investigation dimensions
 
 1. Flow — the path from source of truth to consumer.

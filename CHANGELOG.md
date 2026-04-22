@@ -6,6 +6,22 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-04-22
+
+### Added
+
+- **`docs/cross-change-knowledge.md` §When to query a CCKN** — new section between §Relation to the Change Manifest and §What a CCKN is not, closing the long-standing **query-side timing gap** in the 1.8.0 CCKN pattern. Prior state: CCKN's **write** side was prescribed ("*the Planner creates or extends a CCKN as part of the Phase 1 Investigate re-entry*" / "*the Planner evaluates during Phase 1 Investigate whether the change's learning content belongs in a CCKN*") but the **query** side was only passively mentioned ("*Any manifest field that benefits from pre-existing knowledge cites the CCKN by path*") — no named procedural step said "query first, before investigation proper begins." Result: agents re-discovered facts that a CCKN would have supplied, and the write-side infrastructure sat unused on the query side. The new §When to query defines the **asymmetric lifecycle rule**: **write at Phase 4 Discovery / Phase 1 re-entry; query at Phase 1 Investigate startup**. Section covers: (1) Phase 1 startup grep against `docs/knowledge/` for `topics` overlap with `surfaces_touched` / `uncontrolled_interfaces` / libraries-APIs-platforms-touched; (2) match-handling (fresh = cite + skip re-discovery; stale = cite + inherit refresh obligation per §Not a free pass for stale claims + record in `knowledge_notes_touched[]`; partial = cite for covered portion + investigate the rest); (3) no-match fall-through with the existing write-side rule as the end-of-change checkpoint; (4) 5 anti-patterns including the primary one (querying mid-implementation instead of at Phase 1 startup — decisions the CCKN should have informed have already been made).
+- **`skills/engineering-workflow/phases/phase1-investigate.md` — new "Startup: query CCKN precedent" section** — terse (~8-line) procedural step positioned before "Investigation dimensions," pointing at the full §When to query rule in the canonical reference. Names the three match outcomes (fresh / stale / no match) and the primary anti-pattern (late querying). Keeps the phase-file terse style (~50 lines total including this addition).
+
+### Changed
+
+- **`docs/glossary.md` — CCKN entry** gains an asymmetric-lifecycle paragraph: "*write at Phase 4 Discovery / Phase 1 re-entry; query at Phase 1 Investigate startup*." Surfaces the timing distinction at the vocabulary layer so a reader finding "Cross-Change Knowledge Note" in another document knows immediately both when to write and when to query, without having to read the full canonical reference to discover the query side was previously absent.
+- **`skills/engineering-workflow/SKILL.md` Investigate phase block** gains a bolded "Startup: query CCKN precedent" paragraph with the same grep-target / match-handling summary. The skill-layer quick reference now surfaces the rule at the point an agent is deciding Investigate-phase capability priorities, not only when it reads the full phase file.
+
+### Why minor, not patch
+
+Adds a new named procedural step (Phase 1 startup query) and a new canonical-reference section (§When to query) — both in VERSIONING.md's "new workflow guidance" category, which is minor. Matches the 1.10.0 / 1.12.0 precedent scale (new canonical-reference sub-section + new phase-file procedural step + glossary / SKILL cross-references). No schema change: the rule uses existing manifest fields (`knowledge_notes_touched[]`, `implementation_notes`, `sot_map[].notes`). Backward-compatible: pre-1.14 changes, changes without a CCKN directory, and Lean-mode changes (where CCKN query is optional per §Ceremony scaling) all remain valid.
+
 ## [1.13.1] - 2026-04-22
 
 ### Added

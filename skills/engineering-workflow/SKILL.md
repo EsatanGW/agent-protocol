@@ -158,6 +158,8 @@ Prioritize capabilities:
 - Shell execution (only for runtime / build / log facts)
 - Sub-agent delegation, optional: Full mode with 3+ surfaces may fan out one read-only investigator sub-agent per surface per Pattern A (see `references/parallelization-patterns.md` and `phases/subagent-strategy.md`); the Planner performs fan-in synthesis, cross-cutting gap check, and records the fan-out in manifest `parallel_groups`. Lean mode does not fan out.
 
+**Startup: query CCKN precedent.** Before tracing the main flow, grep the repo's CCKN directory (default: `docs/knowledge/`) for `topics` overlap with the anticipated `surfaces_touched`, any `uncontrolled_interfaces`, or the libraries / third-party APIs / platforms the change will touch. Fresh match → cite + skip re-discovery of the covered aspect; stale match (>12 months) → cite + inherit refresh obligation + record in `knowledge_notes_touched[]`; no match → continue full investigation. See `docs/cross-change-knowledge.md §When to query a CCKN`.
+
 ### Plan
 Prioritize capabilities:
 - Task list
