@@ -26,7 +26,7 @@ Before tracing the main flow, grep the repo's CCKN directory (default: `docs/kno
 - **Fresh match**: cite via `sot_map[].notes` or `implementation_notes` prose; skip re-discovery of the covered aspect.
 - **Stale match** (any reference > 12 months): cite AND inherit the refresh obligation; record the CCKN path in `knowledge_notes_touched[]`.
 - **Partial match** (CCKN covers part of the relevant facet): cite for the covered portion, investigate the uncovered portion; if the uncovered investigation turns up generalizing knowledge, extend the CCKN and record in `knowledge_notes_touched[]`.
-- **No match**: continue with the full investigation; evaluate at change end whether this change produced new reusable knowledge.
+- **No match**: continue with the full investigation. A write only happens if Phase 1 itself surfaces reusable knowledge (write during this Phase 1 per [`../../../docs/cross-change-knowledge.md §Ceremony scaling`](../../../docs/cross-change-knowledge.md)) or if a Phase 4 Discovery loop later triggers Phase 1 re-entry (write at re-entry per §Relation to the Change Manifest §3). Otherwise, this change produces no CCKN.
 
 See [`../../../docs/cross-change-knowledge.md §When to query a CCKN`](../../../docs/cross-change-knowledge.md) for the canonical rule (including the anti-patterns table). Querying late (Phase 4 mid-implementation) is the primary anti-pattern — decisions the CCKN should have informed have already been made.
 
