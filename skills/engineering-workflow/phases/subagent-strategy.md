@@ -50,3 +50,7 @@ Work serially when any of:
 | Fan-out recorded in `parallel_groups` | Parallel only | `schemas/change-manifest.schema.yaml` §parallel_groups |
 
 Silent omission of any row is a contract escape, not a shortcut.
+
+## Within-phase fan-out vs between-phase overlap
+
+Sub-agent fan-out (this document) parallelizes work **within a single phase** — the canonical role spawns sub-agents, waits, fans in, and remains inside the same gate. [`../references/phase-overlap-zones.md`](../references/phase-overlap-zones.md) parallelizes **between phases** — prep for Phase N+1 starts before Phase N's gate passes, in working space, with a hard discard-on-fail rule. The two stack (a Phase 1 fan-out can finish its fan-in just as a Phase 2 change-map skeleton begins being drafted) but they solve different problems with different disciplines. Do not conflate them: fan-out does not cross phase gates, and overlap does not spawn sub-agents.

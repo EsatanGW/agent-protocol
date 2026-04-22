@@ -153,6 +153,14 @@ An optional manifest record of a single fan-out event. Each entry names: the own
 
 Optional for backward compatibility — pre-1.11 manifests without `parallel_groups` remain valid. See `schemas/change-manifest.schema.yaml` §parallel_groups and `docs/change-manifest-spec.md` §Parallel groups.
 
+### Phase overlap zone
+
+A named prep-work slot that Phase N+1 may begin **before** Phase N's gate passes, provided three properties hold: (1) the prep does not depend on Phase N's gate output, (2) it produces an artifact the downstream phase will consume, and (3) it is **discarded and redone** if Phase N's gate fails. Overlap zones are between-phase pipeline parallelism and are distinct from fan-out (which is within-phase sub-agent parallelism per `Fan-out` above).
+
+Five named zones: P1 → P2 (change-map skeleton), P2 → P3 (test-plan skeleton from stable ACs), P3 → P4 (baseline verification environment — not implementation code), P4 → P5 (Reviewer context-pack pre-distillation, reference-sampler seeding), P5 → P6 (pre-filter structural scan, sign-off template pre-fill). P0 → P1, P6 → P7, and P7 → P8 are explicitly **not** overlap zones.
+
+Full-mode only. Overlap prep lives in session-scoped working space per `docs/phase-gate-discipline.md` Rule 5a — manifest-field writes only happen after the prior gate passes. Soft cap: ≤20% of the downstream phase's total work; past 20% the prep has become execution and is bypassing the gate by degree. Canonical definition: `skills/engineering-workflow/references/phase-overlap-zones.md`.
+
 ---
 
 ## Classification terms

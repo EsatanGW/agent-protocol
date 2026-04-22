@@ -28,6 +28,10 @@ Select based on the actual affected surfaces:
 - Documentation.
 - Regression.
 
+## Optional: P3 → P4 overlap zone (Full mode)
+
+Once test categories are declared, the Phase 4 **baseline verification environment** — test harness scaffold, CI branch, screenshot baseline, metric snapshot — may be prepared in working space before Gate 3 closes. Implementation code is **not** permitted. Discard the harness setup if Phase 3 changes the verification method for any critical-path AC. See [`../references/phase-overlap-zones.md`](../references/phase-overlap-zones.md).
+
 ## Gate 3
 
 The phase passes only when:

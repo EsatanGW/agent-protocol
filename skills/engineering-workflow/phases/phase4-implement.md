@@ -36,9 +36,14 @@ Execute the approved plan, and run appropriate verification on every affected su
 
 Before the Implementer advances `phase: review`, the five-question self-check in `agents/implementer.md` (and `reference-implementations/roles/implementer.md`) must be cleared. This is a **role-specific** addition on top of the global self-check in `docs/ai-operating-contract.md` §10. A vague or hedged answer to any of the five questions blocks handoff — return to work or trigger the Discovery loop.
 
+## Optional: P4 → P5 overlap zone (Full mode)
+
+Once `surfaces_touched`, `breaking_change.level`, `rollback.mode`, and evidence-plan categories are stable, the Reviewer's **context-pack pre-distillation** (per `../references/context-pack.md`) and reference-sampler seeding for Pattern B (per `../references/parallelization-patterns.md` §Pattern B) may begin in working space. The Reviewer must **not** draft `review_notes` or approval language during overlap — those are canonical-role work-ahead and forbidden. Discard and re-distill if Phase 4 discovers a new surface or upgrades the breaking-change level (triggers Phase 1 re-entry per `docs/phase-gate-discipline.md` Rule 6). See [`../references/phase-overlap-zones.md`](../references/phase-overlap-zones.md).
+
 ## See also
 
 - `agents/implementer.md` — role-specific handbook including Pre-handoff self-check
 - `docs/ai-operating-contract.md` §10 — global self-check
 - `docs/phase-gate-discipline.md` — gate rules including Rule 6 (phase re-entry) for scope changes discovered mid-implementation
 - `skills/engineering-workflow/references/discovery-loop.md` — escalation flow when a plan gap is detected
+- `skills/engineering-workflow/references/phase-overlap-zones.md` — prep work that Phase 5 may legitimately begin before Gate 4 closes

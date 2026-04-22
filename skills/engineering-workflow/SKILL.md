@@ -37,8 +37,9 @@ Quick refresher:
 - `references/core-principles.md`
 - `references/source-of-truth-quick-reference.md`
 - `references/cross-cutting-quick-check.md`
-- `references/parallelization-patterns.md` — when and how to fan out (Full mode only)
+- `references/parallelization-patterns.md` — when and how to fan out **within** a phase (Full mode only)
 - `references/context-pack.md` — shared-context mechanism for fan-out sub-agents
+- `references/phase-overlap-zones.md` — prep work that may begin **between** phases before the prior gate passes (Full mode only; hard discard-on-fail rule; ≤20% budget)
 
 ## The four core surfaces
 
@@ -347,6 +348,7 @@ Actively avoid these mistakes:
 - Using the skill for non-engineering tasks
 - Continuing after interruption without reloading context
 - Producing a verbose handoff prompt that re-explains prior phases and lists many files to read, instead of pointing at the Change Manifest (see `templates/handoff-prompt-template.md`)
+- Starting Phase N+1 work during Phase N outside a named overlap zone, or keeping overlap prep when the prior gate fails — both collapse into silent gate bypass (see `references/phase-overlap-zones.md`)
 
 Reference:
 - `references/misuse-signals.md`

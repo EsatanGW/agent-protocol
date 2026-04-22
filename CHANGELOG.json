@@ -1,6 +1,40 @@
 {
   "releases": [
     {
+      "version": "1.12.0",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "Phase overlap zones reference (`skills/engineering-workflow/references/phase-overlap-zones.md`)",
+            "body": "new normative reference defining **between-phase pipeline parallelism**, the complement to 1.11.0's within-phase fan-out. Core concept: specific prep work for Phase N+1 may begin in session-scoped working space before Phase N's gate passes, provided three properties hold: (1) the prep does not depend on Phase N's gate output, (2) it produces an artifact the downstream phase will consume, (3) it is **discarded and redone** if Phase N's gate fails. Five named zones: **P1 → P2** (change-map skeleton from stable surface + SoT list), **P2 → P3** (test-plan skeleton from stable ACs), **P3 → P4** (baseline verification environment — harness scaffold, CI branch, screenshot baseline, metric snapshot — explicitly not implementation code), **P4 → P5** (Reviewer context-pack pre-distillation + reference-sampler seeding; approval language explicitly forbidden during overlap), **P5 → P6** (pre-filter structural scan + sign-off template pre-fill of AC headers; verdict language explicitly forbidden). **Three zones explicitly NOT overlap zones**: P0 → P1 (classification before clarification fails too often), P6 → P7 (pre-filled completion report is an anti-rationalization hazard), P7 → P8 (observation waits for real post-delivery signal). Five mandatory constraints: (1) no canonical-role work-ahead, (2) no manifest-field writes in overlap, (3) discard-on-fail recorded in `Phase log`, (4) ≤20% of downstream phase's work (past 20% the prep has become execution and is bypassing the gate by degree), (5) Full mode only. Relation to parallelization-patterns: orthogonal — fan-out is within-phase sub-agent parallelism; overlap is between-phase pipeline parallelism; the two stack in the same initiative without interference."
+          },
+          {
+            "title": "Glossary entry — Phase overlap zone (`docs/glossary.md`)",
+            "body": "new canonical term in the Process section, sibling to Fan-out / Fan-in / Context pack / Parallel group. Cross-references the five named zones, the three excluded boundaries, and the canonical reference. Full-mode-only constraint and ≤20% soft cap surfaced at the glossary level so the distinction between within-phase fan-out and between-phase overlap is discoverable from the vocabulary layer without reading the full reference."
+          },
+          {
+            "title": null,
+            "body": "**Phase-file overlap cues (`skills/engineering-workflow/phases/phase{1,2,3,4,5}-*.md`)** — each phase file gains a terse one-paragraph \"Optional: P{N} → P{N+1} overlap zone\" section pointing at the relevant zone in the new reference. Phase 4's cue explicitly names approval-language-during-overlap as forbidden (anti-rationalization hazard); Phase 5's cue explicitly names verdict-language-during-overlap as forbidden (same hazard, P5 → P6 boundary). Phase files remain the 20–50-line size-style the skill uses."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/SKILL.md`",
+            "body": "Quick refresher list gains a bullet pointing at `phase-overlap-zones.md`; the existing `parallelization-patterns.md` bullet is clarified to \"within a phase\" to match the new \"between phases\" distinction. Misuse-protection list gains a new entry: \"Starting Phase N+1 work during Phase N outside a named overlap zone, or keeping overlap prep when the prior gate fails — both collapse into silent gate bypass.\""
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/subagent-strategy.md`",
+            "body": "new closing section \"Within-phase fan-out vs between-phase overlap\" explicitly distinguishes the two parallelism disciplines so the reader does not conflate them (fan-out does not cross phase gates; overlap does not spawn sub-agents; both may stack but solve different problems)."
+          },
+          {
+            "title": "`docs/phase-gate-discipline.md` See also",
+            "body": "new pointer to `phase-overlap-zones.md` with the note that Rule 1 (explicit gate) and Rule 5a (working-space discipline) together keep overlap from degenerating into gate bypass. Rule 1 stays binding — overlap is prep, not an early gate pass."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.11.0",
       "date": "2026-04-22",
       "sections": {

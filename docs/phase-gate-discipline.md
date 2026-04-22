@@ -233,3 +233,4 @@ For single-change initiatives (e.g. a one-manifest bugfix), the ROADMAP row can 
 - `multi-agent-handoff.md` — how gates interact with cross-agent handoff
 - `post-delivery-observation.md` — Phase 8 uses this gate framework with an extended horizon
 - `AGENTS.md` — Git Safety Protocol that the commit-at-gate rule defers to
+- `skills/engineering-workflow/references/phase-overlap-zones.md` — prep work that Phase N+1 may begin before Phase N's gate passes; Rule 1 stays binding (overlap is prep, not early gate pass) and Rule 5a governs working-space discipline for the prep artifacts
