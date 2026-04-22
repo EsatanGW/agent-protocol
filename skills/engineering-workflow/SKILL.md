@@ -158,7 +158,7 @@ Prioritize capabilities:
 - Shell execution (only for runtime / build / log facts)
 - Sub-agent delegation, optional: Full mode with 3+ surfaces may fan out one read-only investigator sub-agent per surface per Pattern A (see `references/parallelization-patterns.md` and `phases/subagent-strategy.md`); the Planner performs fan-in synthesis, cross-cutting gap check, and records the fan-out in manifest `parallel_groups`. Lean mode does not fan out.
 
-**Startup: query CCKN precedent.** Before tracing the main flow, grep the repo's CCKN directory (default: `docs/knowledge/`) for `topics` overlap with anticipated `surfaces_touched`, any `uncontrolled_interfaces`, or libraries / third-party APIs / platforms the change will touch. Match-handling (fresh / stale / partial / no match) and the directory-absent edge case live in `phases/phase1-investigate.md §Startup: query CCKN precedent`; the canonical rule (including anti-patterns) is in `docs/cross-change-knowledge.md §When to query a CCKN`.
+**Startup: query CCKN precedent.** Phase 1 begins with a cheap grep of the repo's CCKN directory (non-Zero-ceremony tiers only). Procedural bridge — grep target, match-handling (fresh / stale / partial / no match), directory-absent edge case: `phases/phase1-investigate.md §Startup: query CCKN precedent`. Canonical rule — query timing, anti-patterns, ceremony-tier interaction, and the write-side timing rule: `docs/cross-change-knowledge.md §When to query a CCKN` and `§Ceremony scaling`.
 
 ### Plan
 Prioritize capabilities:

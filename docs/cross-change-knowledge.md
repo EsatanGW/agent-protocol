@@ -136,7 +136,7 @@ One grep, one pass, before the investigation proper begins. If the CCKN director
 
 ### What to do on no match
 
-Continue with the full Phase 1 investigation per `skills/engineering-workflow/phases/phase1-investigate.md`. At the end of the change, the Planner evaluates (per §Ceremony scaling) whether this change produced new reusable knowledge that warrants a new CCKN — that is the write-side rule.
+Continue with the full Phase 1 investigation per `skills/engineering-workflow/phases/phase1-investigate.md`. The write-side rule stated in the summary above still applies — no match does not unlock an end-of-change write path. If Phase 1 itself surfaces reusable knowledge, the Planner writes the CCKN during this Phase 1 per §Ceremony scaling. If a Phase 4 Discovery loop later uncovers reusable knowledge, the returning Planner writes during Phase 1 re-entry per §Relation to the Change Manifest §3. If neither happens, this change produces no CCKN.
 
 No match is a valid outcome, not a signal to invent a shallow CCKN pre-emptively. CCKNs are for *discovered* reusable knowledge, not for speculatively-future knowledge.
 
@@ -230,9 +230,11 @@ Any subsequent iOS analytics change can now reference this CCKN in its `sot_map`
 
 ## Ceremony scaling
 
-- **Zero-ceremony mode** — CCKN does not apply. A task small enough to skip the methodology is too small to produce reusable knowledge worth a separate artifact.
-- **Lean mode** — a CCKN is optional; if the discovered knowledge will obviously recur (e.g. a documented third-party quirk), create the note. If it is purely local, an `implementation_notes` entry is sufficient.
-- **Full mode** — the Planner evaluates during Phase 1 Investigate whether the change's learning content belongs in a CCKN. Treating every discovery as change-specific is a known drift pattern (see the anti-metrics in `docs/adoption-anti-metrics.md`).
+Ceremony scaling governs the **write** side. The Phase 1 startup **query** (§When to query) is a cheap grep and runs in every non-Zero-ceremony change regardless of tier — the table below states where the query also turns off.
+
+- **Zero-ceremony mode** — CCKN does not apply: neither the Phase 1 startup query nor the write side runs. A task small enough to skip the methodology is too small to produce reusable knowledge worth a separate artifact.
+- **Lean mode** — the Phase 1 startup query still runs; a CCKN *write* is optional. If the discovered knowledge will obviously recur (e.g. a documented third-party quirk), create the note during the same Phase 1 that discovered it, or — if discovery only happens at a Phase 4 Discovery loop — at Phase 1 re-entry per §Relation to the Change Manifest §3. If the knowledge is purely local, an `implementation_notes` entry is sufficient and no CCKN is written.
+- **Full mode** — the Phase 1 startup query runs. The Planner *evaluates* during Phase 1 Investigate whether the change's learning content belongs in a CCKN; a positive evaluation then *writes* under one of two timings: (a) if the knowledge is already available at Phase 1 (e.g. the change itself is *about* documenting a library quirk), the CCKN is written during this Phase 1, or (b) if the knowledge only surfaces later, write is deferred to Phase 1 re-entry after a Phase 4 Discovery loop per §Relation to the Change Manifest §3 — Phase 4 itself never writes. Treating every discovery as change-specific is a known drift pattern (see the anti-metrics in `docs/adoption-anti-metrics.md`).
 
 ---
 

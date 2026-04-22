@@ -1,7 +1,7 @@
 # Change Decomposition
 
 > **English TL;DR**
-> Answers: "when should one request become multiple changes, and when should many tickets become one?" Gives natural fracture lines (SoT, surface, consumer pace, risk asymmetry), merge signals, a dependency-graph model (supersedes / depends_on / blocks / co_required), and anti-patterns. Entirely tool-agnostic.
+> Answers: "when should one request become multiple changes, and when should many tickets become one?" Gives six natural fracture lines (SoT boundary, surface cadence differs, consumer cohort separation, asymmetric risk level, different reversibility, delivery-sequencing constraint), four merge signals (tightly-coupled atomicity, shared evidence, split would fabricate a scheduling dependency, changes are too small), a dependency-graph model (supersedes / depends_on / blocks / co_required), and anti-patterns. Entirely tool-agnostic.
 
 "One change = one manifest" is a principle of this methodology,
 but it does not answer: **what counts as "one change"?** How many manifests should a requirement become?
