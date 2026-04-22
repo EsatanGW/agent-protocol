@@ -34,6 +34,10 @@ Trace the real impact surface — no guesswork.
 4. Find at least 1-2 reference patterns.
 5. Summarize options and trade-offs.
 
+## Optional: surface-parallel fan-out (Full mode, 3+ surfaces)
+
+When the investigation spans 3+ surfaces and the serial walk has real clock cost, the Planner may fan out one investigator sub-agent per surface per Pattern A in [`../references/parallelization-patterns.md`](../references/parallelization-patterns.md). Mandatory disciplines: single-batch spawn, shared context pack, canonical-role fan-in synthesis, cross-cutting gap check, `parallel_groups` audit entry. Full-mode only — never fan out in Lean.
+
 ## Gate 1
 
 The phase passes only when:

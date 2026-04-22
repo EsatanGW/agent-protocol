@@ -48,6 +48,20 @@ The Reviewer may, at any point, pick any identifier cited in the manifest, `impl
 
 Returning the manifest upstream is discipline, not weakness. A Reviewer who always passes everything provides zero value. The goal is honest finding-quality, not a signed checkbox.
 
+## Optional: specialized audit fan-out (Full mode)
+
+When the audit surface is too large for a single invocation (many cross-cutting dimensions, many cited identifiers, tier-mixed evidence), you may fan out specialized read-only audit sub-agents — security audit, remaining cross-cutting dimensions, evidence-reference sampling, acceptance-criterion coverage — per Pattern B in `skills/engineering-workflow/references/parallelization-patterns.md` (also Pattern 6 in `reference-implementations/roles/role-composition-patterns.md`).
+
+Mandatory disciplines:
+
+- Single-batch spawn (cache-window rule) and shared context pack.
+- Every audit sub-agent's identity differs from yours, the Planner's, and the Implementer's on this change.
+- Audit sub-agents inherit your read-only envelope — no write, no edit, no state-changing shell. On prose-only runtimes, this is enforced by refusing write-shaped instructions; on runtimes with per-sub-agent tool gating, it is enforced by the gating.
+- You perform fan-in synthesis yourself — including the cross-cutting gap check. Audit sub-agents return findings with severity; you decide what becomes `review_notes`.
+- Record the fan-out in the manifest's `parallel_groups` field.
+
+Full-mode only.
+
 ## Capability envelope
 
 | Category | Allowed | Notes |
@@ -58,7 +72,8 @@ Returning the manifest upstream is discipline, not weakness. A Reviewer who alwa
 | Network fetch (read-only) | ✅ | Verify upstream doc claims |
 | **Write / edit code** | ❌ | **Single most important constraint — if this cannot be mechanically enforced, the human process around this role must be**  |
 | State-changing shell | ❌ | No `git commit`, no `npm install`, no migrations — those are Implementer operations |
-| Sub-agent delegation | ❌ | Reviewers are terminal, not decomposing |
+| Canonical-role sub-agent delegation | ❌ | Terminal at the canonical layer — no nested Planner / Implementer / Reviewer |
+| Non-canonical audit sub-agent delegation | ✅ | Patterns 4 and 6 in `reference-implementations/roles/role-composition-patterns.md`. Sub-agents inherit the read-only envelope; the Reviewer performs fan-in synthesis itself |
 
 On runtimes where the tool surface cannot be mechanically constrained, the Reviewer must refuse write / edit / state-changing operations when asked. The refusal **is** the enforcement. If the runtime makes refusal difficult (auto-edit modes, write-on-save IDE integrations), run the Reviewer in a session / profile where write capability is disabled at the OS or IDE level.
 

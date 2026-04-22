@@ -30,6 +30,7 @@ Execute the approved plan, and run appropriate verification on every affected su
 - Do not skip the cross-surface flow verification.
 - No evidence = not tested.
 - Every fix re-runs the affected verification.
+- **Collect evidence eagerly.** Populate `evidence_plan.artifacts` as each sub-task's verification completes, not batched to the end of Phase 4. Session interrupts during implementation are common; evidence batched to the end is evidence lost on interrupt. Tier-`critical` evidence (`schemas/change-manifest.schema.yaml` §evidence_plan.tier) is highest priority for eager capture — its absence blocks Phase 6 sign-off.
 
 ## Pre-handoff self-check
 

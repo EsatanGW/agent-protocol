@@ -860,6 +860,174 @@ properties:
       type: string
       description: "Repository-relative path to a CCKN markdown file."
 
+  # ─── Parallel-fan-out audit trail ──────────────────────────────────────
+  # See skills/engineering-workflow/references/parallelization-patterns.md
+  # and reference-implementations/roles/role-composition-patterns.md Patterns 5–6.
+
+  parallel_groups:
+    type: array
+    description: |
+      Audit record of parallel sub-agent fan-out events within this change.
+      Each entry documents one fan-out: the owning canonical role and
+      identity, the phase in which the fan-out occurred, the sub-agents
+      spawned (identity + scope), and the synthesis record.
+
+      Optional — a Full-mode change that chose not to fan out, or a Lean
+      change (which may not fan out at all), validates without this field.
+      What is NOT valid is a fan-out that happened but was not recorded;
+      that is a contract escape at the audit layer. See
+      skills/engineering-workflow/references/parallelization-patterns.md
+      §Audit trail.
+
+      The synthesis.performed_by_identity MUST equal the owning_identity —
+      fan-in synthesis is never delegated per
+      reference-implementations/roles/role-composition-patterns.md
+      §The invariant.
+    items:
+      type: object
+      required: [group_id, owning_role, owning_identity, phase, sub_agents, synthesis]
+      additionalProperties: false
+      properties:
+        group_id:
+          type: string
+          description: "Stable identifier for this fan-out event within the change."
+        owning_role:
+          type: string
+          enum: [planner, implementer, reviewer]
+          description: "Canonical role that spawned this fan-out."
+        owning_identity:
+          type: string
+          description: "Identity of the canonical role (must match the identity in authors[] for this role)."
+        phase:
+          type: string
+          enum: [investigate, plan, test_plan, implement, review]
+          description: |
+            Phase in which the fan-out occurred. Pattern A (surface-parallel
+            investigators) is typically 'investigate'; Pattern B
+            (specialized audit fan-out) is typically 'review'.
+        pattern:
+          type: string
+          enum: [A_surface_investigators, B_specialized_audit, other]
+          description: |
+            Which canonical fan-out pattern was used.
+            A = Pattern A per parallelization-patterns.md §Pattern A.
+            B = Pattern B per parallelization-patterns.md §Pattern B.
+            other = a Full-mode fan-out that does not fit A or B; rationale
+            required in context_pack_summary.
+        context_pack_summary:
+          type: string
+          description: |
+            One-line summary of the context pack shared with the sub-agents.
+            The pack itself lives in session-scoped working space per
+            docs/phase-gate-discipline.md Rule 5a and is not persisted here.
+            Required when pattern == 'other' so the non-standard fan-out is
+            explicable at audit time.
+        sub_agents:
+          type: array
+          minItems: 2
+          maxItems: 4
+          description: |
+            The sub-agents spawned in this fan-out. minItems: 2 because a
+            1-wide fan-out is a serial sub-agent call, not a fan-out — use
+            Patterns 1–4 in role-composition-patterns.md instead. maxItems: 4
+            because fan-in cross-cutting visibility degrades past ~3 parallel
+            returns; larger groups signal an over-scoped decomposition.
+          items:
+            type: object
+            required: [identity, scope]
+            additionalProperties: false
+            properties:
+              identity:
+                type: string
+                description: |
+                  Distinct identity of this sub-agent. Must differ from every
+                  canonical role identity on this change
+                  (docs/multi-agent-handoff.md §Single-agent anti-collusion
+                  rule) and from every other sub-agent identity in this group.
+              scope:
+                type: string
+                description: |
+                  One-line scope boundary for this sub-agent, as declared in
+                  the context pack (e.g. 'User surface sweep', 'Security
+                  audit against cross-cutting-concerns §Security').
+              return_location:
+                type: string
+                description: |
+                  Optional pointer to where the sub-agent's structured return
+                  was captured (session-scoped working space path or
+                  equivalent). Useful for Reviewer reproduction.
+              capability_envelope:
+                type: string
+                description: |
+                  The tool-category envelope granted to this sub-agent.
+                  Must be a subset of the owning_role's envelope per
+                  role-composition-patterns.md §The invariant. Typical
+                  values: 'read+search', 'read+search+verify-shell'.
+        synthesis:
+          type: object
+          required: [performed_by_identity, timestamp, manifest_fields_written, cross_cutting_gap_check]
+          additionalProperties: false
+          description: |
+            The fan-in record. synthesis.performed_by_identity must equal
+            owning_identity — synthesis is never delegated. A parallel_group
+            without a synthesis block is a composition failure, not a
+            completed fan-out.
+          properties:
+            performed_by_identity:
+              type: string
+              description: |
+                Must equal owning_identity. Enforced at validation
+                (see cross-field constraint in top-level allOf).
+            timestamp:
+              type: string
+              format: date-time
+              description: "When fan-in completed."
+            manifest_fields_written:
+              type: array
+              minItems: 1
+              items: { type: string }
+              description: |
+                Names of the manifest fields the canonical role wrote from
+                this synthesis (e.g. ['sot_map', 'surfaces_touched'] for
+                Pattern A, or ['review_notes'] for Pattern B). Empty array
+                is a composition failure — a fan-out that wrote no fields
+                produced no value.
+            cross_cutting_gap_check:
+              type: object
+              required: [performed]
+              additionalProperties: false
+              description: |
+                The cross-cutting gap check per parallelization-patterns.md
+                §Cross-cutting gap check. Record that it was done, and what
+                it found. The specific failure mode parallelization
+                introduces (gaps in the intersection of sub-agent scopes)
+                is invisible to any individual sub-agent.
+              properties:
+                performed:
+                  type: boolean
+                  description: "Must be true. false here is a composition failure."
+                gaps_found:
+                  type: array
+                  items: { type: string }
+                  description: |
+                    One-line descriptions of gaps that emerged only in the
+                    union of sub-agent findings. Empty array means none found
+                    (which is itself a recorded outcome); omit only if performed is false.
+                contradictions_found:
+                  type: array
+                  items: { type: string }
+                  description: |
+                    Pairs of sub-agent findings that directly contradicted
+                    each other. Contradictions are always real — one is wrong
+                    or the question was under-specified.
+                suspiciously_empty_returns:
+                  type: array
+                  items: { type: string }
+                  description: |
+                    Sub-agent identities whose returns were empty; worth
+                    flagging because 'zero findings' can mean trivial scope
+                    or silent failure.
+
   # ─── Waiver protocol (docs/automation-contract.md §waiver) ─────────────
 
   waivers:

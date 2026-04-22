@@ -27,7 +27,7 @@
       "type": "string",
       "minLength": 4,
       "maxLength": 120,
-      "description": "Human-readable title. Not marketing copy \u2014 describe the change."
+      "description": "Human-readable title. Not marketing copy — describe the change."
     },
     "phase": {
       "type": "string",
@@ -101,7 +101,7 @@
       "items": {
         "type": "string"
       },
-      "description": "change_id(s) that must be delivered BEFORE this one can be delivered.\nSee docs/change-decomposition.md \u00a7dependency graph.\n"
+      "description": "change_id(s) that must be delivered BEFORE this one can be delivered.\nSee docs/change-decomposition.md §dependency graph.\n"
     },
     "blocks": {
       "type": "array",
@@ -123,7 +123,7 @@
     },
     "strategic_parent": {
       "type": "object",
-      "description": "Optional link to an external strategic artifact (ADR / RFC / OKR /\ndesign-doc / external ticket) that motivates this change. Unlike\n`part_of` (which is an internal epic ID), this field points OUTSIDE\nthe Change Manifest world \u2014 to a document that agent-protocol does\nnot define the format of. Use it when a change is a slice of a larger\nstrategic initiative that has its own decision document.\n\nSee docs/strategic-artifacts.md for scope (what this field is for)\nand non-scope (what agent-protocol deliberately does not define).\n",
+      "description": "Optional link to an external strategic artifact (ADR / RFC / OKR /\ndesign-doc / external ticket) that motivates this change. Unlike\n`part_of` (which is an internal epic ID), this field points OUTSIDE\nthe Change Manifest world — to a document that agent-protocol does\nnot define the format of. Use it when a change is a slice of a larger\nstrategic initiative that has its own decision document.\n\nSee docs/strategic-artifacts.md for scope (what this field is for)\nand non-scope (what agent-protocol deliberately does not define).\n",
       "additionalProperties": false,
       "required": [
         "kind",
@@ -149,7 +149,7 @@
         "summary": {
           "type": "string",
           "maxLength": 400,
-          "description": "Short human-readable description of WHAT the strategic parent\nrequires of this change. Not a link text \u2014 a motivation sentence.\n"
+          "description": "Short human-readable description of WHAT the strategic parent\nrequires of this change. Not a link text — a motivation sentence.\n"
         },
         "initiative_id": {
           "type": "string",
@@ -437,7 +437,7 @@
               },
               "ci_sync_check": {
                 "type": "boolean",
-                "description": "Does CI verify editor \u2194 runtime are in sync?"
+                "description": "Does CI verify editor ↔ runtime are in sync?"
               }
             }
           },
@@ -841,7 +841,7 @@
         },
         "deprecation_timeline": {
           "type": "object",
-          "description": "Legacy deprecation form \u2014 dates only. Prefer the richer\n`deprecation` field (\u2192 `$defs.deprecation`) for new manifests;\nit captures replacement name and migration prose in addition\nto dates.\n",
+          "description": "Legacy deprecation form — dates only. Prefer the richer\n`deprecation` field (→ `$defs.deprecation`) for new manifests;\nit captures replacement name and migration prose in addition\nto dates.\n",
           "properties": {
             "announce_date": {
               "type": "string",
@@ -858,7 +858,7 @@
         },
         "deprecation": {
           "$ref": "#/$defs/deprecation",
-          "description": "Structured deprecation marker \u2014 preferred form for L3/L4\nchanges. Rule 2.6 of the automation-contract algorithm\naccepts either `deprecation_timeline` or `deprecation`;\ndo not populate both.\n"
+          "description": "Structured deprecation marker — preferred form for L3/L4\nchanges. Rule 2.6 of the automation-contract algorithm\naccepts either `deprecation_timeline` or `deprecation`;\ndo not populate both.\n"
         }
       },
       "allOf": [
@@ -1019,7 +1019,7 @@
     "evidence_plan": {
       "type": "array",
       "minItems": 1,
-      "description": "Each surface touched (role=primary) MUST have at least one evidence item.\nSee docs/ai-operating-contract.md \u00a73 \"Evidence quality.\"\n",
+      "description": "Each surface touched (role=primary) MUST have at least one evidence item.\nSee docs/ai-operating-contract.md §3 \"Evidence quality.\"\n",
       "items": {
         "type": "object",
         "required": [
@@ -1071,7 +1071,7 @@
               "critical",
               "standard"
             ],
-            "description": "Severity of this evidence item. `critical` evidence must be\ncollected \u2014 missing or rejected `critical` evidence blocks\nPhase 6 sign-off and cannot be waived into `residual_risk`.\n`standard` evidence may be moved to `residual_risk` with\n`conditional_approval`. If absent, treated as `standard`\n(default) for backward compatibility with pre-1.8 manifests.\nThe Planner assigns `tier` at Phase 2 Plan; the Reviewer may\nupgrade `standard` \u2192 `critical` (which triggers send-back\nto collect more evidence) but must not downgrade.\nSee docs/automation-contract.md \u00a7Evidence tier and\ndocs/automation-contract-algorithm.md \u00a7Rule 2.11.\n"
+            "description": "Severity of this evidence item. `critical` evidence must be\ncollected — missing or rejected `critical` evidence blocks\nPhase 6 sign-off and cannot be waived into `residual_risk`.\n`standard` evidence may be moved to `residual_risk` with\n`conditional_approval`. If absent, treated as `standard`\n(default) for backward compatibility with pre-1.8 manifests.\nThe Planner assigns `tier` at Phase 2 Plan; the Reviewer may\nupgrade `standard` → `critical` (which triggers send-back\nto collect more evidence) but must not downgrade.\nSee docs/automation-contract.md §Evidence tier and\ndocs/automation-contract-algorithm.md §Rule 2.11.\n"
           },
           "artifact_location": {
             "type": "string",
@@ -1291,7 +1291,7 @@
     },
     "assumptions": {
       "type": "array",
-      "description": "Per ai-operating-contract.md \u00a71, mark every assumption explicitly.",
+      "description": "Per ai-operating-contract.md §1, mark every assumption explicitly.",
       "items": {
         "type": "object",
         "required": [
@@ -1318,7 +1318,7 @@
     },
     "escalations": {
       "type": "array",
-      "description": "Points where AI stopped and requested human judgment. See ai-operating-contract.md \u00a75.",
+      "description": "Points where AI stopped and requested human judgment. See ai-operating-contract.md §5.",
       "items": {
         "type": "object",
         "required": [
@@ -1481,10 +1481,166 @@
     },
     "knowledge_notes_touched": {
       "type": "array",
-      "description": "Paths of Cross-Change Knowledge Notes (CCKN) created, extended, or\nsuperseded by this change. Optional \u2014 a change that only *references*\nexisting CCKNs (without modifying them) does not fill this field.\nUsed for reverse-lookup: given a CCKN, trace the changes that\ncontributed to it. See docs/cross-change-knowledge.md.\n",
+      "description": "Paths of Cross-Change Knowledge Notes (CCKN) created, extended, or\nsuperseded by this change. Optional — a change that only *references*\nexisting CCKNs (without modifying them) does not fill this field.\nUsed for reverse-lookup: given a CCKN, trace the changes that\ncontributed to it. See docs/cross-change-knowledge.md.\n",
       "items": {
         "type": "string",
         "description": "Repository-relative path to a CCKN markdown file."
+      }
+    },
+    "parallel_groups": {
+      "type": "array",
+      "description": "Audit record of parallel sub-agent fan-out events within this change.\nEach entry documents one fan-out: the owning canonical role and\nidentity, the phase in which the fan-out occurred, the sub-agents\nspawned (identity + scope), and the synthesis record.\n\nOptional — a Full-mode change that chose not to fan out, or a Lean\nchange (which may not fan out at all), validates without this field.\nWhat is NOT valid is a fan-out that happened but was not recorded;\nthat is a contract escape at the audit layer. See\nskills/engineering-workflow/references/parallelization-patterns.md\n§Audit trail.\n\nThe synthesis.performed_by_identity MUST equal the owning_identity —\nfan-in synthesis is never delegated per\nreference-implementations/roles/role-composition-patterns.md\n§The invariant.\n",
+      "items": {
+        "type": "object",
+        "required": [
+          "group_id",
+          "owning_role",
+          "owning_identity",
+          "phase",
+          "sub_agents",
+          "synthesis"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "group_id": {
+            "type": "string",
+            "description": "Stable identifier for this fan-out event within the change."
+          },
+          "owning_role": {
+            "type": "string",
+            "enum": [
+              "planner",
+              "implementer",
+              "reviewer"
+            ],
+            "description": "Canonical role that spawned this fan-out."
+          },
+          "owning_identity": {
+            "type": "string",
+            "description": "Identity of the canonical role (must match the identity in authors[] for this role)."
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "investigate",
+              "plan",
+              "test_plan",
+              "implement",
+              "review"
+            ],
+            "description": "Phase in which the fan-out occurred. Pattern A (surface-parallel\ninvestigators) is typically 'investigate'; Pattern B\n(specialized audit fan-out) is typically 'review'.\n"
+          },
+          "pattern": {
+            "type": "string",
+            "enum": [
+              "A_surface_investigators",
+              "B_specialized_audit",
+              "other"
+            ],
+            "description": "Which canonical fan-out pattern was used.\nA = Pattern A per parallelization-patterns.md §Pattern A.\nB = Pattern B per parallelization-patterns.md §Pattern B.\nother = a Full-mode fan-out that does not fit A or B; rationale\nrequired in context_pack_summary.\n"
+          },
+          "context_pack_summary": {
+            "type": "string",
+            "description": "One-line summary of the context pack shared with the sub-agents.\nThe pack itself lives in session-scoped working space per\ndocs/phase-gate-discipline.md Rule 5a and is not persisted here.\nRequired when pattern == 'other' so the non-standard fan-out is\nexplicable at audit time.\n"
+          },
+          "sub_agents": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 4,
+            "description": "The sub-agents spawned in this fan-out. minItems: 2 because a\n1-wide fan-out is a serial sub-agent call, not a fan-out — use\nPatterns 1–4 in role-composition-patterns.md instead. maxItems: 4\nbecause fan-in cross-cutting visibility degrades past ~3 parallel\nreturns; larger groups signal an over-scoped decomposition.\n",
+            "items": {
+              "type": "object",
+              "required": [
+                "identity",
+                "scope"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "identity": {
+                  "type": "string",
+                  "description": "Distinct identity of this sub-agent. Must differ from every\ncanonical role identity on this change\n(docs/multi-agent-handoff.md §Single-agent anti-collusion\nrule) and from every other sub-agent identity in this group.\n"
+                },
+                "scope": {
+                  "type": "string",
+                  "description": "One-line scope boundary for this sub-agent, as declared in\nthe context pack (e.g. 'User surface sweep', 'Security\naudit against cross-cutting-concerns §Security').\n"
+                },
+                "return_location": {
+                  "type": "string",
+                  "description": "Optional pointer to where the sub-agent's structured return\nwas captured (session-scoped working space path or\nequivalent). Useful for Reviewer reproduction.\n"
+                },
+                "capability_envelope": {
+                  "type": "string",
+                  "description": "The tool-category envelope granted to this sub-agent.\nMust be a subset of the owning_role's envelope per\nrole-composition-patterns.md §The invariant. Typical\nvalues: 'read+search', 'read+search+verify-shell'.\n"
+                }
+              }
+            }
+          },
+          "synthesis": {
+            "type": "object",
+            "required": [
+              "performed_by_identity",
+              "timestamp",
+              "manifest_fields_written",
+              "cross_cutting_gap_check"
+            ],
+            "additionalProperties": false,
+            "description": "The fan-in record. synthesis.performed_by_identity must equal\nowning_identity — synthesis is never delegated. A parallel_group\nwithout a synthesis block is a composition failure, not a\ncompleted fan-out.\n",
+            "properties": {
+              "performed_by_identity": {
+                "type": "string",
+                "description": "Must equal owning_identity. Enforced at validation\n(see cross-field constraint in top-level allOf).\n"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When fan-in completed."
+              },
+              "manifest_fields_written": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                },
+                "description": "Names of the manifest fields the canonical role wrote from\nthis synthesis (e.g. ['sot_map', 'surfaces_touched'] for\nPattern A, or ['review_notes'] for Pattern B). Empty array\nis a composition failure — a fan-out that wrote no fields\nproduced no value.\n"
+              },
+              "cross_cutting_gap_check": {
+                "type": "object",
+                "required": [
+                  "performed"
+                ],
+                "additionalProperties": false,
+                "description": "The cross-cutting gap check per parallelization-patterns.md\n§Cross-cutting gap check. Record that it was done, and what\nit found. The specific failure mode parallelization\nintroduces (gaps in the intersection of sub-agent scopes)\nis invisible to any individual sub-agent.\n",
+                "properties": {
+                  "performed": {
+                    "type": "boolean",
+                    "description": "Must be true. false here is a composition failure."
+                  },
+                  "gaps_found": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "One-line descriptions of gaps that emerged only in the\nunion of sub-agent findings. Empty array means none found\n(which is itself a recorded outcome); omit only if performed is false.\n"
+                  },
+                  "contradictions_found": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Pairs of sub-agent findings that directly contradicted\neach other. Contradictions are always real — one is wrong\nor the question was under-specified.\n"
+                  },
+                  "suspiciously_empty_returns": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Sub-agent identities whose returns were empty; worth\nflagging because 'zero findings' can mean trivial scope\nor silent failure.\n"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "waivers": {
@@ -1529,7 +1685,7 @@
           },
           "scope": {
             "type": "string",
-            "description": "What the waiver applies to \u2014 a specific surface / rule / evidence item."
+            "description": "What the waiver applies to — a specific surface / rule / evidence item."
           }
         }
       }

@@ -170,14 +170,16 @@ Capability categories are drawn from the contract in `AGENTS.md` ("file read, co
 | Shell execution — state-changing (install, migrate, deploy) | ❌ | ✅ | ❌ |
 | Shell execution — verification-only (run tests, build, lint) | ✅ (optional) | ✅ | ✅ |
 | Network fetch (docs lookup, API spec) | ✅ | ✅ | ✅ |
-| Sub-agent delegation (spawn downstream role) | ✅ (may spawn Implementers) | ❌ | ❌ |
+| Canonical-role delegation (spawn another Planner / Implementer / Reviewer) | ✅ (may spawn Implementers only) | ❌ | ❌ |
+| Non-canonical sub-agent delegation (research / code-explorer / test-writer / reference-sampler / audit / surface-investigator — `reference-implementations/roles/role-composition-patterns.md` Patterns 1–6) | ✅ (Patterns 1, 2, 5) | ✅ (Pattern 3) | ✅ (Patterns 4, 6) |
 
 **Why each row is shaped this way:**
 
 - **Planner has no write tools** — forces the Planner output into the manifest (fields + Task Prompt), not into code. If the Planner could edit, the temptation to "just fix this small thing" would collapse the Plan/Implement handoff.
 - **Reviewer has no write tools** — forces the Reviewer output into `review_notes` + `approvals`, not into code. If the Reviewer could edit, it would become its own Implementer and "self-approve" its fix — nullifying the external-review property. This is the single most important rule in the table.
 - **Reviewer may run verification-only shell** — tests / builds / linters are non-mutating and are what the Reviewer is reviewing. Read-only shell (`git log`, `ls`, `kubectl get`) is also allowed.
-- **Only Planner may spawn sub-agents** — keeps the execution tree flat. Implementers do not recurse into further Implementers; if decomposition is needed, return to Plan.
+- **Only Planner may delegate canonical roles** — keeps the canonical-role execution tree flat. Implementers do not recurse into further Implementers; Reviewers do not spawn other Reviewers; if decomposition of a canonical role is needed, return to Plan. This row is about the **Planner → Implementer → Reviewer chain**, not about sub-agents in general.
+- **Non-canonical sub-agents are a separate capability** — each canonical role may internally delegate to a non-canonical sub-agent per the patterns in `reference-implementations/roles/role-composition-patterns.md`. A non-canonical sub-agent inherits the canonical role's envelope (cannot receive capabilities the parent lacks), uses a distinct identity (anti-collusion), does not write manifest fields directly, and does not count as "another canonical role in the chain." The canonical role remains fully accountable for the output. Runtimes that cannot grant distinct identities cannot support this capability and must collapse it back to serial single-role work.
 - **File read / code search / network fetch are universal** — every role needs to understand reality; read capabilities are never the bottleneck.
 
 **Runtime enforcement**: each runtime bridge (Claude Code, Cursor, Gemini CLI, Windsurf, Codex, …) is expected to translate this matrix into that runtime's agent / permission mechanism. See `/how-to-use-this-plugin-in-different-runtimes` in `AGENTS.md`. Where a runtime cannot enforce a column mechanically, the bridge must document the gap and fall back to prose-only enforcement; the methodology still holds, the enforcement guarantee weakens.

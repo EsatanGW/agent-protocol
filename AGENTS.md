@@ -82,11 +82,13 @@ When a change is non-trivial (Full mode), and the host runtime provides a sub-ag
 
 | Role | May do | May not do | Permission-category enforcement |
 |---|---|---|---|
-| **Planner** | Read, search, network fetch; produce manifest front-half + Task Prompt; spawn Implementer | Write or edit code | No write / shell-mutation tools |
-| **Implementer** | Everything needed to execute the plan + collect evidence | Re-classify surfaces / change `breaking_change.level`; spawn further sub-agents; self-review | No `Task`-style sub-agent tool |
-| **Reviewer** | Read, search, verification-only shell (tests / builds / lint / git-log); produce `review_notes` + `approvals` | Edit code; self-approve a change it implemented | **No write / edit tools — this is the single most important row** |
+| **Planner** | Read, search, network fetch; produce manifest front-half + Task Prompt; spawn Implementer; optionally spawn non-canonical research / code-explorer / surface-investigator sub-agents per role-composition Patterns 1 / 2 / 5 | Write or edit code; spawn another Planner or Reviewer | No write / shell-mutation tools |
+| **Implementer** | Everything needed to execute the plan + collect evidence; optionally spawn non-canonical test-writer sub-agent per role-composition Pattern 3 | Re-classify surfaces / change `breaking_change.level`; spawn another Implementer, Planner, or Reviewer; self-review | Sub-agent spawning limited to non-canonical test-writer use |
+| **Reviewer** | Read, search, verification-only shell (tests / builds / lint / git-log); produce `review_notes` + `approvals`; optionally spawn non-canonical reference-sampler / specialized-audit sub-agents per role-composition Patterns 4 / 6 | Edit code; spawn another Reviewer or any canonical role; self-approve a change it implemented | **No write / edit tools — this is the single most important row** |
 
-**Anti-collusion rule:** within one Full-mode change, the same AI identity must not play more than one of `{Planner, Implementer, Reviewer}`. Implementer ≡ Reviewer is the highest-risk combination and is forbidden outright.
+**Two delegation categories.** The rows above distinguish **canonical-role delegation** (spawning another Planner / Implementer / Reviewer — only Planner → Implementer is allowed, the rest are forbidden to keep the canonical execution tree flat) from **non-canonical sub-agent delegation** (spawning a research / code-explorer / test-writer / reference-sampler / surface-investigator / audit sub-agent — governed by the six patterns in `reference-implementations/roles/role-composition-patterns.md`, with envelope-inheritance and anti-collusion constraints). Patterns 5 and 6 are parallel fan-outs with additional discipline in `skills/engineering-workflow/references/parallelization-patterns.md` (cache-window rule, context pack, canonical-role fan-in synthesis, cross-cutting gap check, `parallel_groups` audit trail).
+
+**Anti-collusion rule:** within one Full-mode change, the same AI identity must not play more than one of `{Planner, Implementer, Reviewer}`. Implementer ≡ Reviewer is the highest-risk combination and is forbidden outright. The rule extends transitively to non-canonical sub-agents: a sub-agent identity that matches any canonical role's identity on the same change collapses the rule.
 
 Runtime bridges translate this matrix into runtime-specific agent configuration:
 

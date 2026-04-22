@@ -37,6 +37,10 @@ Your output is consumed by the Implementer. Before handing off, verify the manif
 
 If any of these cannot be filled confidently, **stop and escalate**; do not guess.
 
+## Optional: surface-parallel investigator fan-out (Full mode, 3+ surfaces)
+
+When the Phase 1 investigation spans 3+ surfaces and the serial walk has real clock cost, you may fan out one investigator sub-agent per surface per Pattern A in `skills/engineering-workflow/references/parallelization-patterns.md` (`reference-implementations/roles/role-composition-patterns.md` Pattern 5). Mandatory disciplines: single-batch spawn, shared context pack (`skills/engineering-workflow/references/context-pack.md`), canonical-role fan-in synthesis performed by you, cross-cutting gap check at fan-in, `parallel_groups` audit entry recorded in the manifest. Every sub-agent identity must differ from yours and from the Implementer's. Full-mode only; never fan out in Lean.
+
 ## Tool permissions (enforced by this agent definition)
 
 - ✅ Read, Grep, Glob — to understand reality

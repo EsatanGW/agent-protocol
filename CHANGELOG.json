@@ -1,6 +1,72 @@
 {
   "releases": [
     {
+      "version": "1.11.0",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "Parallelization patterns reference (`skills/engineering-workflow/references/parallelization-patterns.md`)",
+            "body": "new normative execution-layer reference defining two canonical parallel sub-agent fan-out patterns: **Pattern A — Phase 1 surface-parallel investigators** (Planner-owned; 2–4 read-only investigators per surface, single-batch spawn, Planner performs fan-in synthesis), and **Pattern B — Phase 5 specialized audit fan-out** (Reviewer-owned; security / cross-cutting / evidence-reference / acceptance-coverage sub-agents inheriting the Reviewer's read-only envelope, Reviewer performs fan-in synthesis). Five mandatory disciplines lifted out of principle 9 to the sub-agent layer: (1) **cache-window rule** — fan-out sub-agents are spawned in a single tool-call batch so the prompt-cache prefix hits; serial spawning erases the parallelization benefit; (2) **context pack rule** — every fan-out shares a pre-distilled context artifact so sub-agents do not redundantly re-read `docs/`; (3) **fan-in discipline** — synthesis is performed by the canonical role itself, never delegated, with every sub-agent return read in full; (4) **cross-cutting gap check** — the specific failure mode parallelization introduces is a gap visible only in the intersection of two sub-agents' findings; the check asks for union-emergent gaps, contradictions between sub-agents, and suspiciously empty returns; (5) **audit trail** — the fan-out is recorded in the manifest's new `parallel_groups` field. Full-mode only; Lean / Zero-ceremony explicitly excluded by the existing role-composition contract. Phase applicability table included: Phase 1 → Pattern A; Phase 5 → Pattern B; Phase 4 intentionally has no parallel pattern (Pattern 3 covers serial Implementer + test-writer composition)."
+          },
+          {
+            "title": "Context pack reference and template (`skills/engineering-workflow/references/context-pack.md` + `skills/engineering-workflow/templates/context-pack-template.md`)",
+            "body": "new session-scoped working-space artifact shared across every sub-agent in a fan-out group, so sub-agents do not each re-read the full methodology tree. Purpose: keep fan-out economics net-positive and increase sub-agent consistency (shared SoT candidates, shared surface list, shared terminology). Six required contents: change identity, pre-classified SoT candidates, surfaces in scope with sub-agent scope boundaries, terminology snapshot, hard boundaries, return-slot shape. Four exclusions: full document copies, the Change Manifest itself, implementation diffs, cross-role context. Budget: under 400 words typically; hard cap 800 (symmetric with the handoff-prompt budget). Lives in working space per Rule 5a; never persisted, never cited as evidence."
+          },
+          {
+            "title": "Patterns 5 and 6 in `reference-implementations/roles/role-composition-patterns.md`",
+            "body": "non-normative companion to the new normative parallelization doc. Pattern 5 (Planner + surface-parallel investigators) and Pattern 6 (Reviewer + specialized audit fan-out) extend the existing four serial patterns with the parallel variant. The existing \"three canonical roles remain canonical\" invariant is unchanged; fan-out sub-agents are still non-canonical, still have distinct identities, still inherit envelope, still do not write manifest fields. TL;DR and \"What this document is not\" sections updated from \"four patterns\" → \"six patterns\"; anti-pattern table gains three parallel-specific entries (serial spawn of fan-out, missing `parallel_groups` entry, missing cross-cutting gap check)."
+          },
+          {
+            "title": "`parallel_groups` Change Manifest field (`schemas/change-manifest.schema.yaml` + `schemas/change-manifest.schema.json` + `docs/change-manifest-spec.md`)",
+            "body": "new optional top-level array recording every parallel fan-out that occurred within the change. Each entry captures: `owning_role` + `owning_identity` (canonical role that fanned out), `phase`, `pattern` (enum `A_surface_investigators` / `B_specialized_audit` / `other`), `context_pack_summary`, `sub_agents` (`minItems: 2` / `maxItems: 4` — a 1-wide fan-out is a serial sub-agent call, a >4-wide fan-out degrades cross-cutting visibility), and `synthesis` (with `performed_by_identity` that MUST equal `owning_identity`, `manifest_fields_written`, and `cross_cutting_gap_check` recording gaps / contradictions / empty returns). Backward-compatible: pre-1.11 manifests and Full-mode changes that did not fan out both validate without this field. What is NOT valid is a fan-out that happened but was not recorded — that is a contract escape at the audit layer. The Reviewer's audit responsibility for this field documented alongside: verify the owning identity, verify anti-collusion across sub-agent identities, verify synthesis identity equals owning identity, verify the manifest fields named were actually populated, verify the gap-check lists concrete items or explicitly records \"none found.\""
+          },
+          {
+            "title": "Glossary entries — Fan-out, Fan-in (synthesis), Context pack, Parallel group (`docs/glossary.md`)",
+            "body": "four new canonical terms in the Process section, sibling to `Resume mode` / `State snapshot` / `Cross-Change Knowledge Note (CCKN)`. Each term cross-references its normative source per the glossary's own usage rules."
+          },
+          {
+            "title": "Phase-file fan-out cues (`skills/engineering-workflow/phases/phase1-investigate.md` + `phases/phase5-review.md`)",
+            "body": "terse one-paragraph additions pointing to Pattern A / Pattern B respectively, with the \"Full-mode only; never in Lean\" constraint surfaced at the phase-file level. Phase files remain the 20–40-line size-style the skill uses."
+          },
+          {
+            "title": "Phase-4 eager evidence collection rule (`skills/engineering-workflow/phases/phase4-implement.md`)",
+            "body": "new rule: populate `evidence_plan.artifacts` as each sub-task's verification completes, not batched to end-of-Phase-4. Session interrupts during implementation are common; evidence batched to the end is evidence lost on interrupt. Tier-`critical` evidence (schema §evidence_plan.tier from 1.8.0) is highest priority for eager capture."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`docs/multi-agent-handoff.md` tool-permission matrix — canonical vs non-canonical delegation split",
+            "body": "the single \"Sub-agent delegation (spawn downstream role)\" row is split into two rows to resolve a long-standing imprecision: (1) **Canonical-role delegation** — spawning another Planner / Implementer / Reviewer — only the Planner may spawn an Implementer; Implementer and Reviewer are forbidden from spawning canonical roles (keeps the canonical execution tree flat); (2) **Non-canonical sub-agent delegation** — spawning a research / code-explorer / test-writer / reference-sampler / surface-investigator / audit sub-agent per `reference-implementations/roles/role-composition-patterns.md` Patterns 1–6 — allowed to each canonical role for its own patterns, with envelope-inheritance and anti-collusion constraints. The rationale bullets are rewritten to match: \"Only Planner may spawn sub-agents\" was imprecise (Patterns 1–6 imply otherwise and have been in the repo since 1.8.0); the rule was always about canonical-role chains, never about internal sub-agent decomposition. No semantic regression — the stricter interpretation of the pre-1.11 wording would have invalidated Pattern 3 and Pattern 4 which were legal, and this release makes the scope explicit without loosening the canonical-chain constraint."
+          },
+          {
+            "title": "`AGENTS.md` §7 multi-agent role separation table",
+            "body": "the per-role May do / May not do columns updated to match the canonical / non-canonical delegation split. Planner may optionally spawn research / code-explorer / surface-investigator sub-agents (Patterns 1, 2, 5); Implementer may optionally spawn a test-writer sub-agent (Pattern 3); Reviewer may optionally spawn reference-sampler / audit sub-agents (Patterns 4, 6). The anti-collusion rule gains an explicit transitivity clause covering sub-agent identities. A new \"Two delegation categories\" paragraph below the table makes the distinction visible at the contract layer, not only in the deep reference."
+          },
+          {
+            "title": "`agents/reviewer.md` and `reference-implementations/roles/reviewer.md`",
+            "body": "the `tools:` frontmatter in the Claude Code reviewer gains `Task` (exclusively for non-canonical audit sub-agents; never to spawn another canonical role). The prose \"Reviewers are terminal, not decomposing\" line is rewritten to \"terminal at the canonical-role layer\" — terminal about spawning canonical roles, but allowed to invoke non-canonical audit sub-agents per Patterns 4 and 6. Capability-envelope table in the reference implementation splits the old single-row into \"Canonical-role sub-agent delegation: ❌\" and \"Non-canonical audit sub-agent delegation: ✅\" with the envelope-inheritance constraint. Closes the 1.8.0-era gap where Pattern 4 was documented in role-composition-patterns but mechanically unsupported by the bundled Reviewer agent."
+          },
+          {
+            "title": "`agents/planner.md`, `agents/reviewer.md`, and their reference-implementations mirrors",
+            "body": "each gains a short \"Optional: fan-out\" section pointing at the corresponding parallelization pattern, the context pack, and the `parallel_groups` audit requirement. Terse pointers only — the normative content lives in the reference doc."
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/subagent-strategy.md`",
+            "body": "expanded from 8 lines to ~50 lines. The original three base rules (independent tasks only, dependent tasks serial, review cannot be skipped) are preserved at the top; serial composition (Patterns 1–4) and parallel composition (Patterns 5–6) are named with trigger conditions; a discipline summary table maps each parallelization concern to its canonical source."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` — principle 9 extended to the sub-agent layer + Investigate / Review phase blocks",
+            "body": "principle 9 (\"Batch independent tool calls in a single message\") gains a sub-agent-layer clause: parallel fan-out spawns all sub-agents in a single batch because serial spawning breaks the prompt-cache window. The Investigate phase block gains the Pattern A cue; the Review phase block gains the Pattern B cue, including the fan-in / anti-rationalization / cross-cutting-gap-check responsibilities. Quick-refresher list links to the two new reference docs."
+          },
+          {
+            "title": "Version bump",
+            "body": "`plugin.json`, `marketplace.json`, `README.md` badge, and `CHANGELOG` latest-release heading all agree on `1.11.0`. Schema change: `schemas/change-manifest.schema.yaml` and `schemas/change-manifest.schema.json` both gain the optional `parallel_groups` property; the addition is backward-compatible. YAML and JSON mirrors verified to parse."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.0",
       "date": "2026-04-22",
       "sections": {

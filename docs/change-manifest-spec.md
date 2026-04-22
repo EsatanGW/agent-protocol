@@ -587,6 +587,58 @@ waivers:
 
 ---
 
+## `parallel_groups` — fan-out audit trail
+
+Optional top-level array. Each entry records one **parallel sub-agent fan-out** that occurred during the change, per `skills/engineering-workflow/references/parallelization-patterns.md` and `reference-implementations/roles/role-composition-patterns.md` Patterns 5–6. Purpose is audit, not scheduling — the manifest records fan-out *as it happened* so a Reviewer can confirm canonical-role-performs-synthesis and anti-collusion were honored.
+
+Backward-compatible: pre-1.11 manifests and Full-mode changes that did not fan out both validate without this field. What is **not** valid is a fan-out that happened but was not recorded — that is a contract escape at the audit layer. Lean mode fan-outs do not exist (`role-composition-patterns.md` §When); an entry claiming `owning_role` in Lean mode is itself a composition failure.
+
+```yaml
+parallel_groups:
+  - group_id: "phase1-surfaces"
+    owning_role: planner
+    owning_identity: "planner-alice"       # must match an entry in authors[]
+    phase: investigate
+    pattern: A_surface_investigators       # enum: A_surface_investigators | B_specialized_audit | other
+    context_pack_summary: "4 surfaces in scope; SoT candidates pre-classified; return-slot shape fixed."
+    sub_agents:
+      - identity: investigator-user-surface
+        scope: "User surface sweep — copy, routes, state visibility"
+        capability_envelope: read+search
+        return_location: ".working/pg-phase1-surfaces/user.yaml"
+      - identity: investigator-information-surface
+        scope: "Information surface — schema, enums, validation"
+        capability_envelope: read+search
+        return_location: ".working/pg-phase1-surfaces/info.yaml"
+      - identity: investigator-system-interface
+        scope: "System interface surface — API + events"
+        capability_envelope: read+search
+        return_location: ".working/pg-phase1-surfaces/system.yaml"
+    synthesis:
+      performed_by_identity: "planner-alice"   # MUST equal owning_identity
+      timestamp: "2026-04-22T10:05:00Z"
+      manifest_fields_written: [sot_map, surfaces_touched, consumers]
+      cross_cutting_gap_check:
+        performed: true
+        gaps_found:
+          - "User-surface sweep found the pre-rename copy; information-surface sweep renamed the enum — neither noticed the intersection."
+        contradictions_found: []
+        suspiciously_empty_returns: []
+```
+
+**Rules:**
+
+- `sub_agents` has `minItems: 2` (a 1-wide fan-out is a serial sub-agent call — use Patterns 1–4, not an under-scoped fan-out record) and `maxItems: 4` (past 3 parallel returns, fan-in cross-cutting visibility degrades; larger groups signal over-scoped decomposition).
+- `synthesis.performed_by_identity` **must equal** `owning_identity`. Synthesis is never delegated per `role-composition-patterns.md` §The invariant — a mismatch is a composition escape. The schema marks this as a normative constraint; validators enforce it.
+- `synthesis.manifest_fields_written` is required and non-empty. A fan-out that wrote no fields produced no value.
+- `synthesis.cross_cutting_gap_check.performed` must be `true`. `false` is a composition failure, not a valid outcome — the cross-cutting gap check is the single highest-value step in a fan-out and the one parallelization most commonly silently skips.
+- Every sub-agent identity must differ from every canonical role identity on this change (anti-collusion) and from every other sub-agent identity in this group.
+- `pattern: other` requires a non-empty `context_pack_summary` so the non-standard fan-out is explicable at audit time.
+
+**When the Reviewer audits this field** (see `agents/reviewer.md` and `parallelization-patterns.md` §Fan-in discipline): for any `parallel_groups` entry, verify — (1) `owning_identity` appears in `authors[]`; (2) each sub-agent identity does not; (3) synthesis identity equals owning identity; (4) the manifest fields named in `manifest_fields_written` actually exist and were populated by this change; (5) the cross-cutting gap check lists concrete items or explicitly records "none found." A group passing structural validation but missing substantive gap-check output is the exact failure Anti-Rationalization Rule 3 catches at the Reviewer level.
+
+---
+
 ## AI-hygiene fields
 
 These fields exist because AI acts as a co-author; they map to `docs/ai-operating-contract.md`.

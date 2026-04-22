@@ -1,7 +1,7 @@
 # Role Composition Patterns
 
 > **English TL;DR**
-> Canonical roles remain Planner / Implementer / Reviewer. When a single role's cognitive load is genuinely too large for one agent invocation, it may internally delegate to *non-canonical* sub-agents — but the canonical role stays the sole writer of manifest fields and the sole party bound by the anti-collusion rule. Sub-agents are tools the canonical role uses; they are not additional roles.
+> Canonical roles remain Planner / Implementer / Reviewer. When a single role's cognitive load is genuinely too large for one agent invocation, it may internally delegate to *non-canonical* sub-agents — but the canonical role stays the sole writer of manifest fields and the sole party bound by the anti-collusion rule. Sub-agents are tools the canonical role uses; they are not additional roles. Six pattern sketches: four serial (research, code-explorer, test-writer, reference-sampler) and two parallel fan-out (surface-parallel investigators in Phase 1, specialized audit fan-out in Phase 5 — see `skills/engineering-workflow/references/parallelization-patterns.md` for their execution discipline).
 
 This document is **non-normative**. The canonical operating contract is `docs/multi-agent-handoff.md` — three roles, explicit field ownership, anti-collusion rule. This document addresses a question that arises in practice: *what if one agent invocation cannot comfortably do everything a Planner / Implementer / Reviewer is asked to do?* The answer here is a set of composition patterns that preserve the three-role contract while letting a role decompose its internal work.
 
@@ -34,9 +34,11 @@ Composition does **not** introduce new canonical roles. Planner / Implementer / 
 
 ---
 
-## Four pattern sketches
+## Pattern sketches
 
 These are sketches, not prescriptions. Each is valid but optional; a team adopting this plugin may use zero of them and still be fully compliant with the operating contract.
+
+Patterns 1–4 describe **serial** composition (the canonical role calls a sub-agent, waits, reads the return, continues). Patterns 5 and 6 describe **parallel** composition (fan-out / fan-in) and have their own execution discipline in [`../../skills/engineering-workflow/references/parallelization-patterns.md`](../../skills/engineering-workflow/references/parallelization-patterns.md) — the invariants in this document still apply to them, but the parallelization doc adds cache-window, context-pack, and cross-cutting-gap-check rules on top.
 
 ### Pattern 1 — Planner + research sub-agent
 
@@ -68,6 +70,40 @@ A Reviewer facing a manifest with many cited identifiers can delegate a **refere
 
 **Anti-collusion specifically here.** The reference-sampler's identity must differ from the Implementer whose work is being audited. A reference-sampler that shares identity with the Implementer is auditing itself — Anti-Rationalization Rule 5 (edit-through-the-back-door) is one language-level expression of what this rule prevents structurally.
 
+### Pattern 5 — Planner + surface-parallel investigators (fan-out)
+
+A Planner facing a multi-surface Full-mode change (typically 3+ surfaces) can spawn one **investigator sub-agent per surface** in a single batch, each scoped to that surface only, and consolidate their structured returns into `sot_map`, `surfaces_touched`, and `consumers`. Unlike Pattern 2 (one code-explorer sub-agent, serial), Pattern 5 is a *parallel* fan-out — typically 2–4 investigators spawned together.
+
+**Sub-agent capability envelope (per investigator):** file read, code search.
+**Sub-agent must not:** write manifest fields; cross into another investigator's surface; spawn further sub-agents; perform the fan-in synthesis itself.
+
+**Additional invariants beyond §The invariant above:**
+
+- Sub-agents are spawned in a **single tool-call batch**, not sequentially (cache-window rule in `parallelization-patterns.md`).
+- All investigators consume the same **context pack** produced by the Planner before spawn (`skills/engineering-workflow/references/context-pack.md`).
+- The Planner performs the **cross-cutting gap check** at fan-in — findings that emerge only from the intersection of two surfaces are the exact failure mode this pattern most often produces, and they are invisible to any individual investigator.
+- The fan-out is recorded in the manifest's `parallel_groups` field for audit.
+
+Full execution discipline: `skills/engineering-workflow/references/parallelization-patterns.md` §Pattern A.
+
+### Pattern 6 — Reviewer + specialized audit fan-out
+
+A Reviewer facing a Full-mode change whose audit surface is too large for a single invocation (many cross-cutting dimensions, many cited identifiers, tier-mixed evidence) can spawn specialized **audit sub-agents** in parallel — security audit, remaining cross-cutting dimensions, evidence-reference audit, acceptance-criterion coverage audit — each returning findings with severity. The Reviewer consolidates, applies the anti-rationalization rules, and writes `review_notes` and `approvals`.
+
+**Sub-agent capability envelope (per audit):** file read, code search, verification-only shell. Inherited from the Reviewer per §The invariant — **no write, no edit tools**.
+**Sub-agent must not:** write `review_notes`; subjectively rate evidence quality; approve or reject the change; downgrade the Reviewer's anti-rationalization triggers; spawn further sub-agents.
+
+**Additional invariants beyond §The invariant above:**
+
+- Every audit sub-agent's identity differs from the Planner's and the Implementer's on this change (anti-collusion applies transitively — sharing identity with the Implementer collapses audit into self-review, which is exactly Anti-Rationalization Rule 5 at the structural level).
+- Audits are spawned in a single batch (cache-window rule).
+- All audits consume the same Reviewer-produced context pack.
+- The Reviewer performs the cross-cutting gap check and records the fan-out in `parallel_groups`.
+
+Pattern 6 does **not** replace Pattern 4 (reference-sampler) — an evidence-reference audit under Pattern 6 is frequently implemented *using* Pattern 4 semantics as one of the parallel audits.
+
+Full execution discipline: `skills/engineering-workflow/references/parallelization-patterns.md` §Pattern B.
+
 ---
 
 ## Shape of a composition
@@ -94,6 +130,9 @@ The canonical role is accountable for the output regardless of how many sub-agen
 | Canonical role reports sub-agent's finding as its own without independent verification | Plausibly-complete narrative by proxy (the failure mode `docs/ai-operating-contract.md` §1 warns against) |
 | Composition used in Lean or Zero-ceremony mode | Introduces ceremony at a scale where the mode doesn't support it |
 | More than 3 levels of sub-agent nesting | Execution tree explosion; undiagnosable when something goes wrong |
+| Parallel fan-out spawned serially (Pattern 5 / 6) | Cache-window rule broken; parallelization cost paid without the benefit |
+| Parallel fan-out with no recorded `parallel_groups` entry | Audit-layer contract escape; Reviewer cannot verify synthesis ownership or anti-collusion |
+| Parallel fan-out without the cross-cutting gap check | The specific failure mode parallelization introduces — gaps invisible to any individual sub-agent but present in the union |
 
 ---
 
@@ -104,13 +143,16 @@ The canonical role is accountable for the output regardless of how many sub-agen
 - `docs/multi-agent-handoff.md` §Optional machine-readable pre-filter — a sibling pattern: the pre-filter is also a non-canonical sub-agent invocation, with the same identity-must-differ constraint
 - `docs/ai-operating-contract.md` §2a — reference-existence verification; applies to every sub-agent that cites an identifier
 - `agents/reviewer.md` anti-rationalization rules — still fire on the canonical Reviewer regardless of how many sub-agents fed it findings
+- `skills/engineering-workflow/references/parallelization-patterns.md` — execution discipline for Patterns 5 and 6 (cache-window rule, context pack, fan-in synthesis, cross-cutting gap check, `parallel_groups` audit)
+- `skills/engineering-workflow/references/context-pack.md` — the shared-context mechanism Patterns 5 and 6 both require
+- `schemas/change-manifest.schema.yaml` §parallel_groups — the audit-trail field for Patterns 5 and 6
 
 ---
 
 ## What this document is not
 
 - **Not a replacement for the three-role contract.** The three canonical roles remain the only roles with field ownership.
-- **Not a license to proliferate sub-agents.** Two sub-agents in a composition is a decomposition; nine sub-agents per role is a bureaucracy.
-- **Not a prescribed pattern.** Teams may use any, all, or none of the four patterns; the document exists to show that composition is possible without losing the contract.
+- **Not a license to proliferate sub-agents.** Two sub-agents in a composition is a decomposition; nine sub-agents per role is a bureaucracy. The parallel patterns cap at 4 sub-agents per fan-out group for the same reason.
+- **Not a prescribed pattern.** Teams may use any, all, or none of the six patterns; the document exists to show that composition is possible without losing the contract.
 
 If you find yourself unable to fit the composition into the four parts listed in §Shape of a composition, you do not have a composition — you have a proliferation. Return to the three-role contract and choose a different decomposition.

@@ -129,6 +129,30 @@ The core deliverable of Phase 7. The narrative version of delivery: what was don
 
 A single-file artifact recording **reusable knowledge that spans multiple changes** — library gotchas, third-party API quirks, platform-specific behavior, domain rules discovered once and referenced repeatedly. Distinct from the Change Manifest (per-change) and from the temporal memory tiers in `ai-project-memory.md` (session / project / organizational, which describe lifespan not topic). Every CCKN carries a `topics` index, a `scope` tag (library / domain-rule / external-api / platform-quirk), a verified-references section with dates, and a changelog tracking which change_ids extended it. Full definition: `docs/cross-change-knowledge.md`. Referenced from the Change Manifest via the optional `knowledge_notes_touched` field.
 
+### Fan-out
+
+A composition pattern in which a canonical role (Planner / Implementer / Reviewer) spawns multiple non-canonical sub-agents in parallel to cover sub-tasks whose concerns are mutually independent. Each sub-agent has a distinct identity per `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule, inherits the tool-permission envelope of the canonical role per `reference-implementations/roles/role-composition-patterns.md` §The invariant, and returns findings into a structured slot — never writes manifest fields directly.
+
+Fan-out is a **Full-mode-only** optimization; `role-composition-patterns.md` §When role composition is appropriate explicitly excludes Lean and Zero-ceremony. Canonical fan-out patterns: `skills/engineering-workflow/references/parallelization-patterns.md` (Phase 1 surface investigators, Phase 5 specialized audits).
+
+### Fan-in (synthesis)
+
+The consolidation step that closes a fan-out. The canonical role reads every sub-agent's structured return, performs the **cross-cutting check** (are there gaps the individual sub-agents each missed but the union reveals?), and writes the manifest field itself. Fan-in is never delegated — a sub-agent that performs synthesis has escaped composition.
+
+A fan-out with no recorded fan-in is a composition failure, not a completed fan-out. The `parallel_groups` manifest field enforces this structurally: `synthesis.performed_by_identity` must equal the owning role's identity. See `skills/engineering-workflow/references/parallelization-patterns.md` §Fan-in discipline.
+
+### Context pack
+
+A compact, pre-distilled bundle of change-scoped methodology context (the SoT patterns actually in play, surface definitions that apply, terminology the sub-agent needs) produced by a canonical role at the start of a fan-out and shared across every spawned sub-agent. Lives in session-scoped working space per `docs/phase-gate-discipline.md` Rule 5a — **not** a canonical artifact, not a handoff artifact, not persisted outside the change.
+
+Purpose: reduce per-sub-agent context cost when fan-out sub-agents would otherwise each re-read the full `docs/` tree. Not a substitute for the Change Manifest (which remains the state snapshot) or for `evidence_plan` citations. Canonical definition: `skills/engineering-workflow/references/context-pack.md`; template: `skills/engineering-workflow/templates/context-pack-template.md`.
+
+### Parallel group
+
+An optional manifest record of a single fan-out event. Each entry names: the owning canonical role and identity, the phase in which the fan-out occurred, the set of sub-agents spawned (identity + scope), and the synthesis record (who performed fan-in, which manifest fields were written from it). Purpose is audit, not scheduling — the manifest records fan-out *as it happened*, so a Reviewer can confirm canonical-role-performs-synthesis and anti-collusion were honored.
+
+Optional for backward compatibility — pre-1.11 manifests without `parallel_groups` remain valid. See `schemas/change-manifest.schema.yaml` §parallel_groups and `docs/change-manifest-spec.md` §Parallel groups.
+
 ---
 
 ## Classification terms

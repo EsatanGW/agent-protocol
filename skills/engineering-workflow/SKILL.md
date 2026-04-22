@@ -30,13 +30,15 @@ It is tool-agnostic: wherever a capability is named (e.g. "file read", "code sea
 6. If public behavior changed, handoff obligations increase
 7. Close every phase with an explicit gate; track multi-phase work in the repo's `ROADMAP.md`; commit at every passed gate when version control is available (`docs/phase-gate-discipline.md`)
 8. When the user hands over a spec document, read it in full before planning and re-reference it at every subsequent phase
-9. **Batch independent tool calls in a single message.** Serialize only when a later call needs the output of an earlier one. Unnecessary serialization pays the runtime's per-call round-trip cost for no gain; this is a real, measurable contributor to long-running stages.
+9. **Batch independent tool calls in a single message.** Serialize only when a later call needs the output of an earlier one. Unnecessary serialization pays the runtime's per-call round-trip cost for no gain; this is a real, measurable contributor to long-running stages. The same rule extends to the **sub-agent layer** in Full mode: a parallel fan-out (`references/parallelization-patterns.md` Patterns A and B) spawns all sub-agents in one batch — serial spawning breaks the prompt-cache window and erases the parallelization benefit.
 10. **Narration is not action.** When you state an intended action at a handoff or role-transition point (e.g. "calling X", "about to run Y"), the next emitted tokens must be the tool call itself — not a new sentence and not end-of-turn. See `docs/ai-operating-contract.md` §11 for the full rule; this is the specific failure mode that produced real-world "session stopped responding" crashes at role-handoff points.
 
 Quick refresher:
 - `references/core-principles.md`
 - `references/source-of-truth-quick-reference.md`
 - `references/cross-cutting-quick-check.md`
+- `references/parallelization-patterns.md` — when and how to fan out (Full mode only)
+- `references/context-pack.md` — shared-context mechanism for fan-out sub-agents
 
 ## The four core surfaces
 
@@ -152,6 +154,7 @@ Prioritize capabilities:
 - File read
 - Web fetch (if the request originates from a web UI or external docs)
 - Shell execution (only for runtime / build / log facts)
+- Sub-agent delegation, optional: Full mode with 3+ surfaces may fan out one read-only investigator sub-agent per surface per Pattern A (see `references/parallelization-patterns.md` and `phases/subagent-strategy.md`); the Planner performs fan-in synthesis, cross-cutting gap check, and records the fan-out in manifest `parallel_groups`. Lean mode does not fan out.
 
 ### Plan
 Prioritize capabilities:
@@ -176,7 +179,7 @@ Prioritize capabilities:
 Prioritize capabilities:
 - Code / text search
 - File read
-- Sub-agent delegation (for large review scopes or when an independent reviewer stance is useful)
+- Sub-agent delegation (for large review scopes or when an independent reviewer stance is useful). Full mode may fan out specialized read-only audit sub-agents per Pattern B (see `references/parallelization-patterns.md`): security audit, remaining cross-cutting dimensions, evidence-reference sampling, acceptance-criterion coverage. The Reviewer performs fan-in synthesis, applies the anti-rationalization rules, runs the cross-cutting gap check, and records the fan-out in `parallel_groups`. Audit sub-agents inherit the Reviewer's read-only envelope; their identities must differ from every canonical role's. Lean mode does not fan out.
 
 ### Sign-off / Deliver
 Prioritize capabilities:
