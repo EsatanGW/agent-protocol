@@ -1,6 +1,22 @@
 {
   "releases": [
     {
+      "version": "1.14.5",
+      "date": "2026-04-23",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`docs/phase-gate-discipline.md:95` — broken relative reference to `templates/lean-spec-template.md`.",
+            "body": "Rule 5a's Ceremony scaling block pointed at `templates/lean-spec-template.md`; the file actually lives at `skills/engineering-workflow/templates/lean-spec-template.md`. Under either reading convention (relative-to-file → `docs/templates/...`; repo-root → `templates/...`) the prior path did not resolve. Path corrected to `skills/engineering-workflow/templates/lean-spec-template.md`, matching this file's existing repo-root-path convention for all its other cross-reference links (`skills/engineering-workflow/references/resumption-protocol.md`, `skills/engineering-workflow/references/phase-minimums/*`, etc.). Discovered during the summary-vs-per-case audit on 2026-04-22 and recorded as a non-summary-vs-per-case finding in `docs/audits/summary-vs-per-case-registry.md`; now resolved."
+          },
+          {
+            "title": "`docs/audits/summary-vs-per-case-registry.md` — registry updated.",
+            "body": "The \"Other drift\" entry for the `phase-gate-discipline.md:95` broken reference receives a `**Resolved in 1.14.5** (2026-04-23)` note naming the correction and confirming the fix scope is isolated (the other `templates/change-manifest.example-*.yaml` references in `docs/` do resolve correctly against the repo-root `templates/` directory, so no accompanying edits were needed)."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.14.4",
       "date": "2026-04-22",
       "sections": {

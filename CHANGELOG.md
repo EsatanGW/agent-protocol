@@ -6,6 +6,21 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.14.5] - 2026-04-23
+
+### Fixed
+
+- **`docs/phase-gate-discipline.md:95` — broken relative reference to `templates/lean-spec-template.md`.** Rule 5a's Ceremony scaling block pointed at `templates/lean-spec-template.md`; the file actually lives at `skills/engineering-workflow/templates/lean-spec-template.md`. Under either reading convention (relative-to-file → `docs/templates/...`; repo-root → `templates/...`) the prior path did not resolve. Path corrected to `skills/engineering-workflow/templates/lean-spec-template.md`, matching this file's existing repo-root-path convention for all its other cross-reference links (`skills/engineering-workflow/references/resumption-protocol.md`, `skills/engineering-workflow/references/phase-minimums/*`, etc.). Discovered during the summary-vs-per-case audit on 2026-04-22 and recorded as a non-summary-vs-per-case finding in `docs/audits/summary-vs-per-case-registry.md`; now resolved.
+- **`docs/audits/summary-vs-per-case-registry.md` — registry updated.** The "Other drift" entry for the `phase-gate-discipline.md:95` broken reference receives a `**Resolved in 1.14.5** (2026-04-23)` note naming the correction and confirming the fix scope is isolated (the other `templates/change-manifest.example-*.yaml` references in `docs/` do resolve correctly against the repo-root `templates/` directory, so no accompanying edits were needed).
+
+### Scope confirmation
+
+Before the edit, a repo-wide grep for similar patterns (`\`templates/[a-z]` inside `docs/`) was run. Matches: `phase-gate-discipline.md:95` (the broken one) plus four other `templates/change-manifest.example-*.yaml` references in `change-manifest-spec.md`, `multi-agent-handoff.md`, and `onboarding/orientation.md`. Those four all resolve correctly because `templates/change-manifest.example-*.yaml` files **do** exist at the repo root — only `lean-spec-template.md` was misplaced, because it lives under `skills/engineering-workflow/templates/`. The audit therefore required a single-file single-line edit with no ripple.
+
+### Why patch, not minor
+
+Single broken-link fix + one audit-artifact status update. No methodology, schema, or procedural change. Matches `VERSIONING.md` patch category ("*typo fixes, small example fixes*"). All prior CHANGELOG entries preserved verbatim per `CLAUDE.md §3`.
+
 ## [1.14.4] - 2026-04-22
 
 ### Fixed

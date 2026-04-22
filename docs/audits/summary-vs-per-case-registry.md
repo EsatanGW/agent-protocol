@@ -164,7 +164,7 @@ These are summary-vs-per-case gaps where "drift" depends on how strictly the sum
 
 ## Other drift (not summary-vs-per-case, but observed during the sweep)
 
-- **`docs/phase-gate-discipline.md:95`** — Rule 5a references `templates/lean-spec-template.md`. Actual file location: `skills/engineering-workflow/templates/lean-spec-template.md`. The current path is broken for both reading conventions (relative-to-this-file → `docs/templates/...` doesn't exist; repo-root → `templates/` also doesn't have this file). Not a summary-vs-per-case issue but a real broken link.
+- **`docs/phase-gate-discipline.md:95`** — Rule 5a references `templates/lean-spec-template.md`. Actual file location: `skills/engineering-workflow/templates/lean-spec-template.md`. The current path is broken for both reading conventions (relative-to-this-file → `docs/templates/...` doesn't exist; repo-root → `templates/` also doesn't have this file). Not a summary-vs-per-case issue but a real broken link. **Resolved in 1.14.5** (2026-04-23): path corrected to `skills/engineering-workflow/templates/lean-spec-template.md` matching the file's own repo-root-path convention (cross-referenced by `grep -n "skills/engineering-workflow" docs/phase-gate-discipline.md` which showed 5 existing matches all using repo-root form). Confirmed the fix was isolated: the other three `templates/change-manifest.example-*.yaml` references in `docs/` all resolve correctly against the repo-root `templates/` directory, so no accompanying edits were needed.
 
 ---
 

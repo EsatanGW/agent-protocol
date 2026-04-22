@@ -92,7 +92,7 @@ Why: without a working space, the agent writes thinking-in-progress into the can
 Ceremony scaling:
 
 - **Zero-ceremony mode** — the rule is waived. If there is no ROADMAP and no manifest, there is no phase boundary that needs a buffered artifact.
-- **Lean mode** — the rule applies at least once, before the Implementer begins coding. The minimal-plan artifact in `templates/lean-spec-template.md` is the typical recipient.
+- **Lean mode** — the rule applies at least once, before the Implementer begins coding. The minimal-plan artifact in `skills/engineering-workflow/templates/lean-spec-template.md` is the typical recipient.
 - **Full mode** — the rule applies at every phase boundary. Every Manifest fragment, every ROADMAP row, every `review_notes` entry passes through a working space first.
 
 Runtime-specific bridges (`docs/bridges/*`) should document the recommended working-space location for each host runtime. This file does not prescribe the location — only the property.

@@ -41,6 +41,32 @@ _None._
 
 ## Closed initiatives
 
+## phase-gate-lean-spec-template-path — close the broken cross-reference recorded in the audit's "other drift" note (patch 1.14.5)
+
+- **Opened:** 2026-04-23
+- **Closed:** 2026-04-23
+- **Driver:** `docs/audits/summary-vs-per-case-registry.md` §Other drift recorded a broken relative reference at `docs/phase-gate-discipline.md:95` (`templates/lean-spec-template.md` resolved to neither `docs/templates/...` nor repo-root `templates/`; the file actually lives at `skills/engineering-workflow/templates/lean-spec-template.md`). The audit deliberately classified it outside the (a)/(b)/(c) summary-vs-per-case buckets because it is a cross-reference-path drift class, not a summary / per-case mismatch. It was left open after 1.14.4 because the 1.14.4 scope was strictly the eight (a) findings. The registry's "don't silently re-ship with known findings" rule applies to all recorded findings, summary-vs-per-case or not — closing this is the minimum honest follow-up.
+- **Status:** closed
+- **Target version:** 1.14.5 (patch — single broken-link fix + audit-artifact update; no methodology / schema / procedural change)
+- **Mode:** Lean (patch-sized, 1 line edit + 1 registry update + version bump + CHANGELOG; all prior CHANGELOG entries preserved verbatim per `CLAUDE.md §3`)
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Open this ROADMAP entry | `ROADMAP.md` initiative row | Initiative section renders per `docs/phase-gate-discipline.md` Rule 1 | ✅ passed | _(this change)_ | Opened before edits per phase-gate discipline |
+| P1 | Investigate — verify the reference is still broken + determine correct path + check for ripple | `ls templates/lean-spec-template.md` → not found; `ls docs/templates/lean-spec-template.md` → not found; `find . -name lean-spec-template*` → `skills/engineering-workflow/templates/lean-spec-template.md` (confirmed actual location); `grep -n "skills/engineering-workflow" docs/phase-gate-discipline.md` → 5 existing matches all using the repo-root form, so that is the file's convention; `grep -rn "\`templates/[a-z]" docs/` → 4 other matches, all pointing at `templates/change-manifest.example-*.yaml` which **do** exist at repo root, so those are fine. Single-file single-line fix | ✅ passed | _(this change)_ | Scope confirmed isolated pre-edit |
+| P2 | Fix the path | `docs/phase-gate-discipline.md:95` path corrected from `templates/lean-spec-template.md` to `skills/engineering-workflow/templates/lean-spec-template.md` | `grep -c "skills/engineering-workflow/templates/lean-spec-template.md" docs/phase-gate-discipline.md` returns 1; `grep -c "\`templates/lean-spec-template" docs/phase-gate-discipline.md` returns 0 | ✅ passed | _(this change)_ | Minimal edit |
+| P3 | Update audit registry + CHANGELOG + version bump + close ROADMAP | `docs/audits/summary-vs-per-case-registry.md` "Other drift" entry gets a `**Resolved in 1.14.5** (2026-04-23)` note with the specific correction + scope-confirmation sentence; `CHANGELOG.md` new `[1.14.5] - 2026-04-23` entry with Fixed / Scope-confirmation / Why-patch sections; `plugin.json` + `marketplace.json` + `README.md` badge `1.14.4 → 1.14.5`; `CHANGELOG.json` regenerated (25 releases); this initiative moved to Closed | `sh .github/scripts/check-version-consistency.sh` reports `OK: all five declarations agree on 1.14.5`; regenerate script reports `wrote CHANGELOG.json (25 releases)`; full validation suite passes | ✅ passed | _(this change)_ | Standard patch-release procedure per `VERSIONING.md` |
+
+### Phase log
+
+- Why patch, not minor: single broken-link fix + audit-artifact update. `VERSIONING.md` patch category: "*typo fixes, small example fixes.*"
+- Why one commit, not bundled with 1.14.4: 1.14.4's scope was the eight (a) findings from the summary-vs-per-case audit. The broken-link class lives outside that bucket in the registry (explicitly under "Other drift"), and folding it in would have muddied the 1.14.4 story ("eight TL;DR fixes, all in the same drift pattern, same conservative direction"). Keeping this as its own patch preserves the audit-to-patch provenance rule stated in 1.14.4's CHANGELOG — every audit finding gets its own closure, traceable forward.
+- Why path corrected rather than file moved: the file's actual location (`skills/engineering-workflow/templates/lean-spec-template.md`) is correct per the skill layout; moving it to repo-root `templates/` would break the three skill-internal references (`skills/engineering-workflow/README.md:34` and `skills/engineering-workflow/SKILL.md:265`, both relative-to-file `templates/`) and would misplace a skill-specific template. Fixing the cross-reference in `docs/` to match the file's real location is the correct direction.
+- Scope boundary: this patch does NOT expand to a repo-wide broken-link audit. Only the single recorded finding is addressed. A broader link-validation audit is a separate initiative candidate (comparable scope to the summary-vs-per-case audit).
+- Closed 2026-04-23 at commit `(this change)` after all four phases passed.
+
+---
+
 ## summary-vs-per-case-resolution — close the eight (a) findings from the summary-vs-per-case audit (patch 1.14.4)
 
 - **Opened:** 2026-04-22
