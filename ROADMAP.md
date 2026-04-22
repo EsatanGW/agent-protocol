@@ -41,6 +41,32 @@ _None._
 
 ## Closed initiatives
 
+## cckn-consumer-full-sweep — complete the CCKN consumer audit that 1.14.0–1.14.2 skipped (patch 1.14.3)
+
+- **Opened:** 2026-04-22
+- **Closed:** 2026-04-22
+- **Driver:** A user-requested post-1.14.2 audit exposed that the CCKN review that 1.14.0 / 1.14.1 / 1.14.2 each performed had scoped itself to the canonical file (`docs/cross-change-knowledge.md`) plus three named consumers (`glossary.md`, `phase1-investigate.md`, `SKILL.md`). The actual CCKN footprint is 10 files — adding `docs/ai-project-memory.md`, `docs/operational-cheat-sheet.md`, `docs/onboarding/when-not-to-use-this.md`, `reference-implementations/roles/role-composition-patterns.md`, `skills/engineering-workflow/references/context-pack.md`, and `skills/engineering-workflow/templates/context-pack-template.md`. Sweeping all ten surfaced two stale "Stage 2" qualifiers: `operational-cheat-sheet.md:60` said "*CCKN pattern — ... (pending Stage 2)*" and `onboarding/when-not-to-use-this.md:98` said "*(CCKN, once Stage 2 lands)*". Both markers framed CCKN as unshipped. Git history confirms they refer to an internal "Stage 2 schema changes" roadmap phase per commit `bebd9c3` (2026-04-21 00:48); the CCKN schema + canonical doc actually shipped in the **next** commit `596e5bb` at 2026-04-21 00:49 — one minute later. The markers have been stale since 1.8.0 (the release containing `596e5bb`). None of 1.14.0 / 1.14.1 / 1.14.2 caught them because the audit radius was three files, not ten.
+- **Status:** closed
+- **Target version:** 1.14.3 (patch — two wording edits removing stale qualifiers; no methodology / schema / procedural change)
+- **Mode:** Lean (patch-sized, 2 doc edits + version bump + CHANGELOG with named audit scope; CHANGELOG entries for 1.14.0–1.14.2 preserved verbatim per `CLAUDE.md §3`)
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Open this ROADMAP entry | `ROADMAP.md` initiative row | Initiative section renders per `docs/phase-gate-discipline.md` Rule 1 | ✅ passed | _(this change)_ | Opened before edits per phase-gate discipline |
+| P1 | Investigate — full CCKN consumer list | Enumerate every file mentioning "CCKN" across `docs/`, `skills/`, `reference-implementations/`; read each for stale claims or drift; cross-check against schema description | `cd <root> && grep -rln CCKN docs skills reference-implementations` returned 10 files; each read in full in the conversation; stale markers found at `operational-cheat-sheet.md:60` and `onboarding/when-not-to-use-this.md:98`; all other 8 files were pointers or consistent normative content; `git log -p bebd9c3 -- docs/onboarding/when-not-to-use-this.md` confirmed the "Stage 2" reference is to an internal roadmap phase that shipped one commit later | ✅ passed | _(this change)_ | Full list recorded in the 1.14.3 CHANGELOG Audit-scope section so future readers know this sweep was done |
+| P2 | Remove stale qualifiers | `docs/operational-cheat-sheet.md:60` drop "*(pending Stage 2)*"; `docs/onboarding/when-not-to-use-this.md:98` replace "*(CCKN, once Stage 2 lands)*" with "*(CCKN — see `../cross-change-knowledge.md`)*" adding the direct link | `grep -n "Stage 2" docs/operational-cheat-sheet.md docs/onboarding/when-not-to-use-this.md` returned nothing post-edit; `test -f docs/cross-change-knowledge.md` from `docs/onboarding/` via `../cross-change-knowledge.md` resolved OK | ✅ passed | _(this change)_ | Two surgical edits; no other changes to these files |
+| P3 | CHANGELOG + version bump + close ROADMAP | `CHANGELOG.md` new `[1.14.3] - 2026-04-22` entry with Fixed / Why-patch / Audit-scope sections (all prior entries preserved verbatim per `CLAUDE.md §3`); `plugin.json` + `marketplace.json` + `README.md` badge `1.14.2 → 1.14.3`; `CHANGELOG.json` regenerated (23 releases); this initiative moved to Closed | `sh .github/scripts/check-version-consistency.sh` reports `OK: all five declarations agree on 1.14.3`; regenerate script reports `wrote CHANGELOG.json (23 releases)` | ✅ passed | _(this change)_ | Standard patch-release procedure per `VERSIONING.md` |
+
+### Phase log
+
+- Why patch, not minor: two wording edits removing stale qualifiers that were inconsistent with shipped state since 1.8.0. `VERSIONING.md` patch category: "*wording clarifications*". No new methodology, no new schema, no new procedural step.
+- Why the markers survived 1.14.0 / 1.14.1 / 1.14.2 all three releases: each release scoped its audit to "the four files I know mention CCKN query-timing" (canonical + glossary + phase file + SKILL.md). The audit never asked "which files mention CCKN at all?" — a cheap `grep -rln CCKN` that would have returned ten files, not four. The 1.14.3 CHANGELOG Audit-scope section is deliberate: future CCKN-touching releases should consult it and either match the ten-file list or justify a smaller scope.
+- Why this patch also edits the CHANGELOG "Audit scope" field rather than leaving it implicit: the user flagged this exact gap ("*did you carefully read all files?*") after 1.14.2 shipped. Making the audit radius explicit in the 1.14.3 entry is the forward-visible guard against repeating the miss at 1.14.4 / 1.15.x.
+- Scope boundary: this patch does NOT change CCKN methodology, schema, or any consumer's normative content. It deletes two stale qualifiers. The accompanying audit-scope note is a process artifact, not a new rule.
+- Closed 2026-04-22 at commit `(this change)` after all four phases passed.
+
+---
+
 ## cckn-query-timing-corrections-round-2 — close residual drift inside 1.14.1's own fix scope (patch 1.14.2)
 
 - **Opened:** 2026-04-22

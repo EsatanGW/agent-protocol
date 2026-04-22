@@ -6,6 +6,20 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.14.3] - 2026-04-22
+
+### Fixed
+
+- **`docs/operational-cheat-sheet.md:60` and `docs/onboarding/when-not-to-use-this.md:98` — stale "Stage 2" markers removed.** Both rows carried a "*(pending Stage 2)*" / "*(CCKN, once Stage 2 lands)*" qualifier that framed CCKN as a not-yet-shipped feature. The qualifier refers to an internal 1.7.x-era "Stage 2 schema changes" roadmap phase (per the `bebd9c3` commit message "*the agent-protocol-vs-SDD adoption plan*"); the CCKN schema field + canonical doc shipped in the **immediately following** commit `596e5bb` on 2026-04-21, one minute after the markers were written. The markers have therefore been stale from the moment they landed — for 14 patch/minor releases through 1.8.0 → 1.14.2. Both rows now point directly at `docs/cross-change-knowledge.md` without the "pending" qualifier. Root cause of the miss: 1.14.0 / 1.14.1 / 1.14.2 all scoped their CCKN reviews to the canonical file + three named consumers (`glossary.md`, `phase1-investigate.md`, `SKILL.md`); the full list of CCKN-mentioning files (10) was not swept until the post-1.14.2 user-requested audit. The two fixes are independent of the 1.14.0–1.14.2 normative content — they are pre-existing documentation drift that those releases' scope did not cover.
+
+### Why patch, not minor
+
+Two wording edits removing stale qualifiers that were inconsistent with the shipped state since 1.8.0. No new methodology, no new schema, no new procedural step. Matches `VERSIONING.md` patch category ("*wording clarifications*"). The 1.14.0, 1.14.1, and 1.14.2 CHANGELOG entries are preserved verbatim per `CLAUDE.md §3`.
+
+### Audit scope this release resolved
+
+The post-1.14.2 audit read all 10 files that currently mention "CCKN" (`docs/glossary.md`, `docs/ai-project-memory.md`, `docs/cross-change-knowledge.md`, `docs/operational-cheat-sheet.md`, `docs/onboarding/when-not-to-use-this.md`, `skills/engineering-workflow/SKILL.md`, `skills/engineering-workflow/references/context-pack.md`, `skills/engineering-workflow/templates/context-pack-template.md`, `skills/engineering-workflow/phases/phase1-investigate.md`, `reference-implementations/roles/role-composition-patterns.md`) and the `schemas/change-manifest.schema.yaml` `knowledge_notes_touched` description. Only the two `operational-cheat-sheet.md` / `when-not-to-use-this.md` rows carried stale qualifiers; the remaining files were all pure pointers or consistent normative content. The audit is recorded in this entry so a future reader knows the full CCKN consumer sweep was done at 1.14.3 (not just the core four).
+
 ## [1.14.2] - 2026-04-22
 
 ### Fixed

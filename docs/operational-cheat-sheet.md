@@ -57,7 +57,7 @@
 | Multiple agents hand this change between each other | [`docs/multi-agent-handoff.md`](multi-agent-handoff.md) roles + field ownership |
 | Stuck on "can this phase be closed?" | [`docs/phase-gate-discipline.md`](phase-gate-discipline.md) six rules + gate template |
 | Plan turned out wrong mid-implementation | phase-gate-discipline.md Rule 6 decision table |
-| Want to reuse knowledge from a past change | CCKN pattern — [`docs/cross-change-knowledge.md`](cross-change-knowledge.md) *(pending Stage 2)* |
+| Want to reuse knowledge from a past change | CCKN pattern — [`docs/cross-change-knowledge.md`](cross-change-knowledge.md) |
 | Runtime-specific glue (which tool maps to which capability) | [`docs/bridges/`](bridges/) per-runtime bridges |
 
 ---

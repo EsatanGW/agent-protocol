@@ -1,6 +1,18 @@
 {
   "releases": [
     {
+      "version": "1.14.3",
+      "date": "2026-04-22",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`docs/operational-cheat-sheet.md:60` and `docs/onboarding/when-not-to-use-this.md:98` — stale \"Stage 2\" markers removed.",
+            "body": "Both rows carried a \"*(pending Stage 2)*\" / \"*(CCKN, once Stage 2 lands)*\" qualifier that framed CCKN as a not-yet-shipped feature. The qualifier refers to an internal 1.7.x-era \"Stage 2 schema changes\" roadmap phase (per the `bebd9c3` commit message \"*the agent-protocol-vs-SDD adoption plan*\"); the CCKN schema field + canonical doc shipped in the **immediately following** commit `596e5bb` on 2026-04-21, one minute after the markers were written. The markers have therefore been stale from the moment they landed — for 14 patch/minor releases through 1.8.0 → 1.14.2. Both rows now point directly at `docs/cross-change-knowledge.md` without the \"pending\" qualifier. Root cause of the miss: 1.14.0 / 1.14.1 / 1.14.2 all scoped their CCKN reviews to the canonical file + three named consumers (`glossary.md`, `phase1-investigate.md`, `SKILL.md`); the full list of CCKN-mentioning files (10) was not swept until the post-1.14.2 user-requested audit. The two fixes are independent of the 1.14.0–1.14.2 normative content — they are pre-existing documentation drift that those releases' scope did not cover."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.14.2",
       "date": "2026-04-22",
       "sections": {
