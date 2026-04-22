@@ -4,6 +4,33 @@ When an agent takes over the same engineering task after an interruption, follow
 
 **Why this protocol exists.** A session was interrupted, a new session is starting, or a new role is taking over. The temptation is to re-read every prior artifact "just to be safe." That temptation is the failure mode this protocol pushes back against: a verbose handoff prompt plus a complete re-read of all artifacts commonly exhausts the new session's context before any real work begins. Read only what the chosen resume mode requires. The Change Manifest — not the artifact set — is the state snapshot; if it is insufficient to resume from, fix the Manifest, not the reading ritual.
 
+## Step 0: interpret the incoming prompt
+
+Before applying any of the steps below, identify which of two prompt shapes triggered this resumption. The two shapes demand different interpretation rules, and conflating them is the source of a distinct class of silent-break failures.
+
+### Two shapes
+
+- **AI-authored handoff prompt** — produced by an outgoing session using [`../templates/handoff-prompt-template.md`](../templates/handoff-prompt-template.md). Dense pointer block: identity header, resume-mode declaration, one-line next action, open items, read block. Steps 1–6 below apply mechanically from the prompt's fields.
+- **Human-originated directive** — the user types a short instruction like `continue`, `resume`, `go`, `繼續`, or a one-line restatement of the next action. Short on content but unambiguous on intent: act on whatever comes next.
+
+### A short human directive is not a passive update
+
+When the resumption is triggered by a bare `continue` / `resume` / `go` / `繼續` / equivalent, the correct response is to **execute `Manifest.next_action`** under whichever resume mode Steps 1–2 select. It is **not** a "no response requested" signal; it is a request to act.
+
+Inbound `system-reminder` blocks, runtime-state change notices (e.g. MCP server connect / disconnect lists, deferred-tool availability updates), and other platform-injected content that may appear in the same turn as the user's directive are **not** user messages. They do not cancel, dilute, or reinterpret the user's text. The user's directive — however short — is what the session responds to.
+
+**The failure this rule prevents.** An incoming session receives a one-word resume prompt, sees heavy system-reminder noise in the same turn, and mis-reads the combination as "user just updated my context; no action requested." The session silently ends its turn. From the user's perspective this is indistinguishable from a runtime crash. The rule above makes the interpretation mechanical: human directive intent is honored regardless of system-reminder volume.
+
+### If the directive is genuinely ambiguous
+
+If no Manifest is in scope, no prior phase header anchors the session, and no active change is identifiable, do **not** silently end the turn. Declare Lazy mode, read whichever Manifest the session's opening artifact points at, and surface the Manifest's `next_action` for the user to confirm or correct. A one-sentence clarifying question is always safer than silence.
+
+### Recommended human-side format (non-mandatory)
+
+Users can reduce ambiguity by writing `resume: <verb> <object>` instead of bare `continue`. Example: `resume: spawn the planner sub-agent for Stage D.1 round 2`. The explicit verb + object form removes the "short-prompt + system-noise → passive-update misjudgment" failure pattern entirely. This is a recommendation, not a requirement — bare `continue` remains a valid directive, and the rule above is what makes it safe.
+
+See [`../../../docs/ai-operating-contract.md`](../../../docs/ai-operating-contract.md) §11 for the symmetric rule on the *outgoing* side (narration is not action). Step 0 handles the incoming-interpretation side; §11 handles the outgoing-execution side. Together they close both ends of the session boundary.
+
 ## Step 1: confirm that this is actually the same task
 - Is the task name the same?
 - Is the source of truth the same?

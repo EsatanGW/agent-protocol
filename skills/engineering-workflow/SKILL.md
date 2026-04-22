@@ -326,8 +326,9 @@ Phase-specific Lean / Full minimums are embedded in the phase docs and also summ
 
 If a session resumes mid-task, do not continue patching blindly. Before any work:
 
+- **Interpret the incoming prompt first.** AI-authored handoff prompts (dense pointer block, mode already declared) and human-originated directives (`continue`, `繼續`, `resume: <verb> <object>`) demand different interpretation. A short human directive is a request to act on `Manifest.next_action`, not a passive context update — runtime-injected content (`system-reminder`, MCP state changes, deferred-tool lists) in the same turn is not part of the directive. See `references/resumption-protocol.md` Step 0.
 - **Declare a resume mode** (Lazy / Targeted / Role-scoped / Full / Minimal) and read only what that mode requires. Re-reading every artifact is the failure mode this rule replaces; the session-handoff context-collapse failure pattern is specifically what the mode system exists to prevent.
-- **The Change Manifest is the state snapshot.** If the manifest cannot answer "what comes next" without opening another file, fix the manifest — do not compensate by reading more.
+- **The Change Manifest is the state snapshot.** If the manifest cannot answer "what comes next" without opening another file, fix the manifest — do not compensate by reading more. A manifest that crosses the runtime's single-file read ceiling (~25,000 tokens / ~2,000 lines) is itself failing the snapshot role; compact in place or split via `part_of` before relying on it (see `docs/change-manifest-spec.md` §Manifest size ceiling).
 - **Respect the context budget.** If the planned reads exceed roughly 30% of the session's context window, downgrade one tier and say so explicitly.
 
 Reference:

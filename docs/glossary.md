@@ -98,9 +98,20 @@ One of five declared modes — **Lazy / Targeted / Role-scoped / Full / Minimal*
 
 Declaring a mode is mandatory to prevent the session-handoff context-collapse failure pattern: a verbose handoff prompt + a sequential re-read of every referenced artifact exhausts the new session's context before real work begins. Canonical definition: `skills/engineering-workflow/references/resumption-protocol.md`.
 
+### Resume prompt
+
+The text that triggers a session resumption, distinct from the Change Manifest it points at. Two shapes:
+
+- **AI-authored handoff prompt** — produced by an outgoing session using `skills/engineering-workflow/templates/handoff-prompt-template.md`. Dense pointer block (soft cap 400 words, hard cap 800); the resumption protocol's Steps 1–6 apply mechanically from its fields.
+- **Human-originated directive** — a short instruction from the user like `continue`, `resume`, `go`, `繼續`, or `resume: <verb> <object>`. A short directive is a request to act on `Manifest.next_action`, not a passive context update. Runtime-injected content (`system-reminder`, MCP state changes, deferred-tool availability lists) appearing in the same turn is **not** part of the user's directive and must not reinterpret it into silence.
+
+Canonical definition: `skills/engineering-workflow/references/resumption-protocol.md` Step 0. The symmetric outgoing-side rule ("narration is not action") lives in `docs/ai-operating-contract.md` §11.
+
 ### State snapshot
 
 A single document sufficient to let a new session resume work without reading any other artifact. The Change Manifest plays this role for a change in Full mode; the Lean-spec note plays it for Lean mode. The state-snapshot discipline (see `docs/change-manifest-spec.md` §State-snapshot discipline) holds that if the snapshot is insufficient to resume from, it is **incomplete** — fix the snapshot, do not read more.
+
+A snapshot that crosses the runtime's single-file read ceiling (typical: ~25,000 tokens or ~2,000 lines) stops being a usable snapshot — the incoming session cannot open it in one read, and falling back to `grep` or offset-reads defeats the "one file answers what comes next" guarantee. Compact the snapshot in place or split the change via `part_of` before relying on it. See `docs/change-manifest-spec.md` §Manifest size ceiling.
 
 ### Change map
 

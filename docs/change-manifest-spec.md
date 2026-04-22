@@ -74,6 +74,23 @@ If a pointer is missing when the checklist says it is required, that is **not** 
 
 A handoff prompt that contains more than a short pointer block (identity header + resume mode + next action + ≤ 3 open items + ≤ 3 read paths) is a signal that the manifest is underfilled and the prompt is compensating. The fix is always to push content into the manifest, not to accept the verbose prompt. See `skills/engineering-workflow/templates/handoff-prompt-template.md` for the compact form.
 
+### Manifest size ceiling
+
+Some AI runtimes refuse to open a file above a single-file read ceiling (typical: ~25,000 tokens or ~2,000 lines) without an explicit offset or line-range argument. A manifest that crosses that ceiling **stops working as a state snapshot**: the incoming session cannot open it in one read, and any fallback to `grep` or offset reads defeats the "one file answers what comes next" guarantee above.
+
+When a manifest approaches the ceiling, the remedies — in order of preference:
+
+1. **Compact in place.** Move verbose narrative into the phase-specific structured note fields (`implementation_notes[]`, `review_notes[]`, `handoff_narrative`, `escalations[]`) and trim redundant prose. Structured fields carry information at lower token cost than free-form prose, and the resumption protocol already knows where to look for them.
+2. **Split via `part_of`.** If the change is genuinely large enough to warrant nesting (umbrella initiative with multiple stage children), create child manifests with their own `change_id` and point each one up via `part_of`. Each child must then independently satisfy §State-snapshot discipline — including this sub-clause. The umbrella manifest becomes a thin index of `part_of` children; each child is its own readable snapshot.
+
+**Do not rely on `grep` / offset-read as a workaround.** That workaround:
+
+- Bypasses the `last_updated` / `phase` / `status` header the incoming session is supposed to read in full before acting — drift detection (see `skills/engineering-workflow/references/lazy-resume-checklist.md` Step 3) cannot fire on fields the read window excludes.
+- Cannot distinguish "field not populated" from "field not in this read window" — a false-negative on missing pointers.
+- Produces selectively-read state that differs between roles in a multi-agent change. That is the opposite of the shared-snapshot guarantee this section exists to provide.
+
+If a handoff prompt instructs the incoming session to "grep for X in the manifest" or "read lines N–M of the manifest," the manifest is the problem and the prompt is compensating. Compact the manifest first; do not accept the instruction.
+
 ---
 
 ## Top-level field semantics

@@ -328,6 +328,7 @@ At transition points — after a TodoWrite update, after a plan is approved, at 
 - §6 (Stop conditions) names when to stop. §11 names when **not** to stop — specifically the moment immediately after stating an action intent.
 - §9 (Non-fabrication list) forbids fabricating completion. §11 extends that to **fabrication by silence**: claiming to act and then not acting is a silent fabrication of completion, even when no explicit "done" is emitted.
 - §7 (Communication style) prefers fact over self-narrative. §11 applies that preference to action transitions: the action is the fact; the narration about it can be dropped entirely.
+- `skills/engineering-workflow/references/resumption-protocol.md` Step 0 is the **symmetric rule at the other end of the session boundary**. §11 governs the outgoing session's narrate-then-act compliance; Step 0 governs the incoming session's interpretation of short human directives and the rule that `system-reminder` / MCP-state / deferred-tool notices are not user messages. Together they close both ends — neither alone prevents the full class of silent-break failures at role-handoff points.
 
 ### Risk-point inventory
 

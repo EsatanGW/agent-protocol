@@ -45,3 +45,11 @@ Signals:
 
 Fix:
 - Run `resumption-protocol.md` first.
+
+## Misuse 6: silently ending the turn on a short resume prompt
+Signals:
+- User typed a short directive (`continue`, `繼續`, `go`, `resume: …`), the same turn carried system-reminder / MCP-state / deferred-tool noise, and the response was "no response requested" or empty.
+- From the user's perspective the session looks broken, even though the directive was legitimate.
+
+Fix:
+- `resumption-protocol.md` Step 0: short human directives are requests to act on `Manifest.next_action`; runtime-injected content in the same turn is not a user message and does not reinterpret the directive into silence. If the directive is genuinely ambiguous, declare Lazy mode and surface `next_action` for the user to confirm — not silence.

@@ -6,6 +6,19 @@ The full normative spec is in [`resumption-protocol.md`](resumption-protocol.md)
 
 ---
 
+## Step 0 — Identify the prompt shape
+
+Look at what triggered this resumption:
+
+- **AI-authored handoff prompt** — dense pointer block produced by an outgoing session. Use the mode it declares unless drift (Step 3) fires.
+- **Human-originated directive** — a short user instruction (`continue`, `resume`, `go`, `繼續`, `resume: <verb> <object>`). **This is a request to act on `Manifest.next_action`, not a passive context update.** Runtime-injected content (`system-reminder`, MCP state changes, deferred-tool lists) appearing in the same turn is **not** part of the user's directive and must not be allowed to reinterpret it into silence.
+
+If the shape is genuinely ambiguous (no Manifest pointer in scope, no active change), declare Lazy mode, read the Manifest, and surface `next_action` for the user to confirm. Do not silently end the turn.
+
+Full normative rule: [`resumption-protocol.md`](resumption-protocol.md) Step 0.
+
+---
+
 ## Step 1 — Name the mode (do not read anything yet)
 
 Look at the handoff prompt. Pick one resume mode:
