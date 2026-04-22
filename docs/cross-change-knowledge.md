@@ -104,7 +104,7 @@ When the Implementer's Discovery loop uncovers reusable knowledge (not just a sc
 
 CCKNs serve two asymmetric operations: **write** (when a change produces reusable knowledge — covered in §Relation to the Change Manifest §3 and §Ceremony scaling) and **query** (when a change might benefit from pre-existing reusable knowledge). This section defines the query-side timing rule. Without it, the write side produces notes no one reads — the cost CCKN exists to eliminate is paid anyway.
 
-The rule is: **write at Phase 4 Discovery / Phase 1 re-entry; query at Phase 1 Investigate startup.**
+The rule is: **query at Phase 1 Investigate startup; write during Phase 1 — at initial Investigate per §Ceremony scaling, or at re-entry after a Phase 4 Discovery loop per §Relation to the Change Manifest §3. Phase 4 Discovery triggers re-entry; it does not itself write.**
 
 ### At Phase 1 Investigate startup
 
@@ -114,7 +114,7 @@ Before tracing the main flow — i.e. as step 0 of Phase 1 — the Planner (or t
 - Any `uncontrolled_interfaces` the change will depend on (third-party SDKs, external APIs, platform behaviors).
 - The libraries, frameworks, or domain rules the change will touch.
 
-One grep, one pass, before the investigation proper begins. Querying late (e.g. at Phase 4 mid-implementation) has the same failure mode as late schema discovery — the investigation has already decided against the fact the CCKN would have supplied, and the cost of Phase 1 from zero has already been paid.
+One grep, one pass, before the investigation proper begins. If the CCKN directory does not exist (e.g. first use of this methodology in a repo), the grep is a no-op and the change proceeds as if no match was found — an absent directory is not a failure. Querying late (e.g. at Phase 4 mid-implementation) has the same failure mode as late schema discovery — the investigation has already decided against the fact the CCKN would have supplied, and the cost of Phase 1 from zero has already been paid.
 
 ### What to do on a match
 

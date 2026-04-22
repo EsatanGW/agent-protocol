@@ -6,6 +6,20 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.14.1] - 2026-04-22
+
+### Fixed
+
+- **`docs/cross-change-knowledge.md` §When to query a CCKN — summary rule** corrected from "*write at Phase 4 Discovery / Phase 1 re-entry; query at Phase 1 Investigate startup*" (the 1.14.0 wording) to "*query at Phase 1 Investigate startup; write during Phase 1 — at initial Investigate per §Ceremony scaling, or at re-entry after a Phase 4 Discovery loop per §Relation to the Change Manifest §3. Phase 4 Discovery triggers re-entry; it does not itself write.*" The 1.14.0 summary implied two write locations (Phase 4 Discovery **and** Phase 1 re-entry) and directly contradicted the pre-existing §Relation to the Change Manifest §3 rule that writing happens "*as part of the Phase 1 Investigate re-entry, **not as a side effect of Phase 4***." A reader following the 1.14.0 summary would conclude Phase 4 is a valid write location, which §3 forbids. Root cause: the summary collapsed the trigger source (Phase 4 Discovery) and the write execution point (Phase 1 re-entry) into a single slash-joined phrase without distinguishing them.
+- **`docs/glossary.md` CCKN entry — asymmetric-timing paragraph** receives the same correction so the vocabulary-layer summary matches the canonical reference.
+- **`skills/engineering-workflow/phases/phase1-investigate.md` §Startup: query CCKN precedent** gains the missing **partial match** row (CCKN covers part of the relevant facet → cite for covered + investigate uncovered + extend CCKN if generalizing knowledge emerges). The 1.14.0 phase-file procedural bridge listed only fresh / stale / no match, dropping the "partial match" handling that the canonical §When to query a CCKN lists. An agent following the phase file alone would not learn that partial coverage still requires CCKN extension — which is load-bearing for write-side discipline. The same section also gains a one-sentence clarification that an absent CCKN directory is treated as no match, not as a failure (removes the risk of a literal `grep` erroring on a non-existent directory and being misread as a tooling failure).
+- **`skills/engineering-workflow/SKILL.md` Investigate phase block** reduces the bolded "Startup: query CCKN precedent" paragraph from a full match-handling restatement to a single-sentence pointer at the phase file and the canonical reference. The 1.14.0 version restated fresh / stale / no-match inline, creating **two consumer copies** of the match-handling rule (SKILL.md plus the phase file) — exactly the drift pattern `CLAUDE.md §5` warns against. The reduced pointer keeps the surface-layer discoverability (an agent reading SKILL.md's Investigate block still sees the rule exists) while leaving the phase file as the single procedural source of truth.
+- **`docs/cross-change-knowledge.md` §At Phase 1 Investigate startup** gains the same directory-absent clarification ("an absent directory is not a failure") so the canonical reference and the phase-file bridge agree on the edge case.
+
+### Why patch, not minor
+
+All four changes close drift, contradictions, and omissions inside the content 1.14.0 already shipped. No new methodology, no new procedural step, no new schema field — the summary-rule correction, the partial-match row, and the directory-absent clarification all already live (or should have lived) inside the 1.14.0 normative scope. Matches the `VERSIONING.md` patch category ("*wording clarifications*"). The 1.14.0 CHANGELOG entry is preserved verbatim per `CLAUDE.md §3` ("*CHANGELOG is a factual record*") — this entry documents the correction forward, not backward.
+
 ## [1.14.0] - 2026-04-22
 
 ### Added
