@@ -860,6 +860,111 @@ properties:
       type: string
       description: "Repository-relative path to a CCKN markdown file."
 
+  # ─── Implementation clusters (Pattern C) ──────────────────────────────
+  # See skills/engineering-workflow/references/cluster-parallelism.md
+  # and reference-implementations/roles/role-composition-patterns.md Pattern 7.
+
+  implementation_clusters:
+    type: array
+    minItems: 2
+    maxItems: 4
+    description: |
+      Planned and executed cluster-parallel canonical Implementer
+      delegations per Pattern C in
+      skills/engineering-workflow/references/cluster-parallelism.md. Each
+      cluster represents a file-disjoint subset of the Phase 4 work that
+      one canonical Implementer invocation implements and verifies
+      independently. The Planner writes this field at Phase 2 plan
+      approval; each cluster's `status` is updated as its Implementer
+      is spawned (pending → in_progress) and completes (→ completed) or
+      halts via Discovery (→ blocked_discovery).
+
+      Optional. Full-mode only. A Full-mode change that used a single
+      Implementer (no cluster delegation) validates without this field.
+      minItems: 2 because a 1-wide "cluster" is just serial Phase 4
+      execution; maxItems: 4 because Reviewer cross-cluster cross-cutting
+      gap-check visibility degrades past 3–4 (same reason
+      parallel_groups.sub_agents caps at 4).
+
+      File-disjointness across clusters (no two clusters list
+      scope_files patterns that resolve to the same file) is a
+      validator-level cross-item constraint, not expressible in pure
+      JSON Schema.
+    items:
+      type: object
+      required: [cluster_id, scope_files, independence_rationale, status]
+      additionalProperties: false
+      properties:
+        cluster_id:
+          type: string
+          description: "Stable identifier for this cluster within the change."
+        label:
+          type: string
+          description: "Short descriptive name (e.g. 'db-migration', 'api-field', 'frontend-copy')."
+        scope_files:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: |
+            Glob patterns identifying the file set this cluster's
+            Implementer may modify. The Task Prompt for the spawned
+            Implementer names this boundary as a hard write boundary.
+            Cross-cluster pair-wise disjointness is required and
+            validator-enforced.
+        scope_surfaces:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional narrative tag of which surfaces this cluster
+            touches. Surfaces may overlap across clusters provided
+            scope_files remain disjoint (e.g. two clusters both touch
+            the system-interface surface but in disjoint file sets).
+        task_refs:
+          type: array
+          items:
+            type: string
+          description: "References to plan tasks this cluster covers."
+        evidence_refs:
+          type: array
+          items:
+            type: string
+          description: |
+            References (by artifact_location or an evidence-plan row
+            identifier) to evidence_plan.artifacts[] entries this
+            cluster's Implementer is responsible for populating.
+        independence_rationale:
+          type: string
+          description: |
+            Narrative justification that this cluster is independent
+            from the others (no shared state, no ordering dependency,
+            no overlapping test infrastructure). Required — a
+            hand-wavy rationale signals that clusters are not actually
+            independent and serial execution is safer.
+        assigned_identity:
+          type: string
+          description: |
+            Canonical Implementer identity spawned for this cluster.
+            Filled by the Planner at spawn time; before spawn, the
+            field may be absent. Must differ from the Planner's
+            identity, from every other cluster's assigned_identity,
+            and from the Reviewer's identity-to-be (anti-collusion
+            transitively per docs/multi-agent-handoff.md).
+        status:
+          type: string
+          enum: [pending, in_progress, completed, blocked_discovery]
+          description: |
+            Cluster execution state. Transitions:
+              pending → in_progress (at Implementer spawn)
+              in_progress → completed (Implementer cleared pre-handoff
+                                        self-check for its cluster)
+              in_progress → blocked_discovery (Implementer hit the
+                                                Discovery loop; by
+                                                default all other
+                                                clusters also halt)
+            See cluster-parallelism.md §Discovery-loop handling.
+
   # ─── Parallel-fan-out audit trail ──────────────────────────────────────
   # See skills/engineering-workflow/references/parallelization-patterns.md
   # and reference-implementations/roles/role-composition-patterns.md Patterns 5–6.
@@ -907,13 +1012,21 @@ properties:
             (specialized audit fan-out) is typically 'review'.
         pattern:
           type: string
-          enum: [A_surface_investigators, B_specialized_audit, other]
+          enum: [A_surface_investigators, B_specialized_audit, C_cluster_implementers, other]
           description: |
             Which canonical fan-out pattern was used.
-            A = Pattern A per parallelization-patterns.md §Pattern A.
-            B = Pattern B per parallelization-patterns.md §Pattern B.
-            other = a Full-mode fan-out that does not fit A or B; rationale
-            required in context_pack_summary.
+            A = Pattern A per parallelization-patterns.md §Pattern A
+                (Phase 1 surface-parallel non-canonical investigators).
+            B = Pattern B per parallelization-patterns.md §Pattern B
+                (Phase 5 specialized non-canonical audit fan-out).
+            C = Pattern C per cluster-parallelism.md (Phase 4
+                canonical-Implementer multi-delegation). When pattern
+                is C, sub_agents entries record canonical Implementer
+                identities; substantive cluster data lives in the
+                top-level implementation_clusters field and this entry
+                is an audit breadcrumb pointing at it.
+            other = a Full-mode fan-out that does not fit A/B/C;
+                rationale required in context_pack_summary.
         context_pack_summary:
           type: string
           description: |

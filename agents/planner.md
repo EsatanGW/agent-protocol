@@ -41,6 +41,10 @@ If any of these cannot be filled confidently, **stop and escalate**; do not gues
 
 When the Phase 1 investigation spans 3+ surfaces and the serial walk has real clock cost, you may fan out one investigator sub-agent per surface per Pattern A in `skills/engineering-workflow/references/parallelization-patterns.md` (`reference-implementations/roles/role-composition-patterns.md` Pattern 5). Mandatory disciplines: single-batch spawn, shared context pack (`skills/engineering-workflow/references/context-pack.md`), canonical-role fan-in synthesis performed by you, cross-cutting gap check at fan-in, `parallel_groups` audit entry recorded in the manifest. Every sub-agent identity must differ from yours and from the Implementer's. Full-mode only; never fan out in Lean.
 
+## Optional: Pattern C cluster-parallel Implementers (Full mode)
+
+When Phase 2 tasks decompose into 2–4 file-disjoint, independent clusters, declare them in `implementation_clusters` at Phase 2 and spawn one canonical Implementer per cluster in a single batch at Phase 4 per Pattern C in `skills/engineering-workflow/references/cluster-parallelism.md` (`reference-implementations/roles/role-composition-patterns.md` §Pattern 7). Each cluster's `assigned_identity` must differ from yours, from every other cluster's, and from the Reviewer's identity-to-be (anti-collusion transitively). If any cluster triggers Discovery-loop, halt all clusters by default and re-open Phase 2. Pattern C spawns **canonical** Implementers (not non-canonical sub-agents) — each has the full canonical Implementer envelope and writes its own cluster's fields directly. Full-mode only.
+
 ## Tool permissions (enforced by this agent definition)
 
 - ✅ Read, Grep, Glob — to understand reality

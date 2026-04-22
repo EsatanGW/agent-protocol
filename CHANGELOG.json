@@ -1,6 +1,64 @@
 {
   "releases": [
     {
+      "version": "1.13.0",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "Cluster parallelism reference (`skills/engineering-workflow/references/cluster-parallelism.md`)",
+            "body": "new normative reference defining **Pattern C — Phase 4 cluster-parallel canonical Implementers**, the within-Phase-4 complement to 1.11.0's Pattern-A/B non-canonical sub-agent fan-out and 1.12.0's between-phase overlap zones. Core mechanism: the Planner declares 2–4 file-disjoint implementation clusters in `implementation_clusters` at Phase 2 approval; at Phase 4 the Planner spawns one canonical Implementer per cluster in a single tool-call batch (cache-window rule). Each spawned Implementer has the full canonical Implementer envelope (read, write, shell) and writes its own cluster's code and evidence directly — this is the key distinction from Patterns A/B (non-canonical sub-agents that return findings for the canonical role to synthesize). A single Reviewer downstream performs a **cross-cluster cross-cutting gap check**: issues that emerge only at cluster intersections (e.g. cluster A's API field matches cluster B's frontend call but cluster C's analytics event still references the old name) that no individual Implementer would catch. Four mandatory invariants: (1) file-disjoint scope per cluster (validator-enforced pair-wise disjointness); (2) single-batch spawn; (3) any cluster's Discovery-loop trigger halts all clusters by default (conservative — other clusters may be building on an invalidated plan); (4) Reviewer performs cross-cluster cross-cutting gap check. Cluster cap 2–4 (symmetric with Patterns A/B visibility argument). Full mode only; Lean and Zero-ceremony explicitly excluded. Anti-patterns documented: \"mostly\" disjoint clusters, serial spawn, one-cluster-Discovery-ignored-while-others-continue, per-cluster isolated Review without cross-cluster check, Implementer writes outside scope_files, cluster identity shared between clusters, Pattern C used in Lean mode, heterogeneous-envelope-per-cluster."
+          },
+          {
+            "title": "`implementation_clusters` Change Manifest field (`schemas/change-manifest.schema.yaml` + `.json` mirror + `docs/change-manifest-spec.md`)",
+            "body": "new optional top-level array recording Pattern C's cluster delegation. `minItems: 2` (1-wide cluster is just serial Phase 4), `maxItems: 4` (cross-cluster visibility argument). Per-cluster: required `cluster_id`, `scope_files` (glob patterns the cluster's Implementer may modify — pair-wise disjoint across clusters, validator-enforced), `independence_rationale` (narrative; a hand-wavy rationale signals clusters are not actually independent), `status` (enum `pending | in_progress | completed | blocked_discovery`). Optional: `label`, `scope_surfaces`, `task_refs`, `evidence_refs`, `assigned_identity`. Transitions: `pending → in_progress` at Implementer spawn; `in_progress → completed` at pre-handoff self-check cleared; `in_progress → blocked_discovery` on Discovery-loop, which halts all other clusters by default. Backward-compatible: pre-1.13 manifests and Full-mode changes that used a single Implementer both validate without this field."
+          },
+          {
+            "title": "Pattern 7 in `reference-implementations/roles/role-composition-patterns.md`",
+            "body": "non-normative companion to the new normative reference. Pattern 7 extends the existing six patterns (four serial sub-agent, two parallel sub-agent fan-out) with the canonical-role multi-delegation mechanism. The TL;DR rewrites to name the two distinct composition mechanisms — (a) non-canonical sub-agent composition for Patterns 1–6, (b) canonical-role multi-delegation for Pattern 7. The invariant section expands to cover Pattern 7's different shape: each cluster's canonical Implementer writes its own manifest fields directly (this is not an escape because the spawned identity carries the canonical Implementer's contractual ownership); anti-collusion applies transitively across clusters; tool-permission matrix gives each cluster the full canonical Implementer envelope (the same envelope the matrix already grants — nothing new is unlocked). Anti-pattern table extended with three Pattern-7-specific entries."
+          },
+          {
+            "title": "`C_cluster_implementers` value on `parallel_groups.pattern` enum",
+            "body": "new enum value alongside `A_surface_investigators`, `B_specialized_audit`, and `other`. A `parallel_groups` entry with `pattern: C_cluster_implementers` serves as an audit breadcrumb for Pattern C (the substantive cluster data lives in the top-level `implementation_clusters` field; the `parallel_groups` entry records that the multi-delegation happened and was performed by the Planner)."
+          },
+          {
+            "title": "Glossary entry — Implementation cluster (`docs/glossary.md`)",
+            "body": "new canonical term in the Process section, sibling to Fan-out / Fan-in / Context pack / Parallel group / Phase overlap zone. Cross-references the canonical reference, the schema field, and the distinction between Pattern C (canonical-role multi-delegation) and Patterns A/B (non-canonical sub-agent fan-out)."
+          },
+          {
+            "title": null,
+            "body": "**Phase-file Pattern C cues (`skills/engineering-workflow/phases/phase{2,4,5}-*.md`)** — Phase 2 file gains \"Optional: declare implementation clusters for Pattern C\" guidance; Phase 4 file gains \"Optional: Pattern C cluster-parallel execution\" section with the discovery-halt-all-clusters rule; Phase 5 file gains \"Cross-cluster audit\" section naming the Reviewer's cross-cluster cross-cutting gap check as mandatory when Pattern C was used. Phase files remain the 30–60-line size-style the skill uses."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/references/parallelization-patterns.md` Phase applicability table",
+            "body": "Phase 4 row changes from \"intentionally has no parallel pattern\" to \"Pattern C — cluster-parallel canonical Implementers\" with explicit note that Pattern C is canonical-role multi-delegation, not sub-agent fan-out. A new paragraph below the table distinguishes the two parallelism mechanisms (non-canonical sub-agent fan-out for Patterns A/B; canonical-role multi-delegation for Pattern C) and names the orthogonal relationship with overlap zones from 1.12.0. The `Relationship to other documents` section gains pointers to `cluster-parallelism.md` and `schemas/change-manifest.schema.yaml §implementation_clusters`."
+          },
+          {
+            "title": "`docs/multi-agent-handoff.md §Tool-permission matrix`",
+            "body": "the \"Only Planner may delegate canonical roles\" rationale bullet gains an explicit mention of Pattern C: \"A Planner may spawn **multiple** canonical Implementers in parallel for file-disjoint clusters per Pattern C … this is canonical-role multi-delegation, distinct from the non-canonical sub-agent fan-out of Patterns 5–6.\" The anti-collusion rule's transitive extension (each cluster identity differs from Planner, every other cluster, and Reviewer) is named in the same bullet."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md`",
+            "body": "Quick refresher list gains a bullet pointing at `cluster-parallelism.md` with the canonical-role vs non-canonical distinction explicit. Phase-4 tool-category block gains a \"Canonical-role delegation, optional\" bullet naming Pattern C."
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/subagent-strategy.md`",
+            "body": "new closing section \"Pattern C — canonical-role multi-delegation (not sub-agent fan-out)\" explicitly distinguishes the two mechanisms so readers of the sub-agent strategy doc do not treat Pattern C as another sub-agent pattern."
+          },
+          {
+            "title": "`agents/planner.md`, `agents/implementer.md`, and reference-implementations mirrors",
+            "body": "Planner role files gain \"Optional: Pattern C cluster-parallel Implementers\" sections documenting the declare-and-spawn duties; Implementer role files gain \"Optional: cluster-scoped execution\" sections documenting the Task-Prompt-cluster_id contract, the hard `scope_files` write boundary, and the Pattern-C-specific handoff (cluster status, not top-level phase)."
+          },
+          {
+            "title": "Version bump",
+            "body": "`plugin.json`, `marketplace.json`, `README.md` badge, `CHANGELOG.md` latest-release heading, and `CHANGELOG.json` all agree on `1.13.0`. Schema change: `schemas/change-manifest.schema.yaml` + `.json` gain the optional `implementation_clusters` top-level field and the `C_cluster_implementers` value on the `parallel_groups.pattern` enum; both additions are backward-compatible."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.12.0",
       "date": "2026-04-22",
       "sections": {

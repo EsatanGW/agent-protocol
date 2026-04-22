@@ -32,6 +32,10 @@ Turn the investigation into an executable step-by-step plan.
 
 When acceptance criteria from Phase 0/1 are stable, a Phase 3 test-plan skeleton (one row per AC, `method: TBD`, `evidence: TBD`) may be drafted in working space before Gate 2 closes. Constraints: no manifest writes, ≤20% of Phase 3 work, discard if Phase 2 adds new ACs not in the Phase 1 draft. See [`../references/phase-overlap-zones.md`](../references/phase-overlap-zones.md).
 
+## Optional: declare implementation clusters for Pattern C (Full mode)
+
+If the Phase 2 tasks decompose into 2–4 file-disjoint, independent work bundles (e.g. DB migration + API field + frontend copy + telemetry dashboard), declare them in the manifest's `implementation_clusters` before Gate 2 closes. Each cluster names `scope_files` (pair-wise disjoint across clusters), `independence_rationale`, `task_refs`, and `evidence_refs`. At Phase 4 the Planner will spawn one canonical Implementer per cluster in a single batch. A hand-wavy `independence_rationale` is a signal that the clusters are not actually independent — serialize instead. See [`../references/cluster-parallelism.md`](../references/cluster-parallelism.md).
+
 ## Gate 2
 
 The phase passes only when:

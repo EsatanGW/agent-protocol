@@ -37,8 +37,9 @@ Quick refresher:
 - `references/core-principles.md`
 - `references/source-of-truth-quick-reference.md`
 - `references/cross-cutting-quick-check.md`
-- `references/parallelization-patterns.md` — when and how to fan out **within** a phase (Full mode only)
+- `references/parallelization-patterns.md` — when and how to fan out non-canonical sub-agents **within** a phase (Patterns A/B, Full mode only)
 - `references/context-pack.md` — shared-context mechanism for fan-out sub-agents
+- `references/cluster-parallelism.md` — when the Planner spawns **multiple canonical Implementers** in parallel for file-disjoint Phase 4 clusters (Pattern C, Full mode only; distinct from non-canonical sub-agent fan-out)
 - `references/phase-overlap-zones.md` — prep work that may begin **between** phases before the prior gate passes (Full mode only; hard discard-on-fail rule; ≤20% budget)
 
 ## The four core surfaces
@@ -175,6 +176,7 @@ Prioritize capabilities:
 - File write
 - Shell execution
 - Long-running process management
+- Canonical-role delegation, optional: Full mode with 2+ file-disjoint clusters may use Pattern C per `references/cluster-parallelism.md` — the Planner spawns 2–4 canonical Implementers in a single batch, each implementing one cluster; a single Reviewer downstream performs a cross-cluster cross-cutting gap check. Distinct from Patterns A/B (which spawn non-canonical sub-agents); Pattern C spawns full canonical Implementer identities. Lean mode does not use Pattern C.
 
 ### Review
 Prioritize capabilities:

@@ -161,6 +161,14 @@ Five named zones: P1 → P2 (change-map skeleton), P2 → P3 (test-plan skeleton
 
 Full-mode only. Overlap prep lives in session-scoped working space per `docs/phase-gate-discipline.md` Rule 5a — manifest-field writes only happen after the prior gate passes. Soft cap: ≤20% of the downstream phase's total work; past 20% the prep has become execution and is bypassing the gate by degree. Canonical definition: `skills/engineering-workflow/references/phase-overlap-zones.md`.
 
+### Implementation cluster
+
+A file-disjoint subset of Phase 4 implementation work delegated by the Planner to its own canonical Implementer invocation per **Pattern C** (`skills/engineering-workflow/references/cluster-parallelism.md`). Each cluster declares `scope_files` (the files its Implementer may modify), `independence_rationale` (why independent from other clusters), `assigned_identity` (the Implementer spawned for it), and a `status` lifecycle (`pending → in_progress → completed | blocked_discovery`).
+
+Pattern C is the **only parallel mechanism that spawns canonical-role identities** in multiples. Patterns A and B (`parallelization-patterns.md` — see `Fan-out` above) spawn non-canonical sub-agents that return findings for the canonical role to synthesize. Pattern C spawns canonical Implementers that each write their own cluster's code and evidence directly. The two mechanisms may co-exist on the same change.
+
+Full-mode only. 2–4 clusters per change. File-disjointness across clusters is validator-enforced; a change with overlapping cluster scopes is invalid. Discovery-loop trigger in any cluster halts all clusters by default (conservative — other clusters may be building on an invalidated plan). Canonical definition: `skills/engineering-workflow/references/cluster-parallelism.md`. Schema: `schemas/change-manifest.schema.yaml` §implementation_clusters.
+
 ---
 
 ## Classification terms

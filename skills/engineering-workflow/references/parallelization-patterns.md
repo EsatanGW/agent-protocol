@@ -115,18 +115,20 @@ The field is optional — a Full-mode change that chose not to fan out validates
 
 ## Phase applicability summary
 
-| Phase | Applicable pattern | Owning role |
-|---|---|---|
-| Phase 0 Clarify | — (too early, SoT not yet identified) | — |
-| Phase 1 Investigate | Pattern A — surface-parallel investigators | Planner |
-| Phase 2 Plan | — (integrative by nature; sub-decomposition into tasks is planning, not fan-out) | — |
-| Phase 3 Test plan | — (usually integrative; a fan-out here is a smell that the plan is too large) | — |
-| Phase 4 Implement | Pattern 3 from `role-composition-patterns.md` (test-writer sub-agent) — *serial* composition, not parallel | Implementer |
-| Phase 5 Review | Pattern B — specialized audit fan-out | Reviewer |
-| Phase 6 Sign-off | — (human-in-loop checkpoint) | — |
-| Phase 7 Deliver | — | — |
+| Phase | Applicable pattern | Owning role | Parallelism mechanism |
+|---|---|---|---|
+| Phase 0 Clarify | — (too early, SoT not yet identified) | — | — |
+| Phase 1 Investigate | Pattern A — surface-parallel investigators | Planner | Non-canonical sub-agent fan-out |
+| Phase 2 Plan | — (integrative by nature; sub-decomposition into tasks is planning, not fan-out) | — | — |
+| Phase 3 Test plan | — (usually integrative; a fan-out here is a smell that the plan is too large) | — | — |
+| Phase 4 Implement | **Pattern C — cluster-parallel canonical Implementers** (see [`cluster-parallelism.md`](cluster-parallelism.md)). Pattern 3 from `role-composition-patterns.md` (test-writer sub-agent) remains available as *serial* within-cluster composition. | Planner (spawns Implementers); Implementer per cluster | **Canonical-role multi-delegation** — distinct from sub-agent fan-out |
+| Phase 5 Review | Pattern B — specialized audit fan-out | Reviewer | Non-canonical sub-agent fan-out |
+| Phase 6 Sign-off | — (human-in-loop checkpoint) | — | — |
+| Phase 7 Deliver | — | — | — |
 
-Phase 4 intentionally has no parallel pattern listed. The existing Pattern 3 (`role-composition-patterns.md`) covers Implementer-owned sub-agent use; it is a serial decomposition (write tests → run tests → collect evidence) and should not be repackaged as a parallel pattern.
+**Two parallelism mechanisms.** Patterns A and B spawn **non-canonical sub-agents** that return findings for the canonical role to synthesize into its own manifest fields. Pattern C spawns **canonical Implementer identities** that each write their own cluster's fields directly. The disciplines in this document (cache-window rule, context pack, fan-in synthesis, cross-cutting gap check, `parallel_groups` audit) apply to Patterns A and B; Pattern C has its own discipline in `cluster-parallelism.md` (file-disjoint clusters, discovery-halt-all-clusters, Reviewer cross-cluster gap check, `implementation_clusters` manifest field). Both mechanisms may appear on the same change — a Phase 1 Pattern A fan-out and a Phase 4 Pattern C delegation and a Phase 5 Pattern B fan-out, each recorded in its own field.
+
+For the canonical-role multi-delegation discipline that Pattern C introduces, see [`cluster-parallelism.md`](cluster-parallelism.md) and `role-composition-patterns.md` §Pattern 7.
 
 ---
 
@@ -150,12 +152,14 @@ Phase 4 intentionally has no parallel pattern listed. The existing Pattern 3 (`r
 ## Relationship to other documents
 
 - `docs/multi-agent-handoff.md` — canonical three-role contract; parallelization never modifies this
-- `reference-implementations/roles/role-composition-patterns.md` — general composition invariants; this doc is the parallel-specific execution layer
+- `reference-implementations/roles/role-composition-patterns.md` — general composition invariants; this doc is the parallel-specific execution layer for Patterns A/B (non-canonical sub-agent fan-out). Pattern 7 in that doc covers Pattern C (canonical-role multi-delegation)
 - `skills/engineering-workflow/references/context-pack.md` — the mechanism that makes fan-out context-efficient
+- `skills/engineering-workflow/references/cluster-parallelism.md` — Pattern C's dedicated discipline (distinct from this document's Patterns A/B because Pattern C is canonical-role multi-delegation, not sub-agent fan-out)
 - `skills/engineering-workflow/phases/subagent-strategy.md` — the phase-file-level pointer that tells an agent when to consult this doc
-- `schemas/change-manifest.schema.yaml` §parallel_groups — the audit-trail field
+- `schemas/change-manifest.schema.yaml` §parallel_groups — audit-trail field for Patterns A/B (and an audit breadcrumb entry for C)
+- `schemas/change-manifest.schema.yaml` §implementation_clusters — substantive record of Pattern C
 - `docs/cross-cutting-concerns.md` — what the cross-cutting gap check is checking against
-- `agents/reviewer.md` anti-rationalization rules — still fire on the canonical Reviewer regardless of how many audit sub-agents fed it findings
+- `agents/reviewer.md` anti-rationalization rules — still fire on the canonical Reviewer regardless of how many audit sub-agents fed it findings or how many clusters Pattern C split the work across
 - `skills/engineering-workflow/SKILL.md` principle 9 — symmetric rule at the tool-call layer; this doc extends the same principle to the sub-agent layer
 
 ---

@@ -45,9 +45,21 @@ This is **not** a summary section — do not write prose here or in the manifest
 
 The global self-check in `docs/ai-operating-contract.md` §10 still applies — this section is the **role-specific** addition the Implementer must clear before advancing phase. In Lean mode the five questions still apply (they do not add ceremony — they make honest reporting checkable); in Zero-ceremony mode they collapse to a single question: "can I point at the change and the verification?"
 
+## Optional: cluster-scoped execution (Pattern C, Full mode)
+
+If the Task Prompt names a `cluster_id` from `implementation_clusters` (Pattern C per `skills/engineering-workflow/references/cluster-parallelism.md`), your work is scoped to that cluster:
+
+- Write only inside the cluster's `scope_files` — hard boundary. Touching files outside the cluster's scope is a boundary violation; flag via `scope_flag` and return.
+- Populate only the `evidence_refs` entries this cluster owns.
+- Tag `implementation_notes` entries with your cluster_id so the Reviewer can separate cluster-level findings at cross-cluster audit.
+- On Discovery-loop trigger: flip the cluster `status: blocked_discovery` and return without further writes. By default all sibling clusters halt and the Planner re-opens Phase 2.
+- Your identity must differ from the Planner's, from every other cluster's `assigned_identity`, and from the Reviewer's identity-to-be.
+
+On cluster completion, flip `status: completed` and return. Under Pattern C the top-level `phase` advance is the Planner's action after every cluster reaches `completed`, not yours.
+
 ## Handoff
 
-When every `evidence_plan` entry has `status: collected` and `artifact_location` set, `implementation_notes` is current, and the pre-handoff self-check above has been cleared (no vague or unanswered question remains), advance `phase: review` and hand off to a Reviewer spawned by the Planner (not by you).
+When every `evidence_plan` entry has `status: collected` and `artifact_location` set, `implementation_notes` is current, and the pre-handoff self-check above has been cleared (no vague or unanswered question remains), advance `phase: review` and hand off to a Reviewer spawned by the Planner (not by you). Under Pattern C, you do not advance the top-level `phase` — only your cluster's `status: completed`; the Planner advances `phase: review` once every cluster reaches `completed`.
 
 ## Capability envelope
 

@@ -587,9 +587,80 @@ waivers:
 
 ---
 
+## `implementation_clusters` — Pattern C cluster-parallel record
+
+Optional top-level array. Each entry records one **file-disjoint implementation cluster** delegated to its own canonical Implementer at Phase 4 per `skills/engineering-workflow/references/cluster-parallelism.md` (Pattern C) and `reference-implementations/roles/role-composition-patterns.md` §Pattern 7. Purpose is both planning (Planner writes the field at Phase 2) and audit (each cluster's `status` records execution state; the cluster's `assigned_identity` records which Implementer carried it out).
+
+Backward-compatible: pre-1.13 manifests and Full-mode changes that used a single Implementer (no cluster delegation) both validate without this field. A Full-mode change that did fan out via Pattern C but did not record `implementation_clusters` is an audit-layer contract escape — the substantive record is missing.
+
+```yaml
+implementation_clusters:
+  - cluster_id: "db-migration"
+    label: "Voucher expiry migration + backfill"
+    scope_files:
+      - "db/migrations/**"
+      - "db/seeds/voucher/**"
+    scope_surfaces: ["information", "operational"]
+    task_refs: ["plan-task-1", "plan-task-2"]
+    evidence_refs: ["migration-dry-run-log", "backfill-count-check"]
+    independence_rationale: |
+      No shared state with API-field or frontend clusters — migration
+      runs before either deploys and has its own test suite.
+    assigned_identity: "implementer-alice-db"       # must not equal Planner, other clusters, or Reviewer
+    status: completed
+
+  - cluster_id: "api-field"
+    label: "Voucher expiry field on /vouchers API"
+    scope_files:
+      - "services/voucher-api/**"
+      - "contracts/voucher.proto"
+    scope_surfaces: ["system-interface"]
+    task_refs: ["plan-task-3", "plan-task-4"]
+    evidence_refs: ["api-contract-test", "openapi-diff"]
+    independence_rationale: |
+      API consumer updates land in a separate downstream change
+      (docs/concurrent-changes.md co_required); the API-field cluster
+      only ships the server-side addition.
+    assigned_identity: "implementer-bob-api"
+    status: completed
+
+  - cluster_id: "frontend-copy"
+    label: "Expiry display + i18n"
+    scope_files:
+      - "apps/web/src/vouchers/**"
+      - "apps/web/locales/*/voucher.json"
+    scope_surfaces: ["user"]
+    task_refs: ["plan-task-5"]
+    evidence_refs: ["visual-diff", "e2e-voucher-expiry"]
+    independence_rationale: |
+      Frontend reads the existing API shape; the new expiry field is
+      optional on the client until API-field cluster lands.
+    assigned_identity: "implementer-carol-web"
+    status: completed
+```
+
+**Rules:**
+
+- `minItems: 2` (a 1-wide cluster is just serial Phase 4 — do not record it) and `maxItems: 4` (Reviewer cross-cluster cross-cutting gap-check visibility degrades past 3–4, same reason `parallel_groups.sub_agents` caps at 4).
+- `scope_files` pair-wise disjointness across clusters is a validator-level cross-item constraint (not expressible in pure JSON Schema). A change with overlapping cluster scopes is invalid even if structurally valid.
+- `assigned_identity` must differ from the Planner's identity, from every other cluster's `assigned_identity`, and from the Reviewer's identity-to-be. Anti-collusion applies transitively.
+- `independence_rationale` is required narrative justification. A hand-wavy rationale is a signal that the clusters are not actually independent and serial execution is safer.
+- `status` lifecycle: `pending → in_progress → completed | blocked_discovery`. A cluster that enters `blocked_discovery` halts all other clusters by default (`cluster-parallelism.md` §Discovery-loop handling).
+- When Pattern C is used, a `parallel_groups` entry with `pattern: C_cluster_implementers` should additionally be recorded as an audit breadcrumb pointing at `implementation_clusters`; the substantive cluster data lives in `implementation_clusters` itself, so the `parallel_groups` entry's `synthesis.manifest_fields_written` is typically short (`[implementation_clusters]`) rather than the long synthesis list Patterns A/B produce.
+
+**When the Reviewer audits this field:**
+
+- Verify `assigned_identity` for each cluster appears in `authors[]` with `role: implementer` and is distinct across clusters.
+- Verify `scope_files` are pair-wise disjoint (no file appears in two clusters' globs).
+- Verify every `evidence_refs` entry resolves to an `evidence_plan.artifacts` row that this cluster's Implementer populated (cross-check `authors` of those evidence rows).
+- Perform the cross-cluster cross-cutting gap check: are there issues at cluster intersections that no individual Implementer would catch? (See `cluster-parallelism.md` §6 for the specific questions.)
+- Verify no cluster has `status: in_progress` at sign-off time — a Pattern C change that reaches `phase: signoff` with a cluster still running is a compositional escape.
+
+---
+
 ## `parallel_groups` — fan-out audit trail
 
-Optional top-level array. Each entry records one **parallel sub-agent fan-out** that occurred during the change, per `skills/engineering-workflow/references/parallelization-patterns.md` and `reference-implementations/roles/role-composition-patterns.md` Patterns 5–6. Purpose is audit, not scheduling — the manifest records fan-out *as it happened* so a Reviewer can confirm canonical-role-performs-synthesis and anti-collusion were honored.
+Optional top-level array. Each entry records one **parallel sub-agent fan-out** that occurred during the change, per `skills/engineering-workflow/references/parallelization-patterns.md` and `reference-implementations/roles/role-composition-patterns.md` Patterns 5–6. Entries with `pattern: C_cluster_implementers` additionally serve as audit breadcrumbs for Pattern C (§Pattern C records the substantive data in `implementation_clusters`; the `parallel_groups` entry records that the multi-delegation happened). Purpose is audit, not scheduling — the manifest records fan-out *as it happened* so a Reviewer can confirm canonical-role-performs-synthesis and anti-collusion were honored.
 
 Backward-compatible: pre-1.11 manifests and Full-mode changes that did not fan out both validate without this field. What is **not** valid is a fan-out that happened but was not recorded — that is a contract escape at the audit layer. Lean mode fan-outs do not exist (`role-composition-patterns.md` §When); an entry claiming `owning_role` in Lean mode is itself a composition failure.
 
@@ -599,7 +670,7 @@ parallel_groups:
     owning_role: planner
     owning_identity: "planner-alice"       # must match an entry in authors[]
     phase: investigate
-    pattern: A_surface_investigators       # enum: A_surface_investigators | B_specialized_audit | other
+    pattern: A_surface_investigators       # enum: A_surface_investigators | B_specialized_audit | C_cluster_implementers | other
     context_pack_summary: "4 surfaces in scope; SoT candidates pre-classified; return-slot shape fixed."
     sub_agents:
       - identity: investigator-user-surface

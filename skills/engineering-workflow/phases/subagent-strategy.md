@@ -51,6 +51,10 @@ Work serially when any of:
 
 Silent omission of any row is a contract escape, not a shortcut.
 
+## Pattern C — canonical-role multi-delegation (not sub-agent fan-out)
+
+This document covers **non-canonical sub-agent composition** — a canonical role spawns helpers that return findings. Pattern C in [`../references/cluster-parallelism.md`](../references/cluster-parallelism.md) is a **different mechanism**: the Planner spawns 2–4 **canonical Implementer identities** in parallel for file-disjoint Phase 4 clusters. Each spawned Implementer has the full canonical envelope and writes its own cluster's code + evidence directly. The disciplines in this file (sub-agents return findings, canonical-role synthesizes, sub-agents inherit read-only envelope) apply to Patterns 1–6 but not to Pattern C. Do not conflate the two: Pattern C spawns canonical roles; this file's patterns spawn non-canonical helpers.
+
 ## Within-phase fan-out vs between-phase overlap
 
 Sub-agent fan-out (this document) parallelizes work **within a single phase** — the canonical role spawns sub-agents, waits, fans in, and remains inside the same gate. [`../references/phase-overlap-zones.md`](../references/phase-overlap-zones.md) parallelizes **between phases** — prep for Phase N+1 starts before Phase N's gate passes, in working space, with a hard discard-on-fail rule. The two stack (a Phase 1 fan-out can finish its fan-in just as a Phase 2 change-map skeleton begins being drafted) but they solve different problems with different disciplines. Do not conflate them: fan-out does not cross phase gates, and overlap does not spawn sub-agents.
