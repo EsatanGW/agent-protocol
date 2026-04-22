@@ -1,24 +1,29 @@
 # Misuse Signals
 
-This skill is powerful, but it can also be over-applied.
+This skill is powerful, but it can also be over-applied. The four canonical execution modes (Zero-ceremony / Three-line delivery / Lean / Full) each have a well-defined artifact minimum; a misuse is any task that sits in the wrong mode, either above or below. Mode definitions: `../../../docs/glossary.md §Execution mode`. Selection logic: `mode-decision-tree.md`.
 
-## Misuse 1: treating small tasks as Full
+## Misuse 1: treating small tasks as Full (over-ceremony)
 Signals:
 - Single-file low-risk fix, yet a full spec / plan / sign-off is being written.
 - Documentation cost exceeds implementation cost.
+- A task that matches the forced-Lean or forced-Three-line-delivery or forced-Zero-ceremony scenario tables in `mode-decision-tree.md` is being routed through Full.
 
 Fix:
-- Switch to Lean mode.
-- Keep only the minimum clarification / verification / delivery.
+- Downgrade to the correct mode per `mode-decision-tree.md`.
+- Zero-ceremony: commit directly, no artifacts.
+- Three-line delivery: three-line record in the commit or PR.
+- Lean: minimum clarification + verification + delivery artifacts only.
 
-## Misuse 2: treating high-risk tasks as Lean
+## Misuse 2: treating high-risk tasks as Lean / Three-line / Zero-ceremony (under-ceremony)
 Signals:
 - The task has public behavior impact but is being patched quickly.
 - Changes to contract / schema / consumers without acceptance criteria or evidence.
+- A forced-Full trigger (migration, contract break, enum consumer-visible, payments, auth, PII, cross-team, long-lived flag, staged rollout) is hitting Lean or below.
 
 Fix:
-- Upgrade to Full mode.
-- Write the artifacts explicitly.
+- Upgrade to Full mode per `mode-decision-tree.md §Mode upgrade / downgrade`.
+- Use the Lean → Full step / phase mapping in `../../../docs/glossary.md §Lean → Full step / phase correspondence` to re-enter at the correct phase.
+- Write the Full-mode artifacts explicitly from the re-entry point forward.
 
 ## Misuse 3: treating the skill as bureaucracy
 Signals:

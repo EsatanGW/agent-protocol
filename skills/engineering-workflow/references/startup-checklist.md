@@ -21,10 +21,26 @@ After loading `engineering-workflow` and before formally starting the work, walk
 - Are multiple consumers affected together?
 
 ## 5. Mode selection
-- Single point, low risk → Lean.
-- Multiple surfaces / multiple consumers / handoff required → Full.
+
+Four canonical modes, in rising ceremony. Full decision logic: [`mode-decision-tree.md`](mode-decision-tree.md) (source of truth).
+
+- **Zero-ceremony** — no files modified, or diff < 5 lines with no public-behavior impact.
+- **Three-line delivery** — mechanical single-surface edit (i18n value, new log, patch dep bump, docs, known-safe config).
+- **Lean** — single surface, ≤ 1 consumer, verifiable in ≤ 5 minutes, not a forced-Full trigger.
+- **Full** — multiple surfaces / multiple consumers / handoff required / any forced-Full trigger (migration, contract break, enum consumer-visible, payments, auth, PII, cross-team, long-lived flag, staged rollout).
+
+Canonical mode definitions: [`../../../docs/glossary.md §Execution mode`](../../../docs/glossary.md).
 
 ## 6. Minimum artifacts
+
+Phase-gate discipline scales with the mode — see [`../../../docs/phase-gate-discipline.md §Ceremony scaling`](../../../docs/phase-gate-discipline.md) for which rules apply per mode.
+
+### Zero-ceremony
+- None. Commit message is the record.
+
+### Three-line delivery
+- Three-line record (What changed / How verified / Residual risk) in the commit or PR description.
+
 ### Lean
 - Minimal clarification.
 - Minimal task list.
@@ -37,6 +53,7 @@ After loading `engineering-workflow` and before formally starting the work, walk
 - Test plan.
 - Test report.
 - Completion report.
+- Change Manifest.
 
 ## 7. Tool-capability setup
 

@@ -5,33 +5,52 @@ Over-applying it will make the team resent the methodology, which is worse than 
 
 ---
 
+## Four canonical modes
+
+The methodology has **four execution modes**, ordered by rising ceremony: **Zero-ceremony, Three-line delivery, Lean, Full**. Canonical definitions: [`../glossary.md §Execution mode`](../glossary.md). Mode-selection logic: [`../../skills/engineering-workflow/references/mode-decision-tree.md`](../../skills/engineering-workflow/references/mode-decision-tree.md) — that file is the execution-layer source of truth for the forced-Full / forced-Lean / forced-Three-line-delivery / forced-Zero-ceremony scenario tables.
+
+This file keeps the onboarding-oriented view: when *not* to use the methodology at all, and why over-use / under-use are both failure modes.
+
+---
+
 ## 60-second decision flow
 
 ```
 Task arrives
   │
-  ├─ Q1: Does this change any behavior that a third party / user / another module will perceive?
+  ├─ Q1: Will any file be modified?
   │   │
-  │   ├─ No  → take the "no-process" path (below)
+  │   ├─ No  → Zero-ceremony (just answer / read / inspect)
   │   │
   │   └─ Yes → Q2
   │
-  ├─ Q2: Single surface + single consumer + can be verified in ≤ 5 minutes?
+  ├─ Q2: Diff < 5 lines, no public behavior impact, no surface crossing?
   │   │
-  │   ├─ Yes → Lean mode (minimum triple: surface tagging, verification, evidence)
+  │   ├─ Yes → Zero-ceremony (typo / trivial CSS / throwaway one-off)
   │   │
   │   └─ No  → Q3
   │
-  └─ Q3: Does it touch schema / contract / enum / payments / auth / migration / rollout?
+  ├─ Q3: Does it hit any forced-Full trigger?
+  │       (schema migration / public API breaking / enum consumer-visible /
+  │        payments / auth / PII / cross-team / long-lived flag / staged rollout —
+  │        full list in mode-decision-tree.md §Scenarios that force Full)
+  │   │
+  │   ├─ Yes → Full mode
+  │   │
+  │   └─ No  → Q4
+  │
+  └─ Q4: Single surface + ≤ 1 consumer + verifiable ≤ 5 minutes,
+         and the diff is a mechanical edit (i18n value / new log /
+         patch dep bump / docs-only / known-safe config)?
       │
-      ├─ Yes → Full mode
+      ├─ Yes → Three-line delivery (below)
       │
-      └─ No  → Lean mode, with risks explicitly listed
+      └─ No  → Lean mode (minimum triple: surface tagging, verification, evidence)
 ```
 
 ---
 
-## No-process path (zero ceremony)
+## Zero-ceremony (no process, just the work)
 
 These situations **do not go through the methodology at all** — just do the work:
 
@@ -57,9 +76,9 @@ These situations **do not go through the methodology at all** — just do the wo
 
 ---
 
-## The stripped-down version
+## Three-line delivery
 
-For the gray zone between "no process" and "full Lean," use a **three-line handoff**:
+For the gray zone between Zero-ceremony and Lean, use a **three-line record** (kept next to the commit or in the PR description):
 
 ```
 What changed:  <one sentence>
@@ -71,6 +90,8 @@ Applicable when:
 - There is a bit of public impact, but it reaches only one surface.
 - A small refactor in a familiar area (already protected by tests).
 - A small config tweak (a known-validated config key).
+
+Canonical definition: [`../glossary.md §Three-line delivery`](../glossary.md). Legacy aliases (retired): *three-line handoff*, *stripped-down version*.
 
 ---
 
@@ -97,7 +118,7 @@ Different from the table above (those situations **skip** the methodology). Thes
 | **Incident response / hotfix under pressure** | Change Manifest + phase gates are too slow when production is actively burning | Stop the bleeding first with whatever is fastest; after stabilization, backfill a Lean manifest as the post-mortem record (within 72h). Do not try to fill Full mode during the incident. |
 | **Pure research / exploratory work** | Methodology presumes clear acceptance criteria; research outcome is "what we learned," not "what we delivered" | Record findings as a Cross-Change Knowledge Note (CCKN — see [`../cross-change-knowledge.md`](../cross-change-knowledge.md)) or equivalent reference doc. Do not open a Change Manifest for a research question unless a concrete change follows. |
 | **A/B test / experiment design** | Evidence semantics misalign — the experiment itself generates the evidence, not a separate verification artifact | Open a Lean manifest at experiment *kickoff* (declaring surface, evidence = experiment result, rollback mode). Record the actual result in a separate observation doc once data is in. Do not try to pre-declare a screenshot-diff artifact for something whose result is unknown. |
-| **Pure content / i18n / copy-only changes** | Full evidence / rollback / breaking change is overkill for a string change | Use the Three-line handoff form above. Escalate to Lean only when the string rename crosses a consumer (renaming an i18n key, changing an enum label consumed by telemetry). |
+| **Pure content / i18n / copy-only changes** | Full evidence / rollback / breaking change is overkill for a string change | Use the Three-line delivery form above. Escalate to Lean only when the string rename crosses a consumer (renaming an i18n key, changing an enum label consumed by telemetry). |
 | **AI agent / prompt system's own development** | When the *target* of the change is an agent (prompt changes, tool additions, workflow edits), the four-surface map does not cleanly capture "the agent's behavior changed" | Treat agent behavior as a variant of the user or information surface (whichever the change most affects) and document the gap. A dedicated "agent surface" extension is a candidate for a future revision. |
 | **UI / UX design iteration** | Acceptance criteria cannot be written up-front because the design is *being discovered* | Run the design-spike phase outside the methodology. Once a direction is picked and a real surface change is proposed, enter Lean mode for the implementation phase. Do not force acceptance criteria onto a spike. |
 | **ML model training / hyperparameter iteration** | The Model surface exists, but per-iteration evidence is "experiment log + metric delta," not the standard evidence types | Per-iteration: keep experiment logs as the evidence artifact; skip breaking-change / rollback fields that do not apply. At the **ship-to-production event** for a new model version, run Full mode including rollback (mode 2 or 3 is typical for deployed models). |
@@ -141,13 +162,13 @@ These are evidence that discipline is insufficient — not that the task was too
 
 | Situation | Path |
 |-----------|------|
-| Change the value of an i18n key (same semantics) | Three-line handoff |
+| Change the value of an i18n key (same semantics) | Three-line delivery |
 | Rename an i18n key | Lean (consumers will break) |
-| Add a new log | Three-line handoff |
+| Add a new log | Three-line delivery |
 | Change an existing log's structure | Lean (downstream dashboards / alerts are consumers) |
-| Edit README | No process |
-| Edit an API's README description but not the code | Three-line handoff (docs are consumers) |
-| Bump a dependency (patch) | Three-line handoff + verification |
+| Edit README | Zero-ceremony |
+| Edit an API's README description but not the code | Three-line delivery (docs are consumers) |
+| Bump a dependency (patch) | Three-line delivery + verification |
 | Bump a dependency (major) | Full |
 | Delete a "nobody uses it" function | Lean (first prove nobody uses it) |
 

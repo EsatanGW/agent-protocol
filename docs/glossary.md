@@ -1,7 +1,7 @@
 # Glossary
 
 > **English TL;DR**
-> Canonical definitions for every term used in this methodology: change, surface, source of truth, consumer, contract, evidence, surface coverage, handoff, Lean/Full mode, breaking change levels (L0–L4), rollback modes (1 reversible / 2 forward-fix / 3 compensation), and anti-pattern vocabulary. If another document and this one disagree, fix this one first.
+> Canonical definitions for every term used in this methodology: change, surface, source of truth, consumer, contract, evidence, surface coverage, handoff, the **four execution modes** (Zero-ceremony / Three-line delivery / Lean / Full), breaking change levels (L0–L4), rollback modes (1 reversible / 2 forward-fix / 3 compensation), and anti-pattern vocabulary. If another document and this one disagree, fix this one first.
 
 > This file is the authoritative definition of every term used in the repo. Other documents must defer to the definitions here. When a definition is ambiguous, fix it here first rather than redefining it elsewhere.
 
@@ -78,15 +78,79 @@ A handoff **prompt** (the text the outgoing session sends to the incoming sessio
 
 ## Process terms
 
-### Lean / Full mode
+### Execution mode
 
-Two execution-rigor gears. Lean is the minimum skeleton; Full is the full trace. The selection criterion is not "importance" but surface count, consumer count, reversibility, and handoff needs.
+The methodology has **four execution modes** — Zero-ceremony, Three-line delivery, Lean, Full — arranged by rising ceremony. Each sub-section below is the canonical definition; other documents must defer to this section rather than redefining a mode locally. Selection criteria are **objective, recognizable conditions** (surface count, consumer count, reversibility, public-behavior impact), never "it feels like we need it." Decision tree: `skills/engineering-workflow/references/mode-decision-tree.md`. Upstream principle: `docs/principles.md` §8.
 
-> Decision guidance: `docs/onboarding/when-not-to-use-this.md`, `references/mode-decision-tree.md`.
+The four modes share one property: **each has a single, named artifact-set minimum**. Over-producing artifacts above a mode's minimum is itself a misuse (see `skills/engineering-workflow/references/misuse-signals.md`).
+
+> **Note on legacy names.** Earlier drafts used `no-process path`, `ultra-lean`, `No skill`, `three-line handoff`, and `stripped-down version` for the first two modes. Those are retired aliases; the canonical names in this glossary are the normative ones. Bridges and examples may still carry the old names transitionally — treat any occurrence as equivalent to the canonical name listed here.
+
+#### Zero-ceremony mode
+
+**No methodology applies; just do the work.** Reserved for tasks where opening any artifact would cost more than the task itself:
+
+- Pure Q&A, research, or reference reading — no files modified.
+- Tiny fixes: diff < 5 lines, no public behavior impact, does not cross surfaces.
+- One-off low-risk scripts with no long-lived consumer.
+- Pure environment checks (read-only).
+- Explicitly throwaway experiments that will not land on main.
+
+**Artifact minimum:** none. The change and its commit message are the record.
+
+**Legacy aliases (retired):** `no-process path`, `ultra-lean`, `No skill`.
+
+#### Three-line delivery
+
+**For the gray zone between Zero-ceremony and Lean.** The task has some public impact but reaches only one surface, or is a small refactor in a familiar area protected by tests, or is a well-understood config tweak.
+
+**Artifact minimum:** a three-line record next to the commit or in the PR description:
+
+```
+What changed:  <one sentence>
+How verified:  <one command or one screenshot>
+Residual risk: <one sentence, or "none">
+```
+
+No spec, no plan, no ROADMAP row. Phase-gate discipline does not apply (see `docs/phase-gate-discipline.md §Ceremony scaling`).
+
+**Legacy aliases (retired):** `three-line handoff`, `stripped-down version`.
+
+#### Lean mode
+
+**The minimum-ceremony execution with a traceable artifact chain.** Use when a change touches a single surface with ≤ 1 consumer and can be verified in ≤ 5 minutes, and the Zero-ceremony / Three-line-delivery bars do not apply (there is non-trivial behavior change, or evidence will need to be cited later).
+
+Lean mode has **six steps** — Lean-0 Clarify, Lean-1 Investigate, Lean-2 Minimal Plan, Lean-3 Implement, Lean-4 Verify, Lean-5 Deliver Summary. **Lean steps are not phases.** "Phase" is a Full-mode concept; Lean steps collapse into a single phase-boundary for phase-gate purposes — gate discipline applies once, at Lean-5 delivery, not at every step. ROADMAP rows are optional for a Lean single-change initiative (see `docs/phase-gate-discipline.md §Ceremony scaling`).
+
+**Artifact minimum:** `lean-spec-template.md` + `lean-verification-template.md` + `lean-delivery-template.md` (all in `skills/engineering-workflow/templates/`).
+
+#### Full mode
+
+**The complete artifact trail.** Use for new features, multi-surface change, multi-repo / multi-consumer work, migration / rollout / rollback-sensitive changes, or any task that carries a forced-Full trigger (see `skills/engineering-workflow/references/mode-decision-tree.md §Scenarios that force Full`).
+
+Full mode has **nine phases** — Phase 0 Clarify, Phase 1 Investigate, Phase 2 Plan, Phase 3 Test Plan, Phase 4 Implement, Phase 5 Review, Phase 6 Sign-off, Phase 7 Deliver, Phase 8 Post-delivery Observation (optional). Every phase ends with a named gate; `docs/phase-gate-discipline.md` applies in full. A ROADMAP row is required for every phase.
+
+**Artifact minimum:** spec + plan + test plan + test report + completion report + Change Manifest (per `docs/change-manifest-spec.md`).
+
+#### Lean → Full step / phase correspondence
+
+When a Lean-mode task upgrades to Full mid-change (per `mode-decision-tree.md §Mode upgrade / downgrade`), the step / phase mapping is:
+
+| Lean step | Full phase(s) |
+|---|---|
+| Lean-0 Clarify | Phase 0 Clarify |
+| Lean-1 Investigate | Phase 1 Investigate |
+| Lean-2 Minimal Plan | Phase 2 Plan **+** Phase 3 Test Plan (Lean merges them) |
+| Lean-3 Implement | Phase 4 Implement |
+| Lean-4 Verify | (covers portions of Phase 5 Review and Phase 6 Sign-off) |
+| Lean-5 Deliver Summary | Phase 7 Deliver |
+| (Lean has no counterpart) | Phase 8 Post-delivery Observation |
+
+On upgrade, the agent re-enters at the Lean step's corresponding Full phase and completes the missing Full-mode artifacts from that phase onward.
 
 ### Phase 0–8
 
-The nine phases of Full mode: Clarify / Investigate / Plan / Test Plan / Implement / Review / Sign-off / Deliver / Post-delivery Observation. They form a **sequential narrative**, not a checklist that must be executed cell by cell every time.
+The nine phases of Full mode: Clarify / Investigate / Plan / Test Plan / Implement / Review / Sign-off / Deliver / Post-delivery Observation. They form a **sequential narrative**, not a checklist that must be executed cell by cell every time. Full-mode phases are distinct from Lean-mode **steps** (Lean-0…Lean-5); see `§Execution mode §Lean mode` above.
 
 ### Discovery loop
 

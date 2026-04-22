@@ -10,7 +10,7 @@
 A **tool-agnostic engineering workflow plugin** that can be installed into any AI coding runtime. It delivers:
 
 - A **methodology** for understanding and delivering system changes (`docs/`)
-- An **execution layer** that translates the methodology into a runnable workflow with Lean / Full modes, trigger conditions, phase minimums, and artifact templates (`skills/`)
+- An **execution layer** that translates the methodology into a runnable workflow with **four execution modes** (Zero-ceremony / Three-line delivery / Lean / Full), trigger conditions, phase minimums, and artifact templates (`skills/`)
 - A **Change Manifest schema** so AI output can be structurally declared, human-reviewable, and CI-verifiable (`schemas/`, `templates/`)
 
 It is **not** a stack-specific style guide. It does not assume a language, framework, cloud, or model. Capabilities are named as categories (file read, code search, shell execution, sub-agent delegation) and mapped at runtime to whatever the host agent provides.
@@ -66,7 +66,7 @@ No evidence → not done.
 
 ### 6. Phase-gate discipline
 
-Every phase of a multi-phase initiative ends with an **explicit, named check** that either passes or fails. Five rules apply:
+Every phase of a multi-phase Full-mode initiative ends with an **explicit, named check** that either passes or fails. Five rules apply:
 
 1. **Every phase ends with an explicit gate** — the check is a repeatable action (a command, a manifest field inspection, a named human approval), it produces an artifact, and it is tied to the phase's declared exit criteria. Silent scope-shrink to force a pass is prohibited.
 2. **The ROADMAP is a first-class artifact** — any initiative that spans more than one phase opens an entry in the repo's `ROADMAP.md`. Rows record entry/exit criteria, verification command, pass/fail status, commit SHA, and notes. The ROADMAP is append-mostly and cross-session; fresh sessions resume from it, not from code diffs.
@@ -74,7 +74,9 @@ Every phase of a multi-phase initiative ends with an **explicit, named check** t
 4. **Spec documents are read in full before planning** — skim-and-start produces plans that silently drift from the spec. Read in full, enumerate constraints into the manifest or ROADMAP, re-read the spec at Phase 2 / 3 / 5 / 7, treat discovered spec conflicts as `escalation.trigger: spec_conflict` rather than silent deviation.
 5. **Records are written at phase boundaries, not at initiative end** — lost phase records on interrupt are lost work. Surprises and scope changes go into the phase-log subsection immediately.
 
-Full spec: `docs/phase-gate-discipline.md`. Trivial single-phase tasks (Lean-mode bugfixes, typos) are exempt from the ROADMAP rule but still subject to evidence-before-completion.
+**Ceremony scaling.** These five rules apply in full to **Full mode** only. **Lean mode** compresses them to a single gate event at Lean-5 delivery (Lean steps Lean-0 … Lean-4 are not individually gated). **Three-line delivery** and **Zero-ceremony** changes are waived from phase-gate discipline entirely — their artifact is the commit or PR description. The per-rule × per-mode application table is in `docs/phase-gate-discipline.md §Ceremony scaling — how the six rules apply per execution mode`. Mode definitions: `docs/glossary.md §Execution mode`.
+
+Full spec: `docs/phase-gate-discipline.md`. Evidence-before-completion applies in every mode, regardless of ceremony scaling.
 
 ### 7. Multi-agent role separation (when the runtime supports sub-agents)
 

@@ -19,6 +19,26 @@ This file answers those four.
 
 ---
 
+## Ceremony scaling — how the six rules apply per execution mode
+
+The six rules below are normative, but their **application scope** depends on which execution mode the change is in. The four modes are defined in `docs/glossary.md §Execution mode`; the scenario tables that select a mode are in `skills/engineering-workflow/references/mode-decision-tree.md`.
+
+| Rule | Zero-ceremony | Three-line delivery | Lean | Full |
+|---|---|---|---|---|
+| **1** — Every phase ends with an explicit gate | Waived (no phases exist) | Waived (no phases exist) | Applies **once** at Lean-5 delivery; Lean steps Lean-0 … Lean-4 are not gated individually | Applies at every phase boundary (Phase 0 … Phase 7, plus Phase 8 if used) |
+| **2** — ROADMAP is a first-class artifact | Waived | Waived | Optional for a single-change initiative; required when Lean upgrades to Full or when the initiative spans multiple Lean changes | Required; one row per phase |
+| **3** — Commit at every gate (when VCS available) | One commit for the change; commit message is the record | One commit for the change; the three-line record lives in the commit message or PR description | One commit at Lean-5 delivery; additional commits allowed mid-steps but not mandatory | One commit per passed gate, SHA recorded back into the ROADMAP row |
+| **4** — Spec documents read in full before planning | Waived (no spec) | Waived unless the three-line edit is driven by a spec — in which case read the relevant spec section and cite it | Applies if any user-provided spec exists; re-read is required at Lean-2 | Applies; re-read at Phase 2 / 3 / 5 / 7 as existing rule states |
+| **5** — Records written at phase boundaries, not at end | Waived | Waived | Lean has one boundary (Lean-5); record at that point | Applies at every phase boundary |
+| **5a** — Final artifacts produced from working space | Waived | Waived (the three-line record is short enough not to need a buffer) | Applies at least once, before the Implementer begins coding | Applies at every phase boundary |
+| **6** — Phase re-entry protocol | N/A | N/A | Lean does not have a Full-equivalent re-entry protocol; if re-entry is needed, upgrade to Full using the step / phase mapping in `glossary.md §Lean → Full step / phase correspondence` and then follow Rule 6 | Applies in full |
+
+"**Lean step vs Full phase.**" Lean mode has six steps (Lean-0 … Lean-5) but **they are not phases** — the word "phase" is reserved for Full mode. Phase-gate discipline compresses into a single gate event at Lean-5 for a Lean-mode change. This is why `AGENTS.md §6`'s ceremony-scaling clause waives per-phase gating for Lean and below, while keeping evidence-before-completion universal.
+
+The rest of this file specifies each rule in full. A rule's narrative content (the sub-bullets and rationale) reads the same in every mode; the scope of when it fires is governed by this table. If the table and the rule body appear to disagree, this table wins.
+
+---
+
 ## The six rules
 
 ### Rule 1 — Every phase ends with an explicit gate
@@ -89,9 +109,10 @@ A working space must:
 
 Why: without a working space, the agent writes thinking-in-progress into the canonical artifact, producing either (a) prose-heavy manifest fragments that pollute downstream readers or (b) over-compressed artifacts that skip reasoning and jump to conclusions. The working space is where the compression happens; the canonical artifact receives only the compressed result.
 
-Ceremony scaling:
+Ceremony scaling (see also the master scaling table at `§Ceremony scaling — how the six rules apply per execution mode` above):
 
 - **Zero-ceremony mode** — the rule is waived. If there is no ROADMAP and no manifest, there is no phase boundary that needs a buffered artifact.
+- **Three-line delivery** — waived. The three-line record is short enough to write directly in the commit message or PR description without buffering.
 - **Lean mode** — the rule applies at least once, before the Implementer begins coding. The minimal-plan artifact in `skills/engineering-workflow/templates/lean-spec-template.md` is the typical recipient.
 - **Full mode** — the rule applies at every phase boundary. Every Manifest fragment, every ROADMAP row, every `review_notes` entry passes through a working space first.
 
@@ -222,7 +243,7 @@ The Change Manifest schema (`schemas/change-manifest.schema.yaml`) already inclu
 
 Where the manifest says "the reviewer approved at T," the ROADMAP row says "Phase 5 gate passed at T, approval captured in manifest `<change_id>`." The manifest is the detail; the ROADMAP is the trail.
 
-For single-change initiatives (e.g. a one-manifest bugfix), the ROADMAP row can be minimal — a single P0 + P7 pair is acceptable. For multi-phase initiatives (migrations, cross-team refactors, plugin-level work like this one), the ROADMAP row is the primary tracking artifact.
+For **Full-mode** single-change initiatives (e.g. a one-manifest bugfix that still carries a forced-Full trigger), the ROADMAP row can be minimal — a single P0 + P7 pair is acceptable. For Full-mode multi-phase initiatives (migrations, cross-team refactors, plugin-level work like this one), the ROADMAP row is the primary tracking artifact. **Lean-mode** single-change initiatives do not require a ROADMAP row at all (see the scaling table above); the Lean spec + verification + delivery artifacts are sufficient. **Zero-ceremony** and **Three-line delivery** changes do not write ROADMAP rows under any circumstance.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: engineering-workflow
-description: Tool-agnostic engineering workflow skill. Use for any real engineering change (feature, bugfix, refactor, migration, rollout). Provides surface-first analysis, source-of-truth discipline, Lean/Full modes, phase minimums, artifact templates, and evidence-driven delivery. Capability categories (file read, code search, shell execution, sub-agent delegation) map to whichever tools the host runtime provides.
+description: Tool-agnostic engineering workflow skill. Use for any real engineering change (feature, bugfix, refactor, migration, rollout). Provides surface-first analysis, source-of-truth discipline, four execution modes (Zero-ceremony / Three-line delivery / Lean / Full), phase minimums, artifact templates, and evidence-driven delivery. Capability categories (file read, code search, shell execution, sub-agent delegation) map to whichever tools the host runtime provides.
 ---
 
 # Engineering Workflow
@@ -92,49 +92,67 @@ Use together:
 
 ## Mode selection
 
+The methodology has **four canonical modes**, in rising ceremony. Canonical definitions: `docs/glossary.md §Execution mode`. Mode-selection logic (forced-Full / forced-Lean / forced-Three-line / forced-Zero-ceremony scenario tables) is the **source of truth** at `references/mode-decision-tree.md` — consult it rather than this skill file for edge cases.
+
+### Zero-ceremony mode
+Use for:
+- Pure Q&A / research / reading (no files modified)
+- Typo / single-string copy fix (diff < 5 lines, no surface crossing)
+- One-off throwaway scripts
+- Environment checks
+
+Artifact minimum: none — the commit message is the record.
+
+### Three-line delivery
+Use for:
+- i18n key **value** change (same semantics)
+- New log at an existing call site
+- Dependency patch bump with no API change
+- README / docstring edit that does not change behavior
+- Known-safe config tweak
+
+Artifact minimum: a three-line record (What changed / How verified / Residual risk) in the commit message or PR description. No spec, no ROADMAP row.
+
 ### Lean mode
 Use for:
-- Small bugfixes
+- Small bugfixes with a clear root cause
 - Single contract fixes
-- Small-scope refactors
+- Small-scope refactors in a well-tested area
 - Low-risk UI adjustments
-- Single-surface or low-consumer changes
+- Single-surface, ≤ 1-consumer changes with ≤ 5-minute verification
 
-Goals:
-- Fast clarification
-- Minimal artifacts
-- Verification preserved
-- No ceremony for its own sake
+Artifact minimum: `templates/lean-spec-template.md` + `templates/lean-verification-template.md` + `templates/lean-delivery-template.md`. Lean has **six steps** (Lean-0 … Lean-5), but they are **not** phases — phase-gate discipline applies once at Lean-5 delivery, not per step (`docs/phase-gate-discipline.md §Ceremony scaling`).
 
 ### Full mode
 Use for:
 - New features
 - Multi-surface change
 - Multi-repo / multi-consumer work
-- Migration / rollout / rollback sensitive changes
+- Migration / rollout / rollback-sensitive changes
 - Formal sign-off or handoff needs
+- Any forced-Full trigger (see `references/mode-decision-tree.md §Scenarios that force Full`)
 
-Goals:
-- Full artifact trail
-- Explicit change map
-- Acceptance coverage
-- Residual risk and operations review
+Artifact minimum: spec + plan + test plan + test report + completion report + Change Manifest. Nine phases (Phase 0 … Phase 8); every phase ends with a named gate; ROADMAP row required per phase.
 
 See also:
-- `references/mode-decision-tree.md`
+- `references/mode-decision-tree.md` — **the** canonical decision tree + forced-Full / forced-Lean / forced-Three-line / forced-Zero-ceremony scenario tables
 - `references/misuse-signals.md`
 - `references/discovery-loop.md`
 - `references/resumption-protocol.md`
 
-## Decision table
+## Decision table (quick reference)
+
+This is a **summary** of `references/mode-decision-tree.md`; that file governs edge cases.
 
 | Condition | Suggested mode |
 |-----------|----------------|
-| Tiny single-file fix, no public behavior impact | No skill or ultra-lean |
+| No files modified (research / Q&A / inspection) | Zero-ceremony |
+| Diff < 5 lines, no public behavior impact, no surface crossing | Zero-ceremony |
+| Single mechanical edit with bounded impact (i18n value, new log, patch dep, docs) | Three-line delivery |
 | Small bugfix, few consumers, easy verification | Lean |
-| Any user-visible / API / schema public behavior change | Lean or Full depending on surface count |
+| Any user-visible / API / schema public-behavior change | Lean or Full depending on surface count |
 | 2+ surfaces or many consumers | Full |
-| Migration / rollout / rollback notes required | Full |
+| Forced-Full trigger (migration / contract break / enum consumer-visible / payments / auth / PII / cross-team / long-lived flag / staged rollout) | Full |
 | Needs handoff / completion narrative | Full |
 | Unclear risk | Start Lean, upgrade quickly if needed |
 
@@ -225,6 +243,8 @@ Quick reference:
 - `references/cross-cutting-quick-check.md`
 
 ## Lean workflow
+
+Lean mode has **six steps**. They are steps, not phases — the word "phase" is reserved for Full mode. Phase-gate discipline (`docs/phase-gate-discipline.md`) applies **once** at Lean-5, not per step. A ROADMAP row is optional for a single-change Lean initiative; see `docs/phase-gate-discipline.md §Ceremony scaling`. If mid-way the scope turns out to need Full, use the Lean → Full step / phase mapping in `docs/glossary.md §Lean → Full step / phase correspondence` to re-enter at the right Full phase.
 
 ### Lean-0: Clarify
 Minimum output:
@@ -359,12 +379,21 @@ Reference:
 
 ## Artifact guidance
 
+### Zero-ceremony mode artifacts
+- None. The commit message (if any) is the record.
+
+### Three-line delivery artifacts
+- A three-line record next to the commit or PR description:
+  - What changed
+  - How verified
+  - Residual risk
+
 ### Lean mode artifacts
 Usually enough:
-- minimal spec note
+- minimal spec note (`templates/lean-spec-template.md`)
 - minimal task list
-- verification summary
-- delivery summary
+- verification summary (`templates/lean-verification-template.md`)
+- delivery summary (`templates/lean-delivery-template.md`)
 
 ### Full mode artifacts
 Usually required:
@@ -373,6 +402,7 @@ Usually required:
 - test plan
 - test report
 - completion report
+- Change Manifest (per `docs/change-manifest-spec.md`)
 
 ## Worked examples to emulate
 

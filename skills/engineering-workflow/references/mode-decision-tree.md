@@ -1,49 +1,60 @@
-# Lean / Full Mode Decision Tree
+# Execution-Mode Decision Tree
 
-Use this tree at the start of Phase 0 to pick a mode.
-The decision is not permanent — if the scope grows during implementation, upgrade (see `discovery-loop.md`).
+Use this tree at the start of Phase 0 (or before any code is touched) to pick a mode. The four canonical modes are **Zero-ceremony, Three-line delivery, Lean, Full** — definitions in `docs/glossary.md §Execution mode`. The decision is not permanent — if scope grows during implementation, upgrade (see `discovery-loop.md`).
+
+This file is the **execution-layer source of truth** for the Scenarios-that-force-Full list. Other decision aids (`docs/onboarding/when-not-to-use-this.md`, `SKILL.md §Decision table`, `startup-checklist.md §5`) must reference this file rather than maintain a parallel list.
 
 ---
 
 ## Fast call (30 seconds)
 
 ```
-Does this change involve any of the following?
-├── Schema / DB migration → Full
-├── Public API contract change → Full
-├── Payments / auth / PII → Full
-├── Cross-team handoff required → Full
-└── None of the above → continue
+Does this change modify any file at all?
+├── No (pure Q&A / research / environment check / reading) → Zero-ceremony
+└── Yes → continue
+
+Is the diff < 5 lines, with no public behavior impact, not crossing any surface?
+├── Yes (typo, trivial CSS, throwaway one-off) → Zero-ceremony
+└── No → continue
+
+Does the change involve any forced-Full trigger (see table below)?
+├── Yes → Full
+└── No → continue
 
 How many surfaces does it touch?
-├── 1 surface → Lean
+├── 1 surface → continue (Lean or Three-line delivery)
 ├── 2 surfaces
-│   ├── Public behavior changes?
-│   │   ├── Yes → Full
-│   │   └── No  → Lean
-│   └──
+│   ├── Public behavior changes? → Full
+│   └── No public behavior change → Lean
 └── 3+ surfaces → Full
 
 How many consumers are affected?
-├── 0-1 known consumers → Lean
+├── 0–1 known consumers → continue
 ├── 2+ consumers → Full
 └── Consumer count uncertain → Full (investigate first; may downgrade to Lean)
+
+One surface, ≤ 1 consumer, verifiable in ≤ 5 minutes?
+├── Yes, and the diff is mechanical (config tweak, known-safe dep patch, log add,
+│   i18n value change, docs-only edit) → Three-line delivery
+└── Otherwise → Lean
 ```
 
 ---
 
 ## Scenarios that force Full
 
-The following must use Full mode **regardless of size**:
+The following **must** use Full mode regardless of size. This is the **canonical list**; other documents should cite this section rather than duplicate it.
 
 | Scenario | Reason |
 |----------|--------|
-| DB schema migration | Irreversible or expensive rollback — needs a full plan + rollback strategy. |
-| Public API breaking change | Consumers may be outside your control. |
+| DB / persistent-storage schema migration | Irreversible or expensive rollback — needs full plan + rollback strategy. |
+| Public API breaking change (contract / endpoint / payload / status code) | Consumers may be outside your control. |
+| Enum / status / discriminated-union change that is consumer-visible | Exhaustiveness on the consumer side silently breaks. |
 | Money / payments | Cost of error is extremely high. |
-| Auth / authorization / PII | Security + compliance requirement. |
-| Cross-team delivery | The handoff narrative must be complete. |
-| Long-lived feature-flag coexistence | Needs an explicit flag lifecycle + cleanup plan. |
+| Auth / authorization / PII / secret handling | Security + compliance requirement. |
+| Cross-team delivery requiring handoff | The handoff narrative must be complete. |
+| Long-lived feature-flag coexistence | Needs explicit flag lifecycle + cleanup plan. |
+| Staged rollout (canary / phased %) | Rollout sequencing is itself a contract. |
 
 ## Scenarios that force Lean
 
@@ -51,49 +62,74 @@ The following **should not** use Full mode (avoid over-engineering):
 
 | Scenario | Reason |
 |----------|--------|
-| Copy / translation fix | Single surface, no logic change. |
-| CSS / style tweak | Single surface, no contract impact. |
-| Dependency patch bump | No behavior change. |
-| Single bug fix with a clear root cause | Scope is known. |
-| New log / metric (no behavior change) | Pure operational-surface enhancement. |
+| Single bug fix with a clear root cause, touching 1 surface | Scope is known. |
+| Small-scope refactor in a well-tested area | Tests are the verification; no new contract. |
+| New log / metric without behavior change | Pure operational-surface enhancement. |
 
-## Scenarios where no mode applies
+## Scenarios that force Three-line delivery (not Lean, not Full)
 
-See misuse-signal #4 in `misuse-signals.md`:
-- Pure research / Q&A / environment inspection.
-- One-off scripts / tool invocations.
-- Code exploration (no changes).
+The following sit **below** Lean and do not earn the Lean artifact set:
+
+| Scenario | Reason |
+|----------|--------|
+| i18n key **value** change (same semantics, same key) | No consumer contract change. |
+| New log at an existing call site | Downstream dashboards unaffected unless structure changes. |
+| Dependency **patch** bump with no API change | Binary-compat shift. |
+| README / docstring edit that does not change behavior | Docs as consumer, but narrow scope. |
+| Known-safe config tweak (validated key with a short list of allowed values) | Behavior envelope is already bounded. |
+
+## Scenarios that force Zero-ceremony
+
+The following **do not enter any mode**:
+
+| Scenario | Reason |
+|----------|--------|
+| Pure Q&A / research / reading | No files modified. |
+| Typo / single-string copy fix | Diff < 5 lines, no surface crossing. |
+| One-off script used once and discarded | No long-lived consumer. |
+| Environment check (version, port, log, service state) | Read-only. |
+| Explicitly-throwaway experiment (will not land on main) | Tagged throwaway. |
 
 ---
 
 ## Mode upgrade / downgrade
 
-### Lean → Full (upgrade)
+### Upgrade (Zero-ceremony → Three-line → Lean → Full)
+
 Triggers:
 - A new affected surface is discovered during implementation.
 - More consumers than expected.
 - A schema migration turns out to be required.
+- A forced-Full trigger surfaces mid-change (e.g. the fix now touches auth).
 - The reviewer judges the risk was under-estimated.
 
 Procedure:
 1. Pause implementation.
-2. Complete the Full-mode artifacts (spec → plan → test plan).
-3. Re-enter from the current phase.
+2. Complete the artifacts required by the **target** mode, re-entering at the target mode's corresponding step / phase (see `glossary.md §Lean → Full step / phase correspondence`).
+3. Record the upgrade reason in the target mode's primary artifact (Full: `implementation_notes` entry with `type: plan_delta`; Lean: risk note).
+4. Continue from the re-entry point.
 
-### Full → Lean (downgrade)
+### Downgrade (Full → Lean, Lean → Three-line, Three-line → Zero-ceremony)
+
 Triggers:
 - Investigation shows the impact is smaller than expected.
 - Originally expected a migration, actually none is needed.
 - Only one consumer, inside your control.
 
 Procedure:
-1. Record the reason for the downgrade.
-2. Simplify the remaining artifacts to Lean standards.
+1. Record the reason for the downgrade in the phase log or delivery note.
+2. Simplify the remaining artifacts to the target mode's minimum.
 3. Continue normally.
 
 ---
 
-## Relationship with `startup-checklist.md`
+## Relationship with other decision aids
 
-Item 5 of `startup-checklist.md` ("Mode selection") should use this tree.
-This file provides the precise judgment criteria; the startup checklist gives the end-to-end overview.
+| File | Role | How it references this file |
+|---|---|---|
+| `docs/onboarding/when-not-to-use-this.md` | Gentle onboarding walkthrough for "should I use this methodology at all?" | Uses the same forced-Full list via reference; adds narrative framing and over-use / under-use signals. |
+| `SKILL.md §Mode selection` | In-skill execution cue when the skill triggers | Short decision table; points here for full criteria. |
+| `startup-checklist.md §5` | 60-second opener item | One-line rule; points here for full criteria. |
+| `docs/phase-gate-discipline.md §Ceremony scaling` | How each mode affects phase-gate rules | Uses the mode names defined in `glossary.md §Execution mode`. |
+
+When these files disagree with this file, this file wins for **mode selection logic**; `glossary.md` wins for **mode definitions** themselves.

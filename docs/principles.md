@@ -140,7 +140,7 @@ Error messages become more concrete as they descend surfaces and more abstract a
 - Any methodology with sufficiently low adoption will eventually be routed around.
 - Over-use and under-use are **both** failure modes.
 
-Therefore: there must be four explicit modes — no-process path, three-line delivery, Lean, Full — and the selection criterion for each must be **objective, recognizable conditions** (surface count, consumer count, reversibility, public-behavior impact), never "it feels like we need it."
+Therefore: there must be four explicit modes — **Zero-ceremony, Three-line delivery, Lean, Full** — and the selection criterion for each must be **objective, recognizable conditions** (surface count, consumer count, reversibility, public-behavior impact), never "it feels like we need it." Canonical mode definitions: `glossary.md §Execution mode`. Decision tree: `skills/engineering-workflow/references/mode-decision-tree.md`.
 
 > See also: `onboarding/when-not-to-use-this.md`.
 

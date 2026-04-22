@@ -5,7 +5,7 @@ A high-level engineering-workflow skill. Tool-agnostic and platform-agnostic; us
 It builds on the public methodology and supplies what the execution layer actually needs:
 - When to trigger.
 - When not to trigger.
-- The Lean / Full mode pair.
+- The **four execution modes** (Zero-ceremony / Three-line delivery / Lean / Full) and how to pick among them.
 - Which **capability categories** each phase should prefer (file read/write, code search, shell execution, etc. — not specific tool names).
 - When to produce spec / plan / test / completion artifacts.
 - How to resume safely after an interruption.
@@ -24,7 +24,7 @@ Startup aids:
 - `references/session-opener-snippet.md`
 - `references/resumption-protocol.md`
 - `references/misuse-signals.md`
-- `references/mode-decision-tree.md` — Lean / Full decision tree.
+- `references/mode-decision-tree.md` — canonical decision tree for the four execution modes.
 - `references/discovery-loop.md` — rewind mechanism for scope growth discovered during implementation.
 
 Phase minimums:

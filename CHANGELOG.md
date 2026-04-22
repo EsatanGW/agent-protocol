@@ -6,6 +6,58 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-04-23
+
+### Changed
+
+- **Four execution modes are now first-class citizens of the glossary.** Prior to this release, `docs/principles.md §8` named four modes ("no-process path, three-line delivery, Lean, Full") but the execution layer (`SKILL.md`, `mode-decision-tree.md`, `startup-checklist.md`, `glossary.md`) only defined Lean and Full. The missing two were referenced in other files under five different names (`no-process path`, `ultra-lean`, `No skill`, `three-line handoff`, `stripped-down version` for the lowest mode; `three-line handoff` vs `three-line delivery` for the gray-zone mode), with no single canonical home. `docs/glossary.md §Execution mode` now defines all four — **Zero-ceremony, Three-line delivery, Lean, Full** — as the normative names, with per-mode artifact minimums, selection criteria, and an explicit "legacy aliases (retired)" note mapping the five old names to their canonical equivalents. The glossary is the SoT; other files cite it rather than redefining.
+
+- **`skills/engineering-workflow/references/mode-decision-tree.md` rewritten** to be the execution-layer source of truth for mode selection. It now has five scenario tables — forced-Full, forced-Lean, forced-Three-line-delivery, forced-Zero-ceremony, and mode upgrade/downgrade triggers — covering all four modes. Prior versions only distinguished forced-Full vs forced-Lean. Forced-Full triggers are consolidated into a single canonical list (DB migration / public API breaking / enum consumer-visible / payments / auth / PII / cross-team handoff / long-lived feature-flag / staged rollout); earlier the list was split across `mode-decision-tree.md` and `docs/onboarding/when-not-to-use-this.md §Q3` with mismatches (`enum` + `rollout` appeared only in the onboarding doc; `cross-team` + `long-lived flag` + `PII` appeared only in the decision tree). Other decision aids (`SKILL.md §Decision table`, `startup-checklist.md §5`, `when-not-to-use-this.md §60-second decision flow`) now cite this file rather than carry parallel lists.
+
+- **`docs/phase-gate-discipline.md` gains a master ceremony-scaling table** at the top of the six-rules section, spelling out how each of Rules 1 / 2 / 3 / 4 / 5 / 5a / 6 applies in each of the four execution modes. Previously only Rule 5a had explicit ceremony scaling (`Zero-ceremony waived / Lean once / Full every boundary`); the other rules were written as if they applied uniformly, implying a Lean bugfix still needed six named gates plus six commits plus a ROADMAP row per step. The master table makes the real scaling explicit: **Lean mode compresses all six rules into a single gate event at Lean-5**, **Three-line delivery waives phase-gate discipline entirely** (the commit message is the record), and **Zero-ceremony is fully waived**. Rule 5a's existing scaling block is preserved and extended to include the Three-line-delivery row. The "single P0 + P7 pair" sentence for single-change initiatives is scoped to Full mode, resolving a contradiction with `AGENTS.md §6`'s previous "Trivial single-phase tasks are exempt from the ROADMAP rule" wording.
+
+- **`AGENTS.md §6`** updated to state the five rules' Full-mode-only application scope up-front, then point at the phase-gate master ceremony-scaling table. Evidence-before-completion remains universal (every mode). The previous exemption sentence ("Trivial single-phase tasks are exempt") is replaced with the four-mode scaling clause that references the canonical ceremony-scaling table.
+
+- **`docs/principles.md §8`** updated to use the canonical mode names (Zero-ceremony / Three-line delivery / Lean / Full) and point at `glossary.md §Execution mode` and `mode-decision-tree.md` as the canonical sources rather than standing alone.
+
+- **`docs/onboarding/when-not-to-use-this.md`** updated to use canonical mode names (Zero-ceremony instead of "No-process path"; Three-line delivery instead of "stripped-down version" / "three-line handoff"). The 60-second decision flow now covers all four modes explicitly (Q1 → Zero-ceremony, Q2 → Zero-ceremony, Q3 → forced-Full check, Q4 → Three-line delivery vs Lean). The edge-case quick-reference table uses canonical names. The forced-Full trigger list is delegated to `mode-decision-tree.md` rather than duplicated.
+
+- **`skills/engineering-workflow/SKILL.md`** updated: the frontmatter description lists four modes instead of two. The `§Mode selection` block has four sub-sections (Zero-ceremony / Three-line delivery / Lean / Full) with per-mode artifact minimums. The `§Decision table` adds rows for Zero-ceremony and Three-line delivery; the ghost term "ultra-lean" (referenced but never defined anywhere in the repo) is removed. The `§Lean workflow` section now explicitly notes Lean-0 … Lean-5 are **steps, not phases** — phase-gate discipline applies once at Lean-5, not per step — and points at the `glossary.md §Lean → Full step / phase correspondence` mapping table for upgrade cases. The `§Artifact guidance` section adds Zero-ceremony and Three-line-delivery rows.
+
+- **`skills/engineering-workflow/references/startup-checklist.md §5 and §6`** rewritten to cover all four modes. §5 now explicitly lists each mode's selection criterion; §6 lists each mode's artifact minimum. Both point at `mode-decision-tree.md` as the selection SoT and `phase-gate-discipline.md §Ceremony scaling` for rule applicability.
+
+- **`skills/engineering-workflow/references/misuse-signals.md`** §Misuse 1 and §Misuse 2 rewritten to cover downgrading to / upgrading from any of the four modes, not just Lean↔Full. Each misuse block now references `mode-decision-tree.md` as the authority for the correct mode and `glossary.md §Lean → Full step / phase correspondence` for Lean↔Full transitions.
+
+- **`AGENTS.md`** top-of-file description and `skills/engineering-workflow/README.md`** feature list updated** to name the four execution modes explicitly instead of "Lean / Full modes".
+
+### Added
+
+- **`docs/glossary.md §Lean → Full step / phase correspondence`** — a new mapping table documenting which Full-mode phase each Lean-mode step corresponds to, so that Lean→Full upgrades mid-change re-enter at the correct Full phase mechanically. Prior to this release, mode-upgrade procedure in `mode-decision-tree.md` said "re-enter from the current phase" but did not specify which Full phase a Lean step maps to — Lean-2 Minimal Plan merges Full's Phase 2 Plan + Phase 3 Test Plan, Lean-4 Verify covers portions of Full's Phase 5 Review + Phase 6 Sign-off, and Lean has no Phase 8 counterpart, so the mapping was implicit.
+
+### Fixed
+
+- **Ghost term `ultra-lean`** in `skills/engineering-workflow/SKILL.md §Decision table` removed. The term was used in the decision table (`"Tiny single-file fix, no public behavior impact | No skill or ultra-lean"`) but had no definition anywhere in the repo. Replaced with canonical mode names (Zero-ceremony).
+
+- **Numbering-ambiguity source:** AGENTS.md §6's previous "Trivial single-phase tasks (Lean-mode bugfixes, typos) are exempt from the ROADMAP rule" did not reconcile with `SKILL.md §Lean workflow`'s Lean-0 … Lean-5 six-step structure or with `phase-gate-discipline.md:225`'s "single P0 + P7 pair" requirement for single-change initiatives. The three documents now agree: Lean mode has **steps** (six of them) that compress into a **single phase-gate event** at Lean-5 delivery; ROADMAP rows are optional for a Lean-mode single-change initiative; the P0 + P7 minimum applies to Full-mode single-change initiatives only.
+
+- **Forced-Full trigger list divergence** between `mode-decision-tree.md` and `when-not-to-use-this.md §Q3`. Previously `enum` + `rollout` appeared only in the onboarding doc and `cross-team handoff` + `long-lived feature-flag` + `PII` appeared only in the decision tree; the consolidated list now contains all of them (DB migration, public API breaking change, enum consumer-visible, payments, auth/PII, cross-team handoff, long-lived feature-flag, staged rollout) and is maintained in `mode-decision-tree.md` only, with `when-not-to-use-this.md` citing it.
+
+- **Orphan-mode problem:** `Three-line delivery` was defined in `docs/onboarding/when-not-to-use-this.md` and named in `docs/principles.md §8`, but did not appear in `SKILL.md`, `mode-decision-tree.md`, `startup-checklist.md`, or `glossary.md`. An agent walking only the execution layer would never select this mode. Now present and normative across all execution-layer decision aids.
+
+### Why minor, not patch
+
+This release introduces new normative content — two previously ad-hoc modes (Zero-ceremony and Three-line delivery) are promoted to first-class citizens with artifact minimums, selection criteria, and per-mode phase-gate scaling — and adds a step↔phase correspondence table that did not previously exist. Per `VERSIONING.md`, this matches the minor category ("*improved trigger logic*", "*additional references*"). Not major because the core worldview (four modes selected by objective criteria) was already stated in `principles.md §8`; this release makes the execution layer match what the principles always claimed, rather than changing the principles. Existing Full-mode ROADMAPs, manifests, and workflows are unaffected. Existing Lean-mode tasks see relaxed phase-gate requirements (one gate event instead of six), which matches the mode's original intent.
+
+### Migration notes
+
+- Repositories that were writing per-Lean-step gates + per-Lean-step commits + per-Lean-step ROADMAP rows were over-applying Full-mode discipline to Lean-mode work; they may stop. No artifact rewrites are required — over-ceremony is not a correctness problem, only an efficiency one.
+- References to `no-process path`, `ultra-lean`, `No skill`, `three-line handoff`, and `stripped-down version` in project-local documents remain readable; `glossary.md §Execution mode` maps each to its canonical name. New local documents should use the canonical names.
+- Bridge and example files carrying the legacy `Zero ceremony` phrasing in their "Situation | Path" tables are left as-is per `CLAUDE.md §3` (factual record preservation for historical content); the glossary's retired-aliases note makes them readable.
+
+### Audit-to-release provenance
+
+Audit: conversation on 2026-04-23 reviewed the four-mode claim in `principles.md §8` against actual consumer coverage in `SKILL.md`, `mode-decision-tree.md`, `startup-checklist.md`, `glossary.md`, `when-not-to-use-this.md`, `phase-gate-discipline.md`, `AGENTS.md`, and `misuse-signals.md`, and found seven inconsistencies (mode-vocabulary fragmentation, forced-Full list divergence, Lean step-vs-phase ambiguity, phase-gate scaling gap, Three-line delivery orphan status, Lean-threshold phrasing variance, Lean/Full numbering mismatch). This release resolves all seven.
+
 ## [1.14.5] - 2026-04-23
 
 ### Fixed
