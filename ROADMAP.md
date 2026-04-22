@@ -41,6 +41,32 @@ _None._
 
 ## Closed initiatives
 
+## cluster-disjointness-validator — close the "validator-enforced" integrity gap shipped with 1.13.0 (patch 1.13.1)
+
+- **Opened:** 2026-04-22
+- **Closed:** 2026-04-22
+- **Driver:** 1.13.0 shipped Pattern C with three separate statements that a validator enforces file-disjointness across `implementation_clusters` — in `skills/engineering-workflow/references/cluster-parallelism.md` ("validator-enforced pair-wise disjointness"), in `schemas/change-manifest.schema.yaml` §implementation_clusters description ("validator-level cross-item constraint, not expressible in pure JSON Schema"), and in the 1.13.0 ROADMAP Phase log ("A validator rule will enforce it"). No such validator actually existed at 1.13.0 commit time. This is precisely the "plausibly-complete narrative" anti-pattern `docs/ai-operating-contract.md` §1 warns against — docs ahead of reality. The user flagged it during the 1.13.0 post-release retrospective; the fix is either (a) implement the validator or (b) soften the docs. Option (a) is correct because the invariant is real and testable; option (b) would have the docs keep saying "prose-enforced" which degrades the methodology's own rigor guarantee.
+- **Status:** closed
+- **Target version:** 1.13.1 (patch — closes an implementation gap; no new methodology, no new schema, no normative change)
+- **Mode:** Lean (patch-sized, single script + CI job + CHANGELOG; no cross-reference sweep needed beyond one pointer row in the reference doc)
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Open ROADMAP entry | `ROADMAP.md` closed-initiative row | Initiative section renders per `docs/phase-gate-discipline.md` Rule 1 | ✅ passed | _(this change)_ | Patch-sized so opened-and-closed in the same commit, matching the 1.7.1 / 1.7.2 / 1.7.3 pattern |
+| P1 | Implement validator | `.github/scripts/validate-cluster-disjointness.py` (new) — reads a manifest, expands each cluster's `scope_files` globs against the repo, pair-wise intersects; any non-empty intersection is a violation. Three invocation shapes: `--self-test-only` (embedded synthetic fixtures), default (self-test + scan templates + starter-repo), `--manifest <path>` (ad-hoc). Exit codes 0/1/2 match repo convention | `python3 .github/scripts/validate-cluster-disjointness.py --self-test-only` reported `self-test: ok (5 cases)` and exit 0; ad-hoc bad-manifest with overlapping `docs/**` + `docs/change-manifest-spec.md` reported `FAIL` + exit 1 | ✅ passed | _(this change)_ | Script is ~290 lines with docstring; no deps beyond `pyyaml` (already in CI) |
+| P2 | Wire into CI | `.github/workflows/validate.yml` gains a `cluster-disjointness` job alongside the existing 8 jobs | `grep -n "cluster-disjointness" .github/workflows/validate.yml` returns the new job header | ✅ passed | _(this change)_ | Matches existing no-untrusted-input property; only hardcoded `pip install` + `python3 .github/scripts/...` commands |
+| P3 | Reference-doc pointer | `skills/engineering-workflow/references/cluster-parallelism.md §Relation to other documents` gains a new row pointing at the validator script and the CI job | `grep -n "validate-cluster-disjointness" skills/engineering-workflow/references/cluster-parallelism.md` returns a line | ✅ passed | _(this change)_ | Keeps the canonical reference discoverable from the mechanical enforcer and vice versa |
+| P4 | Release 1.13.1 | `plugin.json` + `marketplace.json` + `README.md` badge `1.13.0 → 1.13.1`; `CHANGELOG.md` `[1.13.1] - 2026-04-22` entry under Added / Changed / Why patch; `CHANGELOG.json` regenerated | `sh .github/scripts/check-version-consistency.sh` reports `OK: all five declarations agree on 1.13.1` | ✅ passed | _(this change)_ | Standard patch-release procedure per `VERSIONING.md` |
+
+### Phase log
+
+- Why `.github/scripts/` not the canonical validators (`reference-implementations/validator-python` + `validator-node`): a canonical-validator addition requires a new Layer-2 rule in `docs/automation-contract.md` + algorithm pseudocode + pytest + node tests + DEVIATIONS.md updates for both validators — a 1.14.0-scale minor release. This patch is the minimum viable closure: the repo's own CI enforces the rule, which is what "validator-enforced" most readers will interpret. A future minor release can promote the rule into the canonical validators if real-world adoption warrants it.
+- Parallel gap acknowledged: `parallel_groups.sub_agents` anti-collusion identity checks are also "validator-enforced" per the 1.11.0 language but are likewise only schema-structurally enforced today. Explicitly out of scope for this patch (not the user's flagged gap); a future patch or minor can close both together.
+- Why Lean mode for this initiative: single script + single CI job + single pointer row. No surface-level change, no schema change, no cross-cutting term introduction. Matches VERSIONING.md patch category; ROADMAP entry kept compact.
+- Closed 2026-04-22 at commit `(this change)` after all four phases passed.
+
+---
+
 ## cluster-parallelism — Phase 4 cluster-parallel canonical Implementers (minor 1.13.0)
 
 - **Opened:** 2026-04-22

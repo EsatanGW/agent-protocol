@@ -1,6 +1,28 @@
 {
   "releases": [
     {
+      "version": "1.13.1",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "CI validator for Pattern C cluster disjointness (`.github/scripts/validate-cluster-disjointness.py`)",
+            "body": "closes the \"validator-enforced\" integrity gap that 1.13.0 shipped with: `cluster-parallelism.md`, the schema description on `implementation_clusters`, and the 1.13.0 ROADMAP Phase log all promised a validator that did not exist. The new script enforces the invariant: given a manifest with `implementation_clusters`, expand each cluster's `scope_files` globs against the repo root, compute pair-wise set intersections; any non-empty intersection is a disjointness violation and fails the run. Exit codes match the existing validator convention (0 OK / 1 violation / 2 tool error). Covers three invocation shapes: (a) `--self-test-only` — runs 5 embedded synthetic fixtures in a tmpdir, always passes regardless of repo content; (b) default — runs self-test then scans `templates/*.yaml` and `examples/starter-repo/**/change-manifest.*.yaml` for any with `implementation_clusters` filled; (c) `--manifest <path>` — ad-hoc single-file check. The 5 self-test cases exercise: disjoint by top-level dirs, disjoint by subdir, subsuming pattern (`db/**` vs `db/migrations/*.sql`) → violation, identical patterns → violation, empty `implementation_clusters` → no-op."
+          },
+          {
+            "title": "`cluster-disjointness` CI job (`.github/workflows/validate.yml`)",
+            "body": "new job that runs the new script on every push to main and every pull request. Joins the existing `schema-syntax` / `schema-drift` / `changelog-drift` / `template-conformance` / `hooks-selftest` / `validator-python-tests` / `validator-node-tests` / `version-consistency` jobs. Matches the existing no-untrusted-input property of this workflow (only hardcoded `pip install` + `python3 .github/scripts/...` commands; no `github.event.*` interpolation)."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/references/cluster-parallelism.md §Relation to other documents`",
+            "body": "new row pointing at the validator script and the CI job so readers can locate the mechanical enforcement from the canonical reference."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.13.0",
       "date": "2026-04-22",
       "sections": {

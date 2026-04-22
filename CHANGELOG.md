@@ -6,6 +6,21 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.13.1] - 2026-04-22
+
+### Added
+
+- **CI validator for Pattern C cluster disjointness (`.github/scripts/validate-cluster-disjointness.py`)** — closes the "validator-enforced" integrity gap that 1.13.0 shipped with: `cluster-parallelism.md`, the schema description on `implementation_clusters`, and the 1.13.0 ROADMAP Phase log all promised a validator that did not exist. The new script enforces the invariant: given a manifest with `implementation_clusters`, expand each cluster's `scope_files` globs against the repo root, compute pair-wise set intersections; any non-empty intersection is a disjointness violation and fails the run. Exit codes match the existing validator convention (0 OK / 1 violation / 2 tool error). Covers three invocation shapes: (a) `--self-test-only` — runs 5 embedded synthetic fixtures in a tmpdir, always passes regardless of repo content; (b) default — runs self-test then scans `templates/*.yaml` and `examples/starter-repo/**/change-manifest.*.yaml` for any with `implementation_clusters` filled; (c) `--manifest <path>` — ad-hoc single-file check. The 5 self-test cases exercise: disjoint by top-level dirs, disjoint by subdir, subsuming pattern (`db/**` vs `db/migrations/*.sql`) → violation, identical patterns → violation, empty `implementation_clusters` → no-op.
+- **`cluster-disjointness` CI job (`.github/workflows/validate.yml`)** — new job that runs the new script on every push to main and every pull request. Joins the existing `schema-syntax` / `schema-drift` / `changelog-drift` / `template-conformance` / `hooks-selftest` / `validator-python-tests` / `validator-node-tests` / `version-consistency` jobs. Matches the existing no-untrusted-input property of this workflow (only hardcoded `pip install` + `python3 .github/scripts/...` commands; no `github.event.*` interpolation).
+
+### Changed
+
+- **`skills/engineering-workflow/references/cluster-parallelism.md §Relation to other documents`** — new row pointing at the validator script and the CI job so readers can locate the mechanical enforcement from the canonical reference.
+
+### Why patch, not minor
+
+Closes an implementation gap in what 1.13.0 already promised. No new methodology, no new schema, no new normative guidance — just mechanical enforcement of an already-documented invariant. Matches the `VERSIONING.md` patch category ("small ... fixes, non-semantic ... improvements"). The parallel gap for `parallel_groups.sub_agents` anti-collusion (also promised "validator-enforced" in 1.11.0 but not yet implemented in `.github/scripts/`) is acknowledged here for honesty but is not in this patch's scope — a future patch or minor can promote both checks into `reference-implementations/validator-python` + `validator-node` as canonical Layer 2 rules if adoption warrants.
+
 ## [1.13.0] - 2026-04-22
 
 ### Added

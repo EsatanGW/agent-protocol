@@ -76,6 +76,19 @@ jobs:
         working-directory: examples/starter-repo
         run: python3 scripts/validate-manifest.py
 
+  cluster-disjointness:
+    name: Pattern C cluster disjointness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install pyyaml
+      - name: Validate implementation_clusters scope_files are pair-wise disjoint
+        run: python3 .github/scripts/validate-cluster-disjointness.py
+
   hooks-selftest:
     name: Hook bundle selftest
     runs-on: ubuntu-latest

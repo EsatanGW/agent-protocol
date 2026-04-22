@@ -164,6 +164,7 @@ Findings go into `review_notes` as usual. A finding whose root cause is "cluster
 
 | Document | How Pattern C relates |
 |---|---|
+| `.github/scripts/validate-cluster-disjointness.py` | The repo-level CI validator that enforces file-disjoint `scope_files` across clusters. Runs automatically on push / pull-request via `.github/workflows/validate.yml` (`cluster-disjointness` job) |
 | `docs/multi-agent-handoff.md §Tool-permission matrix` | Canonical Planner-to-Implementer delegation is the existing permission Pattern C uses; no new permission introduced |
 | `docs/multi-agent-handoff.md §Single-agent anti-collusion rule` | Applies per-cluster transitively: each cluster identity distinct from Planner, Reviewer, and every other cluster |
 | `reference-implementations/roles/role-composition-patterns.md` Pattern 7 | Non-normative companion — acknowledges that Pattern C exists alongside Patterns 1–6 but is canonical-role multi-delegation, not sub-agent composition |
