@@ -6,6 +6,38 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.14.4] - 2026-04-22
+
+### Fixed
+
+Resolves all eight (a) real-drift findings recorded in `docs/audits/summary-vs-per-case-registry.md` (audit produced 2026-04-22). Each TL;DR was brought into line with its document body so readers using the TL;DR as a mental index no longer get a count, a name list, or a cross-reference that fails to resolve. The conservative direction — rewrite TL;DR to match body — was chosen for every finding; expanding bodies would have been a scope change, not a drift fix. All prior CHANGELOG entries preserved verbatim per `CLAUDE.md §3`.
+
+- **`docs/source-of-truth-patterns.md:4` — A1: anti-pattern count.** TL;DR "*Five common desync anti-patterns*" corrected to "*Six common desync anti-patterns*" with the six named inline (dual-write, consumer-derived truth, stale cache, doc drift, i18n key drift, pipeline-order as implementation detail). Anti-pattern 6 pairs with sub-pattern 4a Pipeline-Order Contract; the row was added when 4a landed but the TL;DR was never updated. TL;DR also clarifies that half-sync gotchas are a *callout within Pattern 8*, not a separate pattern.
+- **`docs/implementation-disciplines.md:4` — A2: axis list mismatch.** TL;DR claimed six axes including two phantom ones ("concurrency + lifecycle", "dependency + environment") that do not exist as axes in the body; the body has five axes including "Documentation sync" that the TL;DR omitted. TL;DR rewritten to name the five actual axes (Contract clarity, Clear layering, Data-access health, Errors and observability, Documentation sync) and to point at `cross-cutting-concerns.md` as the real home of concurrency / cancellation propagation (error-handling sub-section) and dependency / environment concerns (build-time-risk). Reader following the TL;DR is now guided to the correct location for each concern.
+- **`docs/user-surface-disciplines.md:4` — A3: axis list mismatch.** TL;DR claimed six axes (flow correctness, contract alignment, feedback + guidance, a11y, responsive + device, analytics + telemetry); body has five with different names (UI flow correctness, Contract alignment, Internationalization and copy, Usability, Operational hooks). Only 2 of 6 TL;DR axes matched the body verbatim. TL;DR rewritten to name the five actual axes — a11y and responsive are now correctly folded under "Usability" (as the body organizes them), and "Internationalization and copy" surfaces as its own axis (the TL;DR previously demoted i18n to a sub-bullet).
+- **`docs/adoption-strategy.md:4` — A4: stage-duration drift.** TL;DR said "Stage 2 (1-2 months) ... Stage 3 (3+ months)"; body and `docs/diagrams.md:161-162` say 2-4 weeks and 4-8 weeks. TL;DR corrected to match body (2-4 weeks / 4-8 weeks). Adopting teams planning capacity against these durations no longer hit a 2–3× error in the TL;DR.
+- **`docs/ci-cd-integration-hooks.md:4` — A5: Hook 6 description wrong.** TL;DR said Hook 6 was "Change Manifest schema validation"; body §Hook 6 is titled "completion-report check". The actual schema-validation work lives in `docs/automation-contract-algorithm.md` Layer 1, not in this document's hook list. TL;DR corrected: Hook 6 now reads "pre-merge → completion-report check (Full-mode PRs)"; Hook 7 tightened from "observation-window start" to "Phase 8 observation reminder" to match the body. TL;DR also adds a clarifying sentence that schema validation is the automation contract's concern, so the boundary between this doc and the algorithm doc is explicit.
+- **`docs/concurrent-changes.md:4` — A6: coordination pattern mismatch.** TL;DR said "Three coordination patterns: sequential, parallel with shared branch, dual-write bridge"; body §Coordination strategies has **four** strategies with different names (sequencing, branch isolation + merge-time conflict resolution, joint design + split implementation, merge into one ticket). "Dual-write bridge" does not appear in the body at all — the dual-write mechanism is a `breaking-change-framework.md` Path B concern, not a coordination strategy in this doc. TL;DR rewritten to name the four actual strategies.
+- **`docs/system-change-perspective.md:4` + line 9 — A7: "six unified questions" is a phantom.** TL;DR claimed this file "lays out the six unified questions" and the body blockquote (line 8–9) claimed the list "lives in `docs/surfaces.md`". Neither is true: `surfaces.md` has "six cross-cutting concerns" (different thing — line 200) and a "60-second opener" with **five** questions (different content). Both claims removed. TL;DR now describes the **four surface-entry questions** the body actually lays out (inside §Don't start by asking "whose layer?") and points at `surfaces.md §60-second opener` for the full five-question analysis checklist (which does exist there). Body blockquote correspondingly updated to reference "§60-second opener" instead of "six unified analysis questions".
+- **`docs/change-decomposition.md:4` — A8: fracture-line under-reporting.** TL;DR named four fracture lines (SoT, surface, consumer pace, risk asymmetry); body §Natural fracture lines has six (SoT boundary, surface cadence differs, consumer cohort separation, asymmetric risk level, different reversibility, delivery-sequencing constraint). TL;DR expanded to all six, plus the four merge signals (tightly-coupled atomicity, shared evidence, split would fabricate a scheduling dependency, changes are too small) that were previously unnamed in the TL;DR. Reader using the TL;DR now sees the full decomposition decision surface instead of missing the last two fracture criteria.
+
+### Changed
+
+- **`docs/audits/summary-vs-per-case-registry.md`** updated to mark all eight (a) findings as **Resolved in 1.14.4** with a per-finding resolution note. The registry is kept intact as a dated audit record — findings are not deleted, because the registry's own "don't silently re-ship" rule requires resolution to be visible, not erased. The registry's (b) legitimate two-level classifications and (c) boundary-call classifications remain unchanged.
+
+### Why patch, not minor
+
+Eight TL;DR edits + one audit-artifact status update. No new methodology, no new normative content, no schema change, no new procedural step. Matches `VERSIONING.md` patch category ("*wording clarifications*"). The audit itself (2026-04-22, commit `0d8928f`) was a separate doc artifact not tied to any release; this patch is the follow-up that closes the audit's (a) findings in a single coherent pass rather than letting them accumulate into a silent re-ship.
+
+### Audit-to-patch provenance
+
+Registry → commit map:
+
+- Audit produced: `0d8928f docs(audit): summary-vs-per-case consistency registry` (2026-04-22, not a release)
+- Resolution: **this commit** (`chore(release): 1.14.4`, 2026-04-22)
+
+Future audits should follow the same two-commit shape (audit artifact first, resolution release second) so reviewers can separately review (a) the finding list and (b) the chosen resolution direction. Bundling both into a single commit would hide which findings existed before the edits.
+
 ## [1.14.3] - 2026-04-22
 
 ### Fixed

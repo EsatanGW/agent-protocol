@@ -1,11 +1,11 @@
 # System Change Perspective
 
 > **English TL;DR**
-> The shared mental model behind every other doc: **do not start by asking "which layer?" — start by asking "which surfaces?"** Layer-first thinking (frontend / backend / DB) makes each contributor see only their slice and lets cross-surface desync slip through. Surface-first thinking forces you to see the full trace of a change before it's coded. Lays out the six unified questions (what capability changed, which surfaces does it cross, where is each SoT, who are the consumers, what evidence proves it's correct, where is desync most likely) — but the *definition* of surfaces lives in `surfaces.md`; this file only defends the *why*. Read this before any other doc if you are new to the methodology.
+> The shared mental model behind every other doc: **do not start by asking "which layer?" — start by asking "which surfaces?"** Layer-first thinking (frontend / backend / DB) makes each contributor see only their slice and lets cross-surface desync slip through. Surface-first thinking forces you to see the full trace of a change before it's coded. This file defends the *why* with four surface-entry questions that map directly to the four core surfaces (what does the user see, what did the system expose outward, what changed in the shape of our information, what does operations now carry that it didn't before). The canonical surface definitions and the full five-question §60-second opener analysis checklist live in `surfaces.md`. Read this before any other doc if you are new to the methodology.
 
 This document defines the shared perspective the rest of the plugin is written from.
 
-> The canonical four-surface definitions, the extension mechanism, and the six unified analysis questions live in [`docs/surfaces.md`](./surfaces.md).
+> The canonical four-surface definitions, the extension mechanism, and the §60-second opener analysis checklist live in [`docs/surfaces.md`](./surfaces.md).
 > This file only defends the perspective; it deliberately does not redefine surfaces, so the two files cannot drift.
 
 ---

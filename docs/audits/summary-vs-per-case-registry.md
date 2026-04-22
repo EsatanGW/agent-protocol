@@ -3,6 +3,8 @@
 > **Status.** Audit artifact, not normative. Lists every location in this repo where a summary claim (TL;DR, opening rule, or lead sentence) sits next to a per-case / per-item enumeration that could drift. Produced 2026-04-22 as a follow-up to the CCKN query-timing cycle (1.14.0 → 1.14.1 → 1.14.2 → 1.14.3), which exposed summary-vs-per-case drift as a recurring failure mode.
 >
 > This document **does not modify any normative file**. It classifies observed drift; whether to fix any given item is a separate editorial decision.
+>
+> **Resolution status (2026-04-22, release 1.14.4):** All eight (a) real-drift findings (A1–A8) below have been resolved by updating the respective TL;DRs to match their bodies. Each (a) entry now carries a **Resolved in 1.14.4** line naming the commit. Findings are kept in place as historical record per the registry's own "don't silently re-ship" rule; the registry itself is a dated audit artifact — re-run it per §Next sweep triggers when conditions fire. Findings (b) and (c) remain as noted.
 
 ---
 
@@ -33,6 +35,7 @@ Audit scope: the 36 normative files under `docs/` (plus `schemas/change-manifest
 - **TL;DR claim.** "*Five common desync anti-patterns and four repair strategies are enumerated.*"
 - **Body reality.** §Common desync anti-patterns lists **six** entries (Anti-pattern 1 through 6 at lines 556, 568, 580, 592, 603, 615). Anti-pattern 6 — "*Pipeline order treated as an implementation detail (not a contract)*" — is almost certainly the row that was added when sub-pattern 4a (Pipeline-Order Contract) was introduced, without the TL;DR being updated.
 - **Why it matters.** A reader using the TL;DR as a mental index will miss the Pipeline-Order anti-pattern, which is load-bearing for Phase 1 SoT analysis on middleware / interceptor chains.
+- **Resolved in 1.14.4.** TL;DR updated to "*Six common desync anti-patterns ... — anti-pattern 6 pairs with sub-pattern 4a*" and clarifies that half-sync gotchas are a callout within Pattern 8, not a separate pattern.
 
 ### A2 — `docs/implementation-disciplines.md:4`
 
@@ -40,6 +43,7 @@ Audit scope: the 36 normative files under `docs/` (plus `schemas/change-manifest
 - **Body reality.** §Primary observation axes has **five** entries: Contract clarity, Clear layering, Data-access health, Errors and observability, **Documentation sync**.
 - **Mismatch.** The two TL;DR axes printed in bold ("concurrency + lifecycle", "dependency + environment") do **not exist** in the doc body. The body's fifth axis — "Documentation sync" — is **not** in the TL;DR. The TL;DR describes a doc that was planned but not (fully) written; §When this document applies (line 17) lists "Packages / dependencies / runtime environment" as a trigger, reinforcing that "dependency + environment" was intended as an axis.
 - **Why it matters.** The TL;DR's two phantom axes cover concurrency / dep-pinning quality gates that a reviewer expects to find. Their absence is an invisible hole in review-floor coverage.
+- **Resolved in 1.14.4.** Took the conservative direction — updated TL;DR to match the body's actual five axes (Contract clarity / Clear layering / Data-access health / Errors and observability / Documentation sync). The TL;DR now also points explicitly at `cross-cutting-concerns.md` as the home of concurrency / cancellation propagation (error-handling sub-section) and dependency / environment (build-time-risk), preserving the signal that those quality gates exist but correctly locating them. Adding them as new axes here would have been a scope expansion, not a drift fix.
 
 ### A3 — `docs/user-surface-disciplines.md:4`
 
@@ -47,6 +51,7 @@ Audit scope: the 36 normative files under `docs/` (plus `schemas/change-manifest
 - **Body reality.** §Primary observation axes has **five** entries: UI flow correctness, Contract alignment, **Internationalization and copy**, **Usability**, **Operational hooks**.
 - **Mismatch.** TL;DR names `feedback + guidance`, `a11y`, `responsive + device`, `analytics + telemetry`; body names `i18n and copy`, `Usability`, `Operational hooks`. Only 2 of 6 TL;DR axes match the body verbatim. The body appears to fold a11y + responsive into "Usability" and to surface "Internationalization and copy" as its own axis (the TL;DR demotes i18n to a sub-bullet of "feedback + guidance").
 - **Why it matters.** A Phase 5 Reviewer using the TL;DR as a checklist will look for axes (a11y section, responsive section) that don't exist under those names, and will miss the axis (Internationalization) that actually does.
+- **Resolved in 1.14.4.** Updated TL;DR to match the body's actual five axes (UI flow correctness / Contract alignment / Internationalization and copy / Usability / Operational hooks). The TL;DR's earlier taxonomy (a11y + responsive as separate axes) is now folded under "Usability" in the body's compact form, and "analytics + telemetry" is generalized to "Operational hooks"; the TL;DR reflects this consolidation rather than promising finer splits the body doesn't deliver.
 
 ### A4 — `docs/adoption-strategy.md:4`
 
@@ -54,6 +59,7 @@ Audit scope: the 36 normative files under `docs/` (plus `schemas/change-manifest
 - **Body reality.** Section headers read "Stage 1: mindset seeding (1–2 weeks)", "Stage 2: process embedding (**2–4 weeks**)", "Stage 3: institutionalization (**4–8 weeks**)".
 - **Mismatch.** Stage 2: TL;DR says 4–8 weeks (1–2 months), body says 2–4 weeks. Stage 3: TL;DR says 12+ weeks (3+ months), body says 4–8 weeks. `docs/diagrams.md:161-162` matches the body (2–4 weeks / 4–8 weeks), so the body is the internally-consistent source; the TL;DR drifted.
 - **Why it matters.** Adopting teams plan capacity against these durations; a 2–3× error in the TL;DR is a real planning pitfall.
+- **Resolved in 1.14.4.** Updated TL;DR to "Stage 2 (2-4 weeks)" and "Stage 3 (4-8 weeks)" to match body + diagrams. Body stayed authoritative (internally consistent with the `docs/diagrams.md` adoption-phase diagram).
 
 ### A5 — `docs/ci-cd-integration-hooks.md:4`
 
@@ -61,6 +67,7 @@ Audit scope: the 36 normative files under `docs/` (plus `schemas/change-manifest
 - **Body reality.** Section header reads "Hook 6: **completion-report check**" — a different check (verifies a completion report exists, not schema conformance).
 - **Mismatch.** TL;DR's Hook 6 description names a check that doesn't exist as Hook 6 in the body; the actual schema-validation work lives in `docs/automation-contract-algorithm.md` Layer 1, not in this document's hook list.
 - **Why it matters.** A platform team implementing the seven hooks from the TL;DR alone would build the wrong pre-merge hook and still think they had followed the spec.
+- **Resolved in 1.14.4.** Updated TL;DR to match body: "(6) pre-merge → completion-report check (Full-mode PRs)". Also renamed (7) "observation-window start" to "Phase 8 observation reminder" to match the body's section header. Added a clarifying sentence that Change Manifest schema validation itself is separate concern owned by the automation contract's Layer 1 — so a reader following the TL;DR no longer thinks Hook 6 does schema validation.
 
 ### A6 — `docs/concurrent-changes.md:4`
 
@@ -68,6 +75,7 @@ Audit scope: the 36 normative files under `docs/` (plus `schemas/change-manifest
 - **Body reality.** §Coordination strategies has **four** entries with different names: Sequencing, Branch isolation + merge-time conflict resolution, Joint design + split implementation, Merge into one ticket.
 - **Mismatch.** Count differs (3 vs 4). Only "sequential" / "sequencing" shares a name. "Dual-write bridge" does not appear as a body section at all (though related concepts exist inside breaking-change-framework.md Path B).
 - **Why it matters.** The TL;DR names a categorization that doesn't exist in the repo, and hides the actual four-strategy taxonomy the doc enforces.
+- **Resolved in 1.14.4.** Updated TL;DR to match body: "Four coordination strategies: sequencing, branch isolation + merge-time conflict resolution, joint design + split implementation, merge into one ticket." Dropped the non-existent "dual-write bridge" label (the dual-write *mechanism* is a breaking-change-framework Path B concern, not a coordination strategy in this doc).
 
 ### A7 — `docs/system-change-perspective.md:4` + cross-reference to `docs/surfaces.md`
 
@@ -76,6 +84,7 @@ Audit scope: the 36 normative files under `docs/` (plus `schemas/change-manifest
 - **Target reality.** `docs/surfaces.md` contains (a) a "Six concerns" count — but those are **cross-cutting concerns**, not unified questions (line 200); and (b) a "60-second opener" with **five** questions, none of which match the TL;DR's six questions verbatim.
 - **Mismatch.** Two-layer inconsistency: TL;DR says the six questions are here; body says they're in surfaces.md; surfaces.md has "six concerns" (different thing) + five unified-opener questions (different content). The named "six unified analysis questions" as a canonical list does not exist in the repo.
 - **Why it matters.** A new reader arriving via this doc is promised a canonical six-question model and cannot locate it anywhere.
+- **Resolved in 1.14.4.** Removed the "six unified questions" claim from both the TL;DR (line 4) and the body blockquote (line 8–9). TL;DR now points at "four surface-entry questions that map directly to the four core surfaces" (which the body does lay out, inside §Don't start by asking "whose layer?") and points readers at `surfaces.md §60-second opener` for the full five-question analysis checklist (which does exist in surfaces.md). Both "six unified questions" mentions are gone; the remaining references (four surface-entry questions + five-question §60-second opener) are now grounded in actual content.
 
 ### A8 — `docs/change-decomposition.md:4`
 
@@ -83,6 +92,7 @@ Audit scope: the 36 normative files under `docs/` (plus `schemas/change-manifest
 - **Body reality.** §Natural fracture lines has **six** entries: SoT boundary, surface cadence differs, consumer cohort separation, asymmetric risk level, **different reversibility**, **delivery-sequencing constraint**.
 - **Mismatch.** TL;DR names four fracture lines (the first four of six). The last two — `different reversibility` and `delivery-sequencing constraint` — are not referenced in the TL;DR.
 - **Why it matters.** Under-reporting of fracture criteria. A reader deciding "should I split this change?" using the TL;DR misses two legitimate fracture-line triggers.
+- **Resolved in 1.14.4.** TL;DR expanded to all six fracture lines (SoT boundary, surface cadence differs, consumer cohort separation, asymmetric risk level, different reversibility, delivery-sequencing constraint) plus the four merge signals (tightly-coupled atomicity, shared evidence, split would fabricate a scheduling dependency, changes are too small) that were previously unnamed in TL;DR. Reader following TL;DR now sees the full decomposition decision surface.
 
 ---
 

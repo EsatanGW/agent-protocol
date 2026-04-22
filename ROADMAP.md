@@ -41,6 +41,33 @@ _None._
 
 ## Closed initiatives
 
+## summary-vs-per-case-resolution — close the eight (a) findings from the summary-vs-per-case audit (patch 1.14.4)
+
+- **Opened:** 2026-04-22
+- **Closed:** 2026-04-22
+- **Driver:** The summary-vs-per-case registry produced at commit `0d8928f` (2026-04-22, not a release — audit artifact only) recorded eight (a) real-drift findings spanning eight different normative docs. Each finding is a TL;DR that miscounts, mis-names, or makes a cross-reference that doesn't resolve relative to its document body. Shipping without addressing them would violate the registry's own "don't silently re-ship with known findings" rule. The resolution direction chosen for every finding is the conservative one: rewrite TL;DR to match body, because (a) the bodies are the detailed normative content and presumably deliberate, (b) expanding bodies would have been a scope change not a drift fix, and (c) readers of a TL;DR are promised a compressed-but-accurate index into the body — correcting the index is the minimum faithful fix.
+- **Status:** closed
+- **Target version:** 1.14.4 (patch — eight wording edits + one audit-artifact update; no methodology / schema / procedural change)
+- **Mode:** Lean (patch-sized, 8 + 1 doc edits + version bump + CHANGELOG; all prior CHANGELOG entries preserved verbatim per `CLAUDE.md §3`)
+
+| Phase | Scope | Artifact(s) | Gate verification | Status | Commit | Notes |
+|---|---|---|---|---|---|---|
+| P0 | Open this ROADMAP entry | `ROADMAP.md` initiative row | Initiative section renders per `docs/phase-gate-discipline.md` Rule 1 | ✅ passed | _(this change)_ | Opened before edits per phase-gate discipline |
+| P1 | Investigate — confirm eight (a) findings still apply pre-edit | Re-read each TL;DR plus its body section; confirmed all eight findings described in `docs/audits/summary-vs-per-case-registry.md` (A1–A8) are still live pre-edit | Spot-grep on each file's line 4 shows the pre-edit TL;DR text matches the registry's "TL;DR claim" string for all 8 findings | ✅ passed | _(this change)_ | No finding had been silently fixed since the audit landed 2026-04-22 |
+| P2 | Fix TL;DRs (A1–A8) | Eight TL;DR edits: `source-of-truth-patterns.md:4`, `implementation-disciplines.md:4`, `user-surface-disciplines.md:4`, `adoption-strategy.md:4`, `ci-cd-integration-hooks.md:4`, `concurrent-changes.md:4`, `system-change-perspective.md:4` + line 8–9 body blockquote, `change-decomposition.md:4` | `grep -c "Five common desync\|1-2 months\|3+ months\|Change Manifest schema validation\|Three coordination patterns\|six unified questions\|concurrency + lifecycle"` on the eight files returns zero post-edit; `grep -E "Six common desync\|2-4 weeks\|4-8 weeks\|completion-report check\|Four coordination strategies\|four surface-entry questions\|six natural fracture lines"` returns matches in the expected files | ✅ passed | _(this change)_ | Every finding's "TL;DR claim" string removed, every "Resolution" string added. No body content changed (conservative direction) |
+| P3 | Update audit registry | `docs/audits/summary-vs-per-case-registry.md` opening status updated with 1.14.4 resolution note; each A1–A8 finding gets a **Resolved in 1.14.4** line with the specific edit described | `grep -c "Resolved in 1.14.4" docs/audits/summary-vs-per-case-registry.md` returns 8 (one per finding) | ✅ passed | _(this change)_ | Registry kept intact as historical record; findings are not deleted (see registry §Status) |
+| P4 | CHANGELOG + version bump + close ROADMAP | `CHANGELOG.md` new `[1.14.4] - 2026-04-22` entry with per-finding Fixed bullet + Changed section naming the registry update + Why-patch + Audit-to-patch provenance section; `plugin.json` + `marketplace.json` + `README.md` badge `1.14.3 → 1.14.4`; `CHANGELOG.json` regenerated (24 releases); this initiative moved to Closed | `sh .github/scripts/check-version-consistency.sh` reports `OK: all five declarations agree on 1.14.4`; regenerate script reports `wrote CHANGELOG.json (24 releases)`; full validation suite passes | ✅ passed | _(this change)_ | Standard patch-release procedure per `VERSIONING.md` |
+
+### Phase log
+
+- Why patch, not minor: eight TL;DR wording edits + one audit-file update. No new methodology, no new schema, no new procedural step. `VERSIONING.md` patch category: "*wording clarifications*".
+- Why conservative direction (rewrite TL;DR to match body): chosen uniformly for all eight findings. The body is the detailed normative content and presumably deliberate; expanding bodies to match TL;DR aspirations (e.g. adding concurrency + lifecycle + dependency + environment as new axes in implementation-disciplines.md) would have been a scope change not a drift fix. The TL;DR's purpose is to compress the body accurately; correcting the compression is the minimum faithful fix.
+- Why process: audit (commit `0d8928f`) and resolution (this commit) are **two separate commits** deliberately — the audit artifact records "what was broken on 2026-04-22 pre-edit"; the resolution records "what the edits were on 2026-04-22". Bundling both into one commit would have hidden the pre-edit state. Future audits should follow the same two-commit shape; the 1.14.4 CHANGELOG §Audit-to-patch provenance section makes this explicit as a reusable pattern.
+- Scope boundary: this patch does NOT touch (b) legitimate two-level or (c) boundary findings in the registry. Those classifications remain as noted; re-running the audit per its §Next sweep triggers is the future mechanism.
+- Closed 2026-04-22 at commit `(this change)` after all four phases passed.
+
+---
+
 ## cckn-consumer-full-sweep — complete the CCKN consumer audit that 1.14.0–1.14.2 skipped (patch 1.14.3)
 
 - **Opened:** 2026-04-22
