@@ -191,7 +191,7 @@ A gate outcome is written by whoever ran the check (human or agent). An agent-wr
 
 | Existing concept | How phase-gate discipline adds to it |
 |---|---|
-| **Phase minimums** (`skills/engineering-workflow/references/phase-minimums/*`) | Phase minimums describe *content* required. The gate rule adds *process*: the content is verified by a named check before the phase closes. |
+| **Phase minimums** (`skills/engineering-workflow/SKILL.md §Phase minimums`) | Phase minimums describe *content* required. The gate rule adds *process*: the content is verified by a named check before the phase closes. |
 | **Change Manifest** (`schemas/change-manifest.schema.yaml`) | A Change Manifest is per-change. A ROADMAP row is per-phase-of-an-initiative. Both coexist; they reference each other. |
 | **`ai-operating-contract.md` "evidence before completion"** | That rule binds the final delivery. Phase-gate binds every interior phase, so evidence is continuous, not only end-loaded. |
 | **`multi-agent-handoff.md` approval chain** | Handoff happens *at* gates. The agent receiving handoff consults the ROADMAP row, not prose. |

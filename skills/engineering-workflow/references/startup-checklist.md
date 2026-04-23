@@ -22,14 +22,7 @@ After loading `engineering-workflow` and before formally starting the work, walk
 
 ## 5. Mode selection
 
-Four canonical modes, in rising ceremony. Full decision logic: [`mode-decision-tree.md`](mode-decision-tree.md) (source of truth).
-
-- **Zero-ceremony** — no files modified, or diff < 5 lines with no public-behavior impact.
-- **Three-line delivery** — mechanical single-surface edit (i18n value, new log, patch dep bump, docs, known-safe config).
-- **Lean** — single surface, ≤ 1 consumer, verifiable in ≤ 5 minutes, not a forced-Full trigger.
-- **Full** — multiple surfaces / multiple consumers / handoff required / any forced-Full trigger (migration, contract break, enum consumer-visible, payments, auth, PII, cross-team, long-lived flag, staged rollout).
-
-Canonical mode definitions: [`../../../docs/glossary.md §Execution mode`](../../../docs/glossary.md).
+Go to [`mode-decision-tree.md`](mode-decision-tree.md) — it is the source of truth for the four canonical modes (Zero-ceremony / Three-line delivery / Lean / Full), the Fast-call decision tree, and all four forced-mode scenario tables. Canonical definitions: [`../../../docs/glossary.md §Execution mode`](../../../docs/glossary.md).
 
 ## 6. Minimum artifacts
 

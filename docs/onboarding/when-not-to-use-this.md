@@ -15,38 +15,7 @@ This file keeps the onboarding-oriented view: when *not* to use the methodology 
 
 ## 60-second decision flow
 
-```
-Task arrives
-  │
-  ├─ Q1: Will any file be modified?
-  │   │
-  │   ├─ No  → Zero-ceremony (just answer / read / inspect)
-  │   │
-  │   └─ Yes → Q2
-  │
-  ├─ Q2: Diff < 5 lines, no public behavior impact, no surface crossing?
-  │   │
-  │   ├─ Yes → Zero-ceremony (typo / trivial CSS / throwaway one-off)
-  │   │
-  │   └─ No  → Q3
-  │
-  ├─ Q3: Does it hit any forced-Full trigger?
-  │       (schema migration / public API breaking / enum consumer-visible /
-  │        payments / auth / PII / cross-team / long-lived flag / staged rollout —
-  │        full list in mode-decision-tree.md §Scenarios that force Full)
-  │   │
-  │   ├─ Yes → Full mode
-  │   │
-  │   └─ No  → Q4
-  │
-  └─ Q4: Single surface + ≤ 1 consumer + verifiable ≤ 5 minutes,
-         and the diff is a mechanical edit (i18n value / new log /
-         patch dep bump / docs-only / known-safe config)?
-      │
-      ├─ Yes → Three-line delivery (below)
-      │
-      └─ No  → Lean mode (minimum triple: surface tagging, verification, evidence)
-```
+For the canonical Fast-call decision tree and all forced-mode scenario tables, go to [`../../skills/engineering-workflow/references/mode-decision-tree.md §Fast call`](../../skills/engineering-workflow/references/mode-decision-tree.md). This onboarding document no longer duplicates the flow — maintaining two copies produced the forced-Full divergence that 1.15.0 resolved.
 
 ---
 

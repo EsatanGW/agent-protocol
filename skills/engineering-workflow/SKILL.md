@@ -142,19 +142,7 @@ See also:
 
 ## Decision table (quick reference)
 
-This is a **summary** of `references/mode-decision-tree.md`; that file governs edge cases.
-
-| Condition | Suggested mode |
-|-----------|----------------|
-| No files modified (research / Q&A / inspection) | Zero-ceremony |
-| Diff < 5 lines, no public behavior impact, no surface crossing | Zero-ceremony |
-| Single mechanical edit with bounded impact (i18n value, new log, patch dep, docs) | Three-line delivery |
-| Small bugfix, few consumers, easy verification | Lean |
-| Any user-visible / API / schema public-behavior change | Lean or Full depending on surface count |
-| 2+ surfaces or many consumers | Full |
-| Forced-Full trigger (migration / contract break / enum consumer-visible / payments / auth / PII / cross-team / long-lived flag / staged rollout) | Full |
-| Needs handoff / completion narrative | Full |
-| Unclear risk | Start Lean, upgrade quickly if needed |
+For mode selection, go to [`references/mode-decision-tree.md`](references/mode-decision-tree.md) — it is the canonical decision tree and the source of truth for the forced-Full / forced-Lean / forced-Three-line / forced-Zero-ceremony scenario tables. Do not maintain a parallel summary here.
 
 ## Tool-category guidance by phase
 
@@ -340,15 +328,20 @@ Reference:
 
 ## Phase minimums
 
-Phase-specific Lean / Full minimums are embedded in the phase docs and also summarized in:
-- `references/phase-minimums/phase0-minimums.md`
-- `references/phase-minimums/phase1-minimums.md`
-- `references/phase-minimums/phase2-minimums.md`
-- `references/phase-minimums/phase3-minimums.md`
-- `references/phase-minimums/phase4-minimums.md`
-- `references/phase-minimums/phase5-minimums.md`
-- `references/phase-minimums/phase6-minimums.md`
-- `references/phase-minimums/phase7-minimums.md`
+Phase-specific minimums for Lean and Full mode. Each row is the minimum content required before the phase gate can close; `docs/phase-gate-discipline.md` governs the gate *process*. Zero-ceremony and Three-line delivery have no phase structure (see the [artifact guidance](#artifact-guidance) section).
+
+| Phase | Lean minimum | Full minimum |
+|-------|--------------|--------------|
+| **0 — Clarify** | Affected surfaces · Main flow summary · Public behavior impact · Open questions (if any) | Complete draft spec · Acceptance-criteria draft · Blockers / assumptions / boundaries |
+| **1 — Investigate** | Source of truth · Main consumers · Impact file list · Chosen approach | Main flow · Source-of-truth / consumer map · Impact file list · Candidate solutions · Recommended approach with trade-offs |
+| **2 — Plan** | Minimal task list · Verification plan · Risk note | Overview · Affected surfaces · Change map · Dependency order · Full task list · Verification strategy · Spec coverage matrix |
+| **3 — Test Plan** | Minimal verification table · Public behavior coverage · Evidence expectations | Full test plan · Acceptance mapping · Evidence methods · Explicit regression coverage |
+| **4 — Implement** | Implement tasks · Verify changed behavior · Save minimum evidence | Implement against approved plan · Run full test plan · Collect evidence systematically · Write test report |
+| **5 — Review** | Self-review · Evidence consistency review · Risk-note update | Self-review · Quality review · Security / UX / operations review · Explicit findings resolution |
+| **6 — Sign-off** | Confirm changed behavior verified · Write residual risk | Acceptance sign-off · Surface coverage review · Evidence summary · Residual risk summary |
+| **7 — Deliver** | Delivery summary · Evidence summary · Follow-up / risk note | Completion report · Handoff narrative · Files to commit · Suggested commit message |
+
+Phase docs (`phases/phase0-clarify.md` … `phases/phase7-deliver.md`) contain the same content with narrative guidance; this matrix is the quick reference.
 
 ## Resumption rule
 
