@@ -142,19 +142,7 @@ See also:
 
 ## Decision table (quick reference)
 
-This is a **summary** of `references/mode-decision-tree.md`; that file governs edge cases.
-
-| Condition | Suggested mode |
-|-----------|----------------|
-| No files modified (research / Q&A / inspection) | Zero-ceremony |
-| Diff < 5 lines, no public behavior impact, no surface crossing | Zero-ceremony |
-| Single mechanical edit with bounded impact (i18n value, new log, patch dep, docs) | Three-line delivery |
-| Small bugfix, few consumers, easy verification | Lean |
-| Any user-visible / API / schema public-behavior change | Lean or Full depending on surface count |
-| 2+ surfaces or many consumers | Full |
-| Forced-Full trigger (migration / contract break / enum consumer-visible / payments / auth / PII / cross-team / long-lived flag / staged rollout) | Full |
-| Needs handoff / completion narrative | Full |
-| Unclear risk | Start Lean, upgrade quickly if needed |
+For mode selection, go to [`references/mode-decision-tree.md`](references/mode-decision-tree.md) — it is the canonical decision tree and the source of truth for the forced-Full / forced-Lean / forced-Three-line / forced-Zero-ceremony scenario tables. Do not maintain a parallel summary here.
 
 ## Tool-category guidance by phase
 
