@@ -28,7 +28,7 @@ Startup aids:
 - `references/discovery-loop.md` — rewind mechanism for scope growth discovered during implementation.
 
 Phase minimums:
-- `references/phase-minimums/`
+- `SKILL.md §Phase minimums` — inline Lean-vs-Full phase × mode matrix.
 
 Lean templates:
 - `templates/lean-spec-template.md`
