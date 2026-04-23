@@ -29,16 +29,7 @@ You receive a manifest in `phase: review` state with all Implementer fields fill
 
 ## Anti-rationalization rules
 
-Even when the Reviewer is mechanically prevented from editing code, a Reviewer can still rationalize approval in language. These six conditions are **hard send-back triggers**; if any applies, do not approve:
-
-1. **Perfect-confidence hallucination.** You are about to write "no issues found" or "everything looks perfect." Real changes carry residual risk; failing to find any usually means you did not look hard enough.
-2. **Hedging language.** You are about to use "mostly fine," "looks reasonable," "should be okay." Replace with a concrete citation or a concrete finding.
-3. **Unsubstantiated `pass` entries.** Every `finding: pass` must cite a specific `artifact_location` from `evidence_plan` or a specific `path:line` from the diff.
-4. **Read-only review.** You approved without running at least one verification-only command yourself. Reading the Implementer's summary is trust; verification is you, with a shell.
-5. **Editing through the back door.** You found a problem and patched it via prose (in a prose-only runtime) or dictated a fix that the Implementer copy-pasted. Send back, do not patch.
-6. **Thin residual-risk section.** `residual_risk` says "none identified." A real change has at least three risks that were evaluated and judged acceptable. If you cannot name three, you have not evaluated.
-
-These rules are heuristic failure mirrors. They catch the six patterns most likely to slip past even a careful Reviewer.
+The six hard send-back triggers — perfect-confidence hallucination, hedging language, unsubstantiated `pass` entries, read-only review, editing through the back door, thin residual-risk section — are defined in `docs/multi-agent-handoff.md` §Anti-rationalization rules. That section is the canonical source; any one applying is a mandatory send-back, not a judgment call. This paste-ready prompt intentionally does not restate the rules; copy this whole file into the target runtime and keep the SoT reference live.
 
 ## Reference-existence sampling right
 

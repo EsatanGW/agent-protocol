@@ -706,7 +706,7 @@ parallel_groups:
 - Every sub-agent identity must differ from every canonical role identity on this change (anti-collusion) and from every other sub-agent identity in this group.
 - `pattern: other` requires a non-empty `context_pack_summary` so the non-standard fan-out is explicable at audit time.
 
-**When the Reviewer audits this field** (see `agents/reviewer.md` and `parallelization-patterns.md` §Fan-in discipline): for any `parallel_groups` entry, verify — (1) `owning_identity` appears in `authors[]`; (2) each sub-agent identity does not; (3) synthesis identity equals owning identity; (4) the manifest fields named in `manifest_fields_written` actually exist and were populated by this change; (5) the cross-cutting gap check lists concrete items or explicitly records "none found." A group passing structural validation but missing substantive gap-check output is the exact failure Anti-Rationalization Rule 3 catches at the Reviewer level.
+**When the Reviewer audits this field** (see `docs/multi-agent-handoff.md` §Reviewer and `parallelization-patterns.md` §Fan-in discipline): for any `parallel_groups` entry, verify — (1) `owning_identity` appears in `authors[]`; (2) each sub-agent identity does not; (3) synthesis identity equals owning identity; (4) the manifest fields named in `manifest_fields_written` actually exist and were populated by this change; (5) the cross-cutting gap check lists concrete items or explicitly records "none found." A group passing structural validation but missing substantive gap-check output is the exact failure `docs/multi-agent-handoff.md` §Anti-rationalization rules, Rule 3 catches at the Reviewer level.
 
 ---
 

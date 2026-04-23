@@ -13,6 +13,8 @@ Without a contract, multi-agent collaboration degrades into:
 
 This document **does not name any specific agent / model / platform** — it defines role contracts only.
 
+This is the **canonical role contract**. Runtime bridges (`agents/*.md`, `.cursor/rules/{planner,implementer,reviewer}.mdc`, `reference-implementations/roles/*.md`) translate it into runtime-specific agent configuration but do not introduce new normative rules — if a bridge states a rule this document does not, the bridge yields and this document wins. See `AGENTS.md` §File role map for the full ownership table.
+
 ---
 
 ## Reading-order guide — three pairs that look duplicative but are not
@@ -24,7 +26,7 @@ Several newer rules sit next to older rules that look similar. Readers who skim 
 | Layer | Where | When it fires | Scope |
 |---|---|---|---|
 | Global self-check | [`docs/ai-operating-contract.md`](ai-operating-contract.md) §10 (6 questions) | Any AI co-author, any delivery boundary | Catches fabricated completion claims, hidden scope expansion, rationalized failure |
-| Pre-handoff self-check | [`agents/implementer.md`](../agents/implementer.md) (5 questions) | Implementer only, before advancing `phase: review` | Catches acceptance-criterion gaps, unverified references, unfilled evidence paths |
+| Pre-handoff self-check | §Pre-handoff self-check below (5 questions) | Implementer only, before advancing `phase: review` | Catches acceptance-criterion gaps, unverified references, unfilled evidence paths |
 
 **Both apply.** The global check asks "is this delivery honest?"; the Implementer-specific check asks "is the Implementer's specific work complete enough to hand off?" An Implementer must pass both; other roles only pass the global one.
 
@@ -41,8 +43,8 @@ Several newer rules sit next to older rules that look similar. Readers who skim 
 
 | Layer | Where | What it does |
 |---|---|---|
-| "Rubber-stamp is not a finding" | Reviewer's "Must not do" list in [`agents/reviewer.md`](../agents/reviewer.md) | Principle statement — every `pass` cites an artifact |
-| Anti-rationalization rules (6 triggers) | Same file's "Anti-rationalization rules" section | Mechanical heuristic — if any of 6 observable patterns appears, the review is reopened |
+| "Rubber-stamp is not a finding" | Reviewer's **Must not do** list below | Principle statement — every `pass` cites an artifact |
+| Anti-rationalization rules (6 triggers) | §Anti-rationalization rules below | Mechanical heuristic — if any of 6 observable patterns appears, the review is reopened |
 
 **Rules refine the principle, do not replace it.** The principle explains the intent; the 6 rules catch the specific language / behavior patterns most likely to slip past even a careful Reviewer. A Reviewer who only remembers the principle can still rationalize quietly; a Reviewer who only remembers the rules may miss a seventh pattern not listed. Both live together.
 
@@ -102,7 +104,19 @@ The same agent can play different roles in different phases; a human can play an
 - `implementation_notes` (if any drift from the plan).
 - `scope_deltas` (if the Discovery Loop outcome was adopted).
 
-**Pre-handoff self-check.** Before advancing `phase: review`, the Implementer must clear the five-question self-check in `agents/implementer.md` ("Pre-handoff self-check" section). A vague or hedged answer to any of the five questions is a failing answer and blocks handoff.
+#### Pre-handoff self-check
+
+Before setting `phase: review`, answer each of these five questions in writing. A **vague** or **hedged** answer ("mostly", "should be", "I think", "looks right") is a failing answer — go back to the work and close the gap. Do not hand off.
+
+1. **Acceptance-criterion coverage.** For every acceptance criterion in the Task Prompt, can you point to a specific `file:line` that implements it? A criterion without a concrete code location is unmet.
+2. **Verification coverage.** For every acceptance criterion, is there at least one verification artifact (test, migration dry-run, screenshot, log sample, etc.) whose `artifact_location` is recorded in `evidence_plan.artifacts`? Boundary conditions included, not only the happy path.
+3. **Reference existence.** For every identifier you cited — function name, type, file path, config key, field, URL — did a code-search (or equivalent capability) confirm it actually exists in the current scope? See the reference-existence verification protocol in `docs/ai-operating-contract.md` and the non-fabrication list in that same document.
+4. **Pattern alignment.** For every new structure (class, module, schema, endpoint), does it match the SoT pattern the manifest's `sot_map` points to, or is the delta recorded as `scope_flag` in `implementation_notes`?
+5. **Evidence-path completion.** Does every `evidence_plan` entry on a primary surface have `status: collected` and a real `artifact_location`? Any entry still `planned` on a primary surface blocks handoff.
+
+This is **not** a summary section — do not write prose here or in the manifest. Capture only the factual results into `implementation_notes` using existing types (`assumption_validated`, `evidence_added`, `scope_flag`, `discovery`). If any of the five questions cannot be answered with a concrete reference, treat it as a Discovery-loop trigger: stop, record, return upstream.
+
+The global self-check in `docs/ai-operating-contract.md` §10 still applies — this section is the **role-specific** addition the Implementer must clear before advancing phase. In Lean mode the five questions still apply (they do not add ceremony — they make honest reporting checkable); in Zero-ceremony mode they collapse to a single question: "can I point at the change and the verification?"
 
 ### Reviewer
 
@@ -118,7 +132,18 @@ The same agent can play different roles in different phases; a human can play an
 - Write implementation code (if an issue is found, send back to the Implementer).
 - Rewrite the Planner's or Implementer's fields (can only flag disagreement in `review_notes`).
 
-**Anti-rationalization rules.** Even when mechanically prevented from editing code, a Reviewer can rationalize approval in language. Six hard send-back triggers (perfect-confidence hallucination, hedging language, unsubstantiated `pass` entries, read-only review, editing through the back door, thin residual-risk section) are listed in full in `agents/reviewer.md` ("Anti-rationalization rules" section). Any one of them applying is a mandatory send-back, not a judgment call.
+#### Anti-rationalization rules
+
+Even when the Reviewer is mechanically prevented from editing code, a Reviewer can still rationalize approval in language. These six conditions are **hard send-back triggers**; if any applies, do not approve:
+
+1. **Perfect-confidence hallucination.** You are about to write "no issues found," "everything looks perfect," or equivalent. Real changes carry residual risk; failing to find any usually means you did not look hard enough. Return to the diff and look again.
+2. **Hedging language.** You are about to use "mostly fine," "looks reasonable," "should be okay," "probably works," or any phrase that asserts quality without pointing at an artifact. Replace with a concrete citation or a concrete finding.
+3. **Unsubstantiated `pass` entries.** A `review_notes` entry with `finding: pass` must cite a specific `artifact_location` from `evidence_plan` or a specific `path:line` from the diff. A `pass` with only prose is a rubber stamp.
+4. **Read-only review.** You approved without running at least one verification-only command yourself (test run, build, `git log`, migration dry-run replay, artifact open). Reading the Implementer's summary is not verification; it is trust. Verification is you, with a shell.
+5. **Editing through the back door.** You found a problem and, in a runtime where the tool-write boundary is prose-only, you fixed it directly or dictated a one-line patch that the Implementer copy-pasted. In a mechanically-enforced runtime this is blocked by tool permissions; in a prose-only runtime it is an explicit rule violation. Send back, do not patch.
+6. **Thin residual-risk section.** `residual_risk` says "none identified" or is a single sentence. A real change has at least three risks that were evaluated and judged acceptable. If you cannot name three, you have not evaluated.
+
+These rules are **heuristic failure mirrors**. They do not enumerate every way a review can go wrong; they catch the six patterns most likely to slip past even a careful Reviewer. If none of the six applies and the review still feels shallow, that is itself a signal — re-open the diff. Any one trigger applying is a **mandatory send-back, not a judgment call**.
 
 **Reference-existence sampling right.** The Reviewer may at any point pick any identifier cited in the manifest and require the Implementer to reproduce the exact code-search command that verified it. This is the Reviewer's primary defence against the plausibly-complete narrative failure mode; see `docs/ai-operating-contract.md` §2a for the verification protocol the Implementer is bound to.
 
@@ -248,7 +273,7 @@ Typical checks a pre-filter performs:
 - Every acceptance criterion in the Task Prompt has a matching `evidence_plan` entry.
 - Every `evidence_plan.artifacts[*].artifact_location` resolves to a real file or URL.
 - Every identifier cited in `implementation_notes` resolves via code search to an existing `path:line`.
-- The five questions of the Implementer's pre-handoff self-check (`agents/implementer.md`) have documented answers, not placeholders.
+- The five questions of the Implementer's pre-handoff self-check (§Pre-handoff self-check above) have documented answers, not placeholders.
 - Declared `surfaces_touched` is consistent with files actually changed in the diff.
 
 ### Hard limits
@@ -256,7 +281,7 @@ Typical checks a pre-filter performs:
 Four rules keep the pre-filter from collapsing into a Reviewer:
 
 1. **Pre-filter is not Reviewer.** A passing pre-filter proves only that the manifest is **structurally complete** — every required field is filled, every path resolves. It does *not* prove the field contents are correct. A Reviewer must still audit.
-2. **Pre-filter cannot replace Reviewer.** A Reviewer who writes "pre-filter passed, approving" in their `review_notes` has triggered Anti-Rationalization Rule 4 (read-only review without personal verification, `agents/reviewer.md`). The pre-filter's output is an input to the Reviewer's audit, not its output.
+2. **Pre-filter cannot replace Reviewer.** A Reviewer who writes "pre-filter passed, approving" in their `review_notes` has triggered Anti-Rationalization Rule 4 (read-only review without personal verification; see §Anti-rationalization rules above). The pre-filter's output is an input to the Reviewer's audit, not its output.
 3. **Pre-filter outputs binary findings only.** Present / absent, resolves / does not resolve, matches / does not match. A pre-filter that emits a score, a grade, or a subjective quality judgment has exceeded its scope and must be treated as an untrusted input — subjective evaluation is the Reviewer's role.
 4. **Pre-filter is disabled in Zero-ceremony and Lean modes.** Adding a pre-filter to a trivial change increases ceremony without reducing risk. Pre-filter is a Full-mode option only.
 

@@ -87,7 +87,7 @@ For each, the verification is:
 
 ### Reviewer's sampling right
 
-The Reviewer role (see `agents/reviewer.md` and `docs/multi-agent-handoff.md`) has an explicit right to **sample-check** any cited identifier by asking the Implementer to reproduce the exact code-search command and its output. An Implementer who cannot reproduce the verification on request has fabricated the reference, even if the identifier happens to exist — the discipline is "verify every time," not "guess and get lucky."
+The Reviewer role (see `docs/multi-agent-handoff.md` §Reviewer) has an explicit right to **sample-check** any cited identifier by asking the Implementer to reproduce the exact code-search command and its output. An Implementer who cannot reproduce the verification on request has fabricated the reference, even if the identifier happens to exist — the discipline is "verify every time," not "guess and get lucky."
 
 ### Relation to section 9
 
