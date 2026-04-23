@@ -176,7 +176,7 @@ The canonical role is accountable for the output regardless of how many sub-agen
 - `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule — still binding for every sub-agent identity
 - `docs/multi-agent-handoff.md` §Optional machine-readable pre-filter — a sibling pattern: the pre-filter is also a non-canonical sub-agent invocation, with the same identity-must-differ constraint
 - `docs/ai-operating-contract.md` §2a — reference-existence verification; applies to every sub-agent that cites an identifier
-- `agents/reviewer.md` anti-rationalization rules — still fire on the canonical Reviewer regardless of how many sub-agents fed it findings
+- `docs/multi-agent-handoff.md` §Anti-rationalization rules — still fire on the canonical Reviewer regardless of how many sub-agents fed it findings
 - `skills/engineering-workflow/references/parallelization-patterns.md` — execution discipline for Patterns 5 and 6 (cache-window rule, context pack, fan-in synthesis, cross-cutting gap check, `parallel_groups` audit)
 - `skills/engineering-workflow/references/context-pack.md` — the shared-context mechanism Patterns 5 and 6 both require
 - `skills/engineering-workflow/references/cluster-parallelism.md` — execution discipline for Pattern 7 (file-disjoint clusters, single-batch spawn, discovery-halt-all, Reviewer cross-cluster gap check, `implementation_clusters` audit)

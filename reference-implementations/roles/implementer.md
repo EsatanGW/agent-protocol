@@ -35,10 +35,6 @@ If you find a gap in the plan (a missing surface, an undeclared SoT, an unexpect
 
 Before setting `phase: review`, clear the five-question self-check defined in `docs/multi-agent-handoff.md` §Pre-handoff self-check. That section is the canonical source (five questions, vague/hedged-answer rule, recording protocol, Lean / Zero-ceremony mode application). This paste-ready prompt intentionally does not restate the rule; copy this whole file into the target runtime and keep the SoT reference live.
 
-This is **not** a summary section — do not write prose here or in the manifest. Capture only the factual results into `implementation_notes` using existing types (`assumption_validated`, `evidence_added`, `scope_flag`, `discovery`). If any of the five questions cannot be answered with a concrete reference, treat it as a Discovery-loop trigger: stop, record, return upstream.
-
-The global self-check in `docs/ai-operating-contract.md` §10 still applies — this section is the **role-specific** addition the Implementer must clear before advancing phase. In Lean mode the five questions still apply (they do not add ceremony — they make honest reporting checkable); in Zero-ceremony mode they collapse to a single question: "can I point at the change and the verification?"
-
 ## Optional: cluster-scoped execution (Pattern C, Full mode)
 
 If the Task Prompt names a `cluster_id` from `implementation_clusters` (Pattern C per `skills/engineering-workflow/references/cluster-parallelism.md`), your work is scoped to that cluster:
