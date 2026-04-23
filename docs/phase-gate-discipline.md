@@ -104,7 +104,7 @@ Rule 5 sets the **timing** of records (at phase boundaries). Rule 5a sets the **
 A working space must:
 
 - **Be session-scoped.** It lives alongside the agent's active work, not in the repo's version history. In version-controlled hosts this means gitignored; in other runtimes it means scoped to the session / container.
-- **Be auditable on request.** The Reviewer has the right to ask for the working space contents as a reality check against the final artifact (see `agents/reviewer.md` anti-rationalization rule 1).
+- **Be auditable on request.** The Reviewer has the right to ask for the working space contents as a reality check against the final artifact (see `docs/multi-agent-handoff.md` §Anti-rationalization rules, Rule 1).
 - **Not substitute for the canonical artifact.** An empty working space is fine — the canonical artifact must still be independently complete and correct.
 
 Why: without a working space, the agent writes thinking-in-progress into the canonical artifact, producing either (a) prose-heavy manifest fragments that pollute downstream readers or (b) over-compressed artifacts that skip reasoning and jump to conclusions. The working space is where the compression happens; the canonical artifact receives only the compressed result.
@@ -150,7 +150,7 @@ Required recording for every re-entry:
 
 Silent re-entry — fixing the manifest and continuing without a new ROADMAP row — is prohibited. It erases the signal that a phase was re-opened and breaks the "evidence is continuous" contract from Rule 1.
 
-Anti-metric: re-entry frequency per initiative is a useful diagnostic. Consistently high re-entry rates at Phase 1 suggest Planner under-investment; consistently high re-entry rates at Phase 4 for evidence reasons suggest the Implementer's pre-handoff self-check (see `agents/implementer.md`) is being skipped. This metric aligns with Principle 10 (baseline + exit criteria + anti-metrics).
+Anti-metric: re-entry frequency per initiative is a useful diagnostic. Consistently high re-entry rates at Phase 1 suggest Planner under-investment; consistently high re-entry rates at Phase 4 for evidence reasons suggest the Implementer's pre-handoff self-check (see `docs/multi-agent-handoff.md` §Pre-handoff self-check) is being skipped. This metric aligns with Principle 10 (baseline + exit criteria + anti-metrics).
 
 **Machine-readable reference implementation.** A non-normative, pure-function implementation of the decision table above ships at `reference-implementations/re-entry-trigger/`. Given two manifest states (old committed + new in-progress), it returns the structured list of re-entry suggestions — phase, reasons, fields to rewrite. Runtimes that want mechanical re-entry prompting (PR comment, IDE hint, validator advisory) can call it directly or wrap it in a Layer-3 drift rule. It is not integrated into the three reference validators by default because the decision needs two manifest states, not one — runtimes assemble the two states themselves.
 

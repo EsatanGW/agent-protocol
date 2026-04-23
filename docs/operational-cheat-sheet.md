@@ -20,7 +20,7 @@
 2. **Verify every cited identifier via code-search before citing.** Function, type, file path, config key, URL — all require a concrete `path:line` or URL resolution. See [`docs/ai-operating-contract.md`](ai-operating-contract.md) §2a.
 3. **Fill `evidence_plan.artifacts` with real paths, not prose.** Every `planned` entry on a primary surface becomes `collected` with `artifact_location` before handoff.
 4. **On plan gap: stop, don't expand.** Discovery loop + Rule 6 decide re-entry phase. See [`docs/phase-gate-discipline.md`](phase-gate-discipline.md) Rule 6.
-5. **Before handoff: clear the 5-question pre-handoff self-check.** Vague answers are failing answers. See the Pre-handoff self-check section in [`agents/implementer.md`](../agents/implementer.md).
+5. **Before handoff: clear the 5-question pre-handoff self-check.** Vague answers are failing answers. See [`docs/multi-agent-handoff.md`](multi-agent-handoff.md) §Pre-handoff self-check.
 
 ### Reviewer
 

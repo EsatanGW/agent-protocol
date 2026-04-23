@@ -61,7 +61,7 @@ Fan-out is **not** appropriate when:
     - Evidence-reference audit (the sampling right from `agents/reviewer.md` — does every cited `file:line` resolve?).
     - Acceptance-criterion coverage audit (does every declared criterion map to a verification step and evidence?).
 3. Each audit sub-agent returns **findings with severity** (info / warn / blocking). Findings are not review decisions — they are inputs to the Reviewer's decision.
-4. Reviewer performs fan-in: consolidates findings, applies the anti-rationalization rules (`agents/reviewer.md`), runs the cross-cutting gap check, and writes `review_notes` and `approvals` itself.
+4. Reviewer performs fan-in: consolidates findings, applies the anti-rationalization rules (`docs/multi-agent-handoff.md` §Anti-rationalization rules), runs the cross-cutting gap check, and writes `review_notes` and `approvals` itself.
 
 **Capability envelope per audit sub-agent:** file read, code search, verification-only shell (tests/builds/lint). **No write. No edit.** These sub-agents inherit the Reviewer's envelope per `role-composition-patterns.md` §The invariant.
 
@@ -159,7 +159,7 @@ For the canonical-role multi-delegation discipline that Pattern C introduces, se
 - `schemas/change-manifest.schema.yaml` §parallel_groups — audit-trail field for Patterns A/B (and an audit breadcrumb entry for C)
 - `schemas/change-manifest.schema.yaml` §implementation_clusters — substantive record of Pattern C
 - `docs/cross-cutting-concerns.md` — what the cross-cutting gap check is checking against
-- `agents/reviewer.md` anti-rationalization rules — still fire on the canonical Reviewer regardless of how many audit sub-agents fed it findings or how many clusters Pattern C split the work across
+- `docs/multi-agent-handoff.md` §Anti-rationalization rules — still fire on the canonical Reviewer regardless of how many audit sub-agents fed it findings or how many clusters Pattern C split the work across
 - `skills/engineering-workflow/SKILL.md` principle 9 — symmetric rule at the tool-call layer; this doc extends the same principle to the sub-agent layer
 
 ---

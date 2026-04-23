@@ -92,7 +92,7 @@ Each Implementer runs its own Phase 4:
 - Populates `evidence_plan.artifacts[]` entries tagged to this cluster (schema extension: evidence entries gain an optional `cluster_id` field).
 - Writes `implementation_notes[]` entries tagged with `cluster_id`.
 - Does **not** touch other clusters' fields or files.
-- Completes the Implementer pre-handoff self-check (`agents/implementer.md`).
+- Completes the Implementer pre-handoff self-check (`docs/multi-agent-handoff.md` §Pre-handoff self-check).
 - Flips its cluster's `status: in_progress → completed` when done.
 
 ### 4. Discovery-loop handling
@@ -180,6 +180,6 @@ Findings go into `review_notes` as usual. A finding whose root cause is "cluster
 
 - **Not a license to spawn canonical Implementers without cluster scope.** Pattern C is specifically about file-disjoint clusters declared at plan time, not about "just spawn 4 Implementers and split the work."
 - **Not a replacement for Pattern 3 (serial Implementer + test-writer sub-agent).** Pattern 3 decomposes *within* a single cluster's Implementer (serial helper sub-agent). Pattern C parallelizes *across* clusters. Both may occur on the same change: Pattern C at the cluster level, Pattern 3 within one cluster's Implementer.
-- **Not a way to route around the Implementer's Pre-handoff self-check.** Each cluster's Implementer still runs the 5-question self-check in `agents/implementer.md`; there are no abbreviated cluster-scoped versions.
+- **Not a way to route around the Implementer's Pre-handoff self-check.** Each cluster's Implementer still runs the 5-question self-check in `docs/multi-agent-handoff.md` §Pre-handoff self-check; there are no abbreviated cluster-scoped versions.
 - **Not a way to skip cross-cutting concerns.** Each cluster runs its own cross-cutting checks per `docs/cross-cutting-concerns.md`, and the Reviewer then runs the cross-cluster gap check on top. The gap check is additional, not a replacement.
 - **Not intended for general use.** Default on every Full-mode change is single-Implementer serial execution. Pattern C is an opt-in speedup for changes where clusters genuinely decompose and the wall-clock cost of serial is high enough to justify the coordination overhead.

@@ -34,16 +34,7 @@ You receive a manifest in `phase: review` state with all Implementer fields fill
 
 ## Anti-rationalization rules
 
-Even when the Reviewer is mechanically prevented from editing code, a Reviewer can still rationalize approval in language. These six conditions are **hard send-back triggers**; if any applies, do not approve:
-
-1. **Perfect-confidence hallucination.** You are about to write "no issues found," "everything looks perfect," or equivalent. Real changes carry residual risk; failing to find any usually means you did not look hard enough. Return to the diff and look again.
-2. **Hedging language.** You are about to use "mostly fine," "looks reasonable," "should be okay," "probably works," or any phrase that asserts quality without pointing at an artifact. Replace with a concrete citation or a concrete finding.
-3. **Unsubstantiated `pass` entries.** A `review_notes` entry with `finding: pass` must cite a specific `artifact_location` from `evidence_plan` or a specific `path:line` from the diff. A `pass` with only prose is a rubber stamp.
-4. **Read-only review.** You approved without running at least one verification-only command yourself (test run, build, `git log`, migration dry-run replay, artifact open). Reading the Implementer's summary is not verification; it is trust. Verification is you, with a shell.
-5. **Editing through the back door.** You found a problem and, in a runtime where the tool-write boundary is prose-only, you fixed it directly or dictated a one-line patch that the Implementer copy-pasted. In a mechanically-enforced runtime this is blocked by tool permissions; in a prose-only runtime it is an explicit rule violation. Send back, do not patch.
-6. **Thin residual-risk section.** `residual_risk` says "none identified" or is a single sentence. A real change has at least three risks that were evaluated and judged acceptable. If you cannot name three, you have not evaluated.
-
-These rules are **heuristic failure mirrors**. They do not enumerate every way a review can go wrong; they catch the six patterns most likely to slip past even a careful Reviewer. If none of the six applies and the review still feels shallow, that is itself a signal — re-open the diff.
+The six hard send-back triggers — perfect-confidence hallucination, hedging language, unsubstantiated `pass` entries, read-only review, editing through the back door, thin residual-risk section — are defined in `docs/multi-agent-handoff.md` §Anti-rationalization rules. That section is the canonical source; any one trigger applying is a mandatory send-back, not a judgment call. This file is a Claude Code sub-agent bridge; it does not restate the rules and does not fork them.
 
 ## Reference-existence sampling right
 

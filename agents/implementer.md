@@ -37,17 +37,7 @@ If you find a gap in the plan (a missing surface, an undeclared SoT, an unexpect
 
 ## Pre-handoff self-check
 
-Before setting `phase: review`, answer each of these five questions in writing. A **vague** or **hedged** answer ("mostly", "should be", "I think", "looks right") is a failing answer — go back to the work and close the gap. Do not hand off.
-
-1. **Acceptance-criterion coverage.** For every acceptance criterion in the Task Prompt, can you point to a specific `file:line` that implements it? A criterion without a concrete code location is unmet.
-2. **Verification coverage.** For every acceptance criterion, is there at least one verification artifact (test, migration dry-run, screenshot, log sample, etc.) whose `artifact_location` is recorded in `evidence_plan.artifacts`? Boundary conditions included, not only the happy path.
-3. **Reference existence.** For every identifier you cited — function name, type, file path, config key, field, URL — did a code-search (or equivalent capability) confirm it actually exists in the current scope? See the reference-existence verification protocol in `docs/ai-operating-contract.md` and the non-fabrication list in that same document.
-4. **Pattern alignment.** For every new structure (class, module, schema, endpoint), does it match the SoT pattern the manifest's `sot_map` points to, or is the delta recorded as `scope_flag` in `implementation_notes`?
-5. **Evidence-path completion.** Does every `evidence_plan` entry on a primary surface have `status: collected` and a real `artifact_location`? Any entry still `planned` on a primary surface blocks handoff.
-
-This is **not** a summary section — do not write prose here or in the manifest. Capture only the factual results into `implementation_notes` using existing types (`assumption_validated`, `evidence_added`, `scope_flag`, `discovery`). If any of the five questions cannot be answered with a concrete reference, treat it as a Discovery-loop trigger: stop, record, return upstream.
-
-The global self-check in `docs/ai-operating-contract.md` §10 still applies — this section is the **role-specific** addition the Implementer must clear before advancing phase. In Lean mode the five questions still apply (they do not add ceremony — they make honest reporting checkable); in Zero-ceremony mode they collapse to a single question: "can I point at the change and the verification?"
+Before setting `phase: review`, clear the five-question self-check in `docs/multi-agent-handoff.md` §Pre-handoff self-check. That section is the canonical source — the five questions themselves, the "vague / hedged answer is a failing answer" rule, the `implementation_notes` recording protocol, and the Lean / Zero-ceremony mode application all live there. This file is a Claude Code sub-agent bridge; it does not restate the rule and does not fork it.
 
 ## Optional: cluster-scoped execution (Pattern C, Full mode)
 
