@@ -59,6 +59,17 @@ jobs:
       - name: Fail if CHANGELOG.json is out of sync with CHANGELOG.md
         run: python3 .github/scripts/generate-changelog-json.py --check
 
+  summary-drift:
+    name: docs/ TL;DR vs body count drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fail if any docs/*.md TL;DR disagrees with its body count
+        run: python3 .github/scripts/check-summary-drift.py
+
   template-conformance:
     name: Template conformance
     runs-on: ubuntu-latest
