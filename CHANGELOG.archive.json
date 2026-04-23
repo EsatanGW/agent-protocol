@@ -1,0 +1,1027 @@
+{
+  "releases": [
+    {
+      "version": "1.15.0",
+      "date": "2026-04-23",
+      "sections": {
+        "changed": [
+          {
+            "title": "Four execution modes are now first-class citizens of the glossary.",
+            "body": "Prior to this release, `docs/principles.md §8` named four modes (\"no-process path, three-line delivery, Lean, Full\") but the execution layer (`SKILL.md`, `mode-decision-tree.md`, `startup-checklist.md`, `glossary.md`) only defined Lean and Full. The missing two were referenced in other files under five different names (`no-process path`, `ultra-lean`, `No skill`, `three-line handoff`, `stripped-down version` for the lowest mode; `three-line handoff` vs `three-line delivery` for the gray-zone mode), with no single canonical home. `docs/glossary.md §Execution mode` now defines all four — **Zero-ceremony, Three-line delivery, Lean, Full** — as the normative names, with per-mode artifact minimums, selection criteria, and an explicit \"legacy aliases (retired)\" note mapping the five old names to their canonical equivalents. The glossary is the SoT; other files cite it rather than redefining."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/mode-decision-tree.md` rewritten",
+            "body": "to be the execution-layer source of truth for mode selection. It now has five scenario tables — forced-Full, forced-Lean, forced-Three-line-delivery, forced-Zero-ceremony, and mode upgrade/downgrade triggers — covering all four modes. Prior versions only distinguished forced-Full vs forced-Lean. Forced-Full triggers are consolidated into a single canonical list (DB migration / public API breaking / enum consumer-visible / payments / auth / PII / cross-team handoff / long-lived feature-flag / staged rollout); earlier the list was split across `mode-decision-tree.md` and `docs/onboarding/when-not-to-use-this.md §Q3` with mismatches (`enum` + `rollout` appeared only in the onboarding doc; `cross-team` + `long-lived flag` + `PII` appeared only in the decision tree). Other decision aids (`SKILL.md §Decision table`, `startup-checklist.md §5`, `when-not-to-use-this.md §60-second decision flow`) now cite this file rather than carry parallel lists."
+          },
+          {
+            "title": "`docs/phase-gate-discipline.md` gains a master ceremony-scaling table",
+            "body": "at the top of the six-rules section, spelling out how each of Rules 1 / 2 / 3 / 4 / 5 / 5a / 6 applies in each of the four execution modes. Previously only Rule 5a had explicit ceremony scaling (`Zero-ceremony waived / Lean once / Full every boundary`); the other rules were written as if they applied uniformly, implying a Lean bugfix still needed six named gates plus six commits plus a ROADMAP row per step. The master table makes the real scaling explicit: **Lean mode compresses all six rules into a single gate event at Lean-5**, **Three-line delivery waives phase-gate discipline entirely** (the commit message is the record), and **Zero-ceremony is fully waived**. Rule 5a's existing scaling block is preserved and extended to include the Three-line-delivery row. The \"single P0 + P7 pair\" sentence for single-change initiatives is scoped to Full mode, resolving a contradiction with `AGENTS.md §6`'s previous \"Trivial single-phase tasks are exempt from the ROADMAP rule\" wording."
+          },
+          {
+            "title": "`AGENTS.md §6`",
+            "body": "updated to state the five rules' Full-mode-only application scope up-front, then point at the phase-gate master ceremony-scaling table. Evidence-before-completion remains universal (every mode). The previous exemption sentence (\"Trivial single-phase tasks are exempt\") is replaced with the four-mode scaling clause that references the canonical ceremony-scaling table."
+          },
+          {
+            "title": "`docs/principles.md §8`",
+            "body": "updated to use the canonical mode names (Zero-ceremony / Three-line delivery / Lean / Full) and point at `glossary.md §Execution mode` and `mode-decision-tree.md` as the canonical sources rather than standing alone."
+          },
+          {
+            "title": "`docs/onboarding/when-not-to-use-this.md`",
+            "body": "updated to use canonical mode names (Zero-ceremony instead of \"No-process path\"; Three-line delivery instead of \"stripped-down version\" / \"three-line handoff\"). The 60-second decision flow now covers all four modes explicitly (Q1 → Zero-ceremony, Q2 → Zero-ceremony, Q3 → forced-Full check, Q4 → Three-line delivery vs Lean). The edge-case quick-reference table uses canonical names. The forced-Full trigger list is delegated to `mode-decision-tree.md` rather than duplicated."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md`",
+            "body": "updated: the frontmatter description lists four modes instead of two. The `§Mode selection` block has four sub-sections (Zero-ceremony / Three-line delivery / Lean / Full) with per-mode artifact minimums. The `§Decision table` adds rows for Zero-ceremony and Three-line delivery; the ghost term \"ultra-lean\" (referenced but never defined anywhere in the repo) is removed. The `§Lean workflow` section now explicitly notes Lean-0 … Lean-5 are **steps, not phases** — phase-gate discipline applies once at Lean-5, not per step — and points at the `glossary.md §Lean → Full step / phase correspondence` mapping table for upgrade cases. The `§Artifact guidance` section adds Zero-ceremony and Three-line-delivery rows."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/startup-checklist.md §5 and §6`",
+            "body": "rewritten to cover all four modes. §5 now explicitly lists each mode's selection criterion; §6 lists each mode's artifact minimum. Both point at `mode-decision-tree.md` as the selection SoT and `phase-gate-discipline.md §Ceremony scaling` for rule applicability."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/misuse-signals.md`",
+            "body": "§Misuse 1 and §Misuse 2 rewritten to cover downgrading to / upgrading from any of the four modes, not just Lean↔Full. Each misuse block now references `mode-decision-tree.md` as the authority for the correct mode and `glossary.md §Lean → Full step / phase correspondence` for Lean↔Full transitions."
+          },
+          {
+            "title": "`AGENTS.md`",
+            "body": "top-of-file description and `skills/engineering-workflow/README.md`** feature list updated** to name the four execution modes explicitly instead of \"Lean / Full modes\"."
+          }
+        ],
+        "added": [
+          {
+            "title": "`docs/glossary.md §Lean → Full step / phase correspondence`",
+            "body": "a new mapping table documenting which Full-mode phase each Lean-mode step corresponds to, so that Lean→Full upgrades mid-change re-enter at the correct Full phase mechanically. Prior to this release, mode-upgrade procedure in `mode-decision-tree.md` said \"re-enter from the current phase\" but did not specify which Full phase a Lean step maps to — Lean-2 Minimal Plan merges Full's Phase 2 Plan + Phase 3 Test Plan, Lean-4 Verify covers portions of Full's Phase 5 Review + Phase 6 Sign-off, and Lean has no Phase 8 counterpart, so the mapping was implicit."
+          }
+        ],
+        "fixed": [
+          {
+            "title": "Ghost term `ultra-lean`",
+            "body": "in `skills/engineering-workflow/SKILL.md §Decision table` removed. The term was used in the decision table (`\"Tiny single-file fix, no public behavior impact | No skill or ultra-lean\"`) but had no definition anywhere in the repo. Replaced with canonical mode names (Zero-ceremony)."
+          },
+          {
+            "title": "Numbering-ambiguity source:",
+            "body": "AGENTS.md §6's previous \"Trivial single-phase tasks (Lean-mode bugfixes, typos) are exempt from the ROADMAP rule\" did not reconcile with `SKILL.md §Lean workflow`'s Lean-0 … Lean-5 six-step structure or with `phase-gate-discipline.md:225`'s \"single P0 + P7 pair\" requirement for single-change initiatives. The three documents now agree: Lean mode has **steps** (six of them) that compress into a **single phase-gate event** at Lean-5 delivery; ROADMAP rows are optional for a Lean-mode single-change initiative; the P0 + P7 minimum applies to Full-mode single-change initiatives only."
+          },
+          {
+            "title": "Forced-Full trigger list divergence",
+            "body": "between `mode-decision-tree.md` and `when-not-to-use-this.md §Q3`. Previously `enum` + `rollout` appeared only in the onboarding doc and `cross-team handoff` + `long-lived feature-flag` + `PII` appeared only in the decision tree; the consolidated list now contains all of them (DB migration, public API breaking change, enum consumer-visible, payments, auth/PII, cross-team handoff, long-lived feature-flag, staged rollout) and is maintained in `mode-decision-tree.md` only, with `when-not-to-use-this.md` citing it."
+          },
+          {
+            "title": "Orphan-mode problem:",
+            "body": "`Three-line delivery` was defined in `docs/onboarding/when-not-to-use-this.md` and named in `docs/principles.md §8`, but did not appear in `SKILL.md`, `mode-decision-tree.md`, `startup-checklist.md`, or `glossary.md`. An agent walking only the execution layer would never select this mode. Now present and normative across all execution-layer decision aids."
+          }
+        ],
+        "notes": [
+          {
+            "title": null,
+            "body": "Repositories that were writing per-Lean-step gates + per-Lean-step commits + per-Lean-step ROADMAP rows were over-applying Full-mode discipline to Lean-mode work; they may stop. No artifact rewrites are required — over-ceremony is not a correctness problem, only an efficiency one.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "References to `no-process path`, `ultra-lean`, `No skill`, `three-line handoff`, and `stripped-down version` in project-local documents remain readable; `glossary.md §Execution mode` maps each to its canonical name. New local documents should use the canonical names.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "Bridge and example files carrying the legacy `Zero ceremony` phrasing in their \"Situation | Path\" tables are left as-is per `CLAUDE.md §3` (factual record preservation for historical content); the glossary's retired-aliases note makes them readable.",
+            "subsection": "migration notes"
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.14.5",
+      "date": "2026-04-23",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`docs/phase-gate-discipline.md:95` — broken relative reference to `templates/lean-spec-template.md`.",
+            "body": "Rule 5a's Ceremony scaling block pointed at `templates/lean-spec-template.md`; the file actually lives at `skills/engineering-workflow/templates/lean-spec-template.md`. Under either reading convention (relative-to-file → `docs/templates/...`; repo-root → `templates/...`) the prior path did not resolve. Path corrected to `skills/engineering-workflow/templates/lean-spec-template.md`, matching this file's existing repo-root-path convention for all its other cross-reference links (`skills/engineering-workflow/references/resumption-protocol.md`, `skills/engineering-workflow/references/phase-minimums/*`, etc.). Discovered during the summary-vs-per-case audit on 2026-04-22 and recorded as a non-summary-vs-per-case finding in `docs/audits/summary-vs-per-case-registry.md`; now resolved."
+          },
+          {
+            "title": "`docs/audits/summary-vs-per-case-registry.md` — registry updated.",
+            "body": "The \"Other drift\" entry for the `phase-gate-discipline.md:95` broken reference receives a `**Resolved in 1.14.5** (2026-04-23)` note naming the correction and confirming the fix scope is isolated (the other `templates/change-manifest.example-*.yaml` references in `docs/` do resolve correctly against the repo-root `templates/` directory, so no accompanying edits were needed)."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.14.4",
+      "date": "2026-04-22",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`docs/source-of-truth-patterns.md:4` — A1: anti-pattern count.",
+            "body": "TL;DR \"*Five common desync anti-patterns*\" corrected to \"*Six common desync anti-patterns*\" with the six named inline (dual-write, consumer-derived truth, stale cache, doc drift, i18n key drift, pipeline-order as implementation detail). Anti-pattern 6 pairs with sub-pattern 4a Pipeline-Order Contract; the row was added when 4a landed but the TL;DR was never updated. TL;DR also clarifies that half-sync gotchas are a *callout within Pattern 8*, not a separate pattern."
+          },
+          {
+            "title": "`docs/implementation-disciplines.md:4` — A2: axis list mismatch.",
+            "body": "TL;DR claimed six axes including two phantom ones (\"concurrency + lifecycle\", \"dependency + environment\") that do not exist as axes in the body; the body has five axes including \"Documentation sync\" that the TL;DR omitted. TL;DR rewritten to name the five actual axes (Contract clarity, Clear layering, Data-access health, Errors and observability, Documentation sync) and to point at `cross-cutting-concerns.md` as the real home of concurrency / cancellation propagation (error-handling sub-section) and dependency / environment concerns (build-time-risk). Reader following the TL;DR is now guided to the correct location for each concern."
+          },
+          {
+            "title": "`docs/user-surface-disciplines.md:4` — A3: axis list mismatch.",
+            "body": "TL;DR claimed six axes (flow correctness, contract alignment, feedback + guidance, a11y, responsive + device, analytics + telemetry); body has five with different names (UI flow correctness, Contract alignment, Internationalization and copy, Usability, Operational hooks). Only 2 of 6 TL;DR axes matched the body verbatim. TL;DR rewritten to name the five actual axes — a11y and responsive are now correctly folded under \"Usability\" (as the body organizes them), and \"Internationalization and copy\" surfaces as its own axis (the TL;DR previously demoted i18n to a sub-bullet)."
+          },
+          {
+            "title": "`docs/adoption-strategy.md:4` — A4: stage-duration drift.",
+            "body": "TL;DR said \"Stage 2 (1-2 months) ... Stage 3 (3+ months)\"; body and `docs/diagrams.md:161-162` say 2-4 weeks and 4-8 weeks. TL;DR corrected to match body (2-4 weeks / 4-8 weeks). Adopting teams planning capacity against these durations no longer hit a 2–3× error in the TL;DR."
+          },
+          {
+            "title": "`docs/ci-cd-integration-hooks.md:4` — A5: Hook 6 description wrong.",
+            "body": "TL;DR said Hook 6 was \"Change Manifest schema validation\"; body §Hook 6 is titled \"completion-report check\". The actual schema-validation work lives in `docs/automation-contract-algorithm.md` Layer 1, not in this document's hook list. TL;DR corrected: Hook 6 now reads \"pre-merge → completion-report check (Full-mode PRs)\"; Hook 7 tightened from \"observation-window start\" to \"Phase 8 observation reminder\" to match the body. TL;DR also adds a clarifying sentence that schema validation is the automation contract's concern, so the boundary between this doc and the algorithm doc is explicit."
+          },
+          {
+            "title": "`docs/concurrent-changes.md:4` — A6: coordination pattern mismatch.",
+            "body": "TL;DR said \"Three coordination patterns: sequential, parallel with shared branch, dual-write bridge\"; body §Coordination strategies has **four** strategies with different names (sequencing, branch isolation + merge-time conflict resolution, joint design + split implementation, merge into one ticket). \"Dual-write bridge\" does not appear in the body at all — the dual-write mechanism is a `breaking-change-framework.md` Path B concern, not a coordination strategy in this doc. TL;DR rewritten to name the four actual strategies."
+          },
+          {
+            "title": "`docs/system-change-perspective.md:4` + line 9 — A7: \"six unified questions\" is a phantom.",
+            "body": "TL;DR claimed this file \"lays out the six unified questions\" and the body blockquote (line 8–9) claimed the list \"lives in `docs/surfaces.md`\". Neither is true: `surfaces.md` has \"six cross-cutting concerns\" (different thing — line 200) and a \"60-second opener\" with **five** questions (different content). Both claims removed. TL;DR now describes the **four surface-entry questions** the body actually lays out (inside §Don't start by asking \"whose layer?\") and points at `surfaces.md §60-second opener` for the full five-question analysis checklist (which does exist there). Body blockquote correspondingly updated to reference \"§60-second opener\" instead of \"six unified analysis questions\"."
+          },
+          {
+            "title": "`docs/change-decomposition.md:4` — A8: fracture-line under-reporting.",
+            "body": "TL;DR named four fracture lines (SoT, surface, consumer pace, risk asymmetry); body §Natural fracture lines has six (SoT boundary, surface cadence differs, consumer cohort separation, asymmetric risk level, different reversibility, delivery-sequencing constraint). TL;DR expanded to all six, plus the four merge signals (tightly-coupled atomicity, shared evidence, split would fabricate a scheduling dependency, changes are too small) that were previously unnamed in the TL;DR. Reader using the TL;DR now sees the full decomposition decision surface instead of missing the last two fracture criteria."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`docs/audits/summary-vs-per-case-registry.md`",
+            "body": "updated to mark all eight (a) findings as **Resolved in 1.14.4** with a per-finding resolution note. The registry is kept intact as a dated audit record — findings are not deleted, because the registry's own \"don't silently re-ship\" rule requires resolution to be visible, not erased. The registry's (b) legitimate two-level classifications and (c) boundary-call classifications remain unchanged."
+          }
+        ],
+        "notes": [
+          {
+            "title": null,
+            "body": "Audit produced: `0d8928f docs(audit): summary-vs-per-case consistency registry` (2026-04-22, not a release)",
+            "subsection": "audit-to-patch provenance"
+          },
+          {
+            "title": null,
+            "body": "Resolution: **this commit** (`chore(release): 1.14.4`, 2026-04-22) Future audits should follow the same two-commit shape (audit artifact first, resolution release second) so reviewers can separately review (a) the finding list and (b) the chosen resolution direction. Bundling both into a single commit would hide which findings existed before the edits.",
+            "subsection": "audit-to-patch provenance"
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.14.3",
+      "date": "2026-04-22",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`docs/operational-cheat-sheet.md:60` and `docs/onboarding/when-not-to-use-this.md:98` — stale \"Stage 2\" markers removed.",
+            "body": "Both rows carried a \"*(pending Stage 2)*\" / \"*(CCKN, once Stage 2 lands)*\" qualifier that framed CCKN as a not-yet-shipped feature. The qualifier refers to an internal 1.7.x-era \"Stage 2 schema changes\" roadmap phase (per the `bebd9c3` commit message \"*the agent-protocol-vs-SDD adoption plan*\"); the CCKN schema field + canonical doc shipped in the **immediately following** commit `596e5bb` on 2026-04-21, one minute after the markers were written. The markers have therefore been stale from the moment they landed — for 14 patch/minor releases through 1.8.0 → 1.14.2. Both rows now point directly at `docs/cross-change-knowledge.md` without the \"pending\" qualifier. Root cause of the miss: 1.14.0 / 1.14.1 / 1.14.2 all scoped their CCKN reviews to the canonical file + three named consumers (`glossary.md`, `phase1-investigate.md`, `SKILL.md`); the full list of CCKN-mentioning files (10) was not swept until the post-1.14.2 user-requested audit. The two fixes are independent of the 1.14.0–1.14.2 normative content — they are pre-existing documentation drift that those releases' scope did not cover."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.14.2",
+      "date": "2026-04-22",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`docs/cross-change-knowledge.md` §What to do on no match — residual contradiction with the 1.14.1 summary rule",
+            "body": "is corrected. 1.14.1 rewrote the §When to query summary to say \"*write during Phase 1 — at initial Investigate per §Ceremony scaling, or at re-entry after a Phase 4 Discovery loop*\", but left the §What to do on no match paragraph saying \"*At the end of the change, the Planner evaluates ... — that is the write-side rule*.\" A reader arriving via the \"No match\" flow therefore still saw end-of-change framed as *the* write point, directly contradicting the corrected summary. The same wording was mirrored in `skills/engineering-workflow/phases/phase1-investigate.md` §Startup: query CCKN precedent \"No match\" bullet. Both are rewritten to make the timing explicit: on no match, a write only happens if Phase 1 itself surfaces reusable knowledge (write during this Phase 1 per §Ceremony scaling) or if a Phase 4 Discovery loop later triggers Phase 1 re-entry (write at re-entry per §Relation to the Change Manifest §3). Otherwise the change produces no CCKN. Root cause: 1.14.1's edit scope was the summary sentence; the downstream prose that carried the same framing was not re-scanned."
+          },
+          {
+            "title": "`docs/cross-change-knowledge.md` §Ceremony scaling — query vs write responsibilities per ceremony tier",
+            "body": "is now explicit. 1.14.0 / 1.14.1 shipped §When to query (query side) and §Ceremony scaling (write side) as adjacent but logically disconnected sections — neither stated whether Lean mode shares the Phase 1 startup query or whether the Full-mode evaluation in §Ceremony scaling also determines *when to write*. 1.14.1's summary sentence \"*at initial Investigate per §Ceremony scaling*\" cross-referenced a section that only said \"*evaluates during Phase 1*\" — a semi-circular pointer. The rewritten §Ceremony scaling now: (a) opens with a one-line rule separating query (always on in non-Zero-ceremony tiers) from write (tier-scaled); (b) explicitly states Zero-ceremony skips both query and write; (c) Lean mode runs the query, write is optional, with write-timing tied to Phase 1 (initial or re-entry) rather than end-of-change; (d) Full mode states both evaluation *and* the two possible write timings (available-at-Phase-1 write immediately, otherwise defer to re-entry after Phase 4 Discovery)."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` Investigate phase block — SKILL.md grep-target de-duplication is now complete.",
+            "body": "1.14.1 removed the inline match-handling restatement from SKILL.md but left the grep-target sentence (\"*grep the repo's CCKN directory (default: `docs/knowledge/`) for `topics` overlap with anticipated `surfaces_touched`, any `uncontrolled_interfaces`, or libraries / third-party APIs / platforms the change will touch*\") duplicated verbatim with the same sentence in `cross-change-knowledge.md:111-115` (canonical) and `phase1-investigate.md:24` (procedural bridge). Three consumer copies of the grep target is exactly the drift pattern 1.14.1 invoked `CLAUDE.md §5` to forbid — the de-duplication was partial. The paragraph is now a one-sentence discoverability cue plus explicit pointers at the procedural bridge and the canonical rule; the grep target, the three overlap axes, and all match-handling now live only at the canonical + procedural-bridge layer. A future change to the grep target touches two files instead of three."
+          },
+          {
+            "title": "`CHANGELOG.md` 1.14.0 §Why minor — forward correction",
+            "body": "of the miscited claim \"*Lean-mode changes (where CCKN query is optional per §Ceremony scaling) all remain valid*.\" §Ceremony scaling (pre-1.14.2) addressed the CCKN **write** side only — it never carved out a \"Lean-mode query is optional\" rule, and the new §When to query rule (1.14.0) did not exempt Lean either. The 1.14.0 entry stays intact per `CLAUDE.md §3` (\"*CHANGELOG is a factual record*\"); this bullet documents the correction forward. The actual rule post-1.14.2: the Phase 1 startup query runs in both Lean and Full modes; only the write side is ceremony-scaled. Zero-ceremony continues to skip both."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.14.1",
+      "date": "2026-04-22",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`docs/cross-change-knowledge.md` §When to query a CCKN — summary rule",
+            "body": "corrected from \"*write at Phase 4 Discovery / Phase 1 re-entry; query at Phase 1 Investigate startup*\" (the 1.14.0 wording) to \"*query at Phase 1 Investigate startup; write during Phase 1 — at initial Investigate per §Ceremony scaling, or at re-entry after a Phase 4 Discovery loop per §Relation to the Change Manifest §3. Phase 4 Discovery triggers re-entry; it does not itself write.*\" The 1.14.0 summary implied two write locations (Phase 4 Discovery **and** Phase 1 re-entry) and directly contradicted the pre-existing §Relation to the Change Manifest §3 rule that writing happens \"*as part of the Phase 1 Investigate re-entry, **not as a side effect of Phase 4***.\" A reader following the 1.14.0 summary would conclude Phase 4 is a valid write location, which §3 forbids. Root cause: the summary collapsed the trigger source (Phase 4 Discovery) and the write execution point (Phase 1 re-entry) into a single slash-joined phrase without distinguishing them."
+          },
+          {
+            "title": "`docs/glossary.md` CCKN entry — asymmetric-timing paragraph",
+            "body": "receives the same correction so the vocabulary-layer summary matches the canonical reference."
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/phase1-investigate.md` §Startup: query CCKN precedent",
+            "body": "gains the missing **partial match** row (CCKN covers part of the relevant facet → cite for covered + investigate uncovered + extend CCKN if generalizing knowledge emerges). The 1.14.0 phase-file procedural bridge listed only fresh / stale / no match, dropping the \"partial match\" handling that the canonical §When to query a CCKN lists. An agent following the phase file alone would not learn that partial coverage still requires CCKN extension — which is load-bearing for write-side discipline. The same section also gains a one-sentence clarification that an absent CCKN directory is treated as no match, not as a failure (removes the risk of a literal `grep` erroring on a non-existent directory and being misread as a tooling failure)."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` Investigate phase block",
+            "body": "reduces the bolded \"Startup: query CCKN precedent\" paragraph from a full match-handling restatement to a single-sentence pointer at the phase file and the canonical reference. The 1.14.0 version restated fresh / stale / no-match inline, creating **two consumer copies** of the match-handling rule (SKILL.md plus the phase file) — exactly the drift pattern `CLAUDE.md §5` warns against. The reduced pointer keeps the surface-layer discoverability (an agent reading SKILL.md's Investigate block still sees the rule exists) while leaving the phase file as the single procedural source of truth."
+          },
+          {
+            "title": "`docs/cross-change-knowledge.md` §At Phase 1 Investigate startup",
+            "body": "gains the same directory-absent clarification (\"an absent directory is not a failure\") so the canonical reference and the phase-file bridge agree on the edge case."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.14.0",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "`docs/cross-change-knowledge.md` §When to query a CCKN",
+            "body": "new section between §Relation to the Change Manifest and §What a CCKN is not, closing the long-standing **query-side timing gap** in the 1.8.0 CCKN pattern. Prior state: CCKN's **write** side was prescribed (\"*the Planner creates or extends a CCKN as part of the Phase 1 Investigate re-entry*\" / \"*the Planner evaluates during Phase 1 Investigate whether the change's learning content belongs in a CCKN*\") but the **query** side was only passively mentioned (\"*Any manifest field that benefits from pre-existing knowledge cites the CCKN by path*\") — no named procedural step said \"query first, before investigation proper begins.\" Result: agents re-discovered facts that a CCKN would have supplied, and the write-side infrastructure sat unused on the query side. The new §When to query defines the **asymmetric lifecycle rule**: **write at Phase 4 Discovery / Phase 1 re-entry; query at Phase 1 Investigate startup**. Section covers: (1) Phase 1 startup grep against `docs/knowledge/` for `topics` overlap with `surfaces_touched` / `uncontrolled_interfaces` / libraries-APIs-platforms-touched; (2) match-handling (fresh = cite + skip re-discovery; stale = cite + inherit refresh obligation per §Not a free pass for stale claims + record in `knowledge_notes_touched[]`; partial = cite for covered portion + investigate the rest); (3) no-match fall-through with the existing write-side rule as the end-of-change checkpoint; (4) 5 anti-patterns including the primary one (querying mid-implementation instead of at Phase 1 startup — decisions the CCKN should have informed have already been made)."
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/phase1-investigate.md` — new \"Startup: query CCKN precedent\" section",
+            "body": "terse (~8-line) procedural step positioned before \"Investigation dimensions,\" pointing at the full §When to query rule in the canonical reference. Names the three match outcomes (fresh / stale / no match) and the primary anti-pattern (late querying). Keeps the phase-file terse style (~50 lines total including this addition)."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`docs/glossary.md` — CCKN entry",
+            "body": "gains an asymmetric-lifecycle paragraph: \"*write at Phase 4 Discovery / Phase 1 re-entry; query at Phase 1 Investigate startup*.\" Surfaces the timing distinction at the vocabulary layer so a reader finding \"Cross-Change Knowledge Note\" in another document knows immediately both when to write and when to query, without having to read the full canonical reference to discover the query side was previously absent."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` Investigate phase block",
+            "body": "gains a bolded \"Startup: query CCKN precedent\" paragraph with the same grep-target / match-handling summary. The skill-layer quick reference now surfaces the rule at the point an agent is deciding Investigate-phase capability priorities, not only when it reads the full phase file."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.13.1",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "CI validator for Pattern C cluster disjointness (`.github/scripts/validate-cluster-disjointness.py`)",
+            "body": "closes the \"validator-enforced\" integrity gap that 1.13.0 shipped with: `cluster-parallelism.md`, the schema description on `implementation_clusters`, and the 1.13.0 ROADMAP Phase log all promised a validator that did not exist. The new script enforces the invariant: given a manifest with `implementation_clusters`, expand each cluster's `scope_files` globs against the repo root, compute pair-wise set intersections; any non-empty intersection is a disjointness violation and fails the run. Exit codes match the existing validator convention (0 OK / 1 violation / 2 tool error). Covers three invocation shapes: (a) `--self-test-only` — runs 5 embedded synthetic fixtures in a tmpdir, always passes regardless of repo content; (b) default — runs self-test then scans `templates/*.yaml` and `examples/starter-repo/**/change-manifest.*.yaml` for any with `implementation_clusters` filled; (c) `--manifest <path>` — ad-hoc single-file check. The 5 self-test cases exercise: disjoint by top-level dirs, disjoint by subdir, subsuming pattern (`db/**` vs `db/migrations/*.sql`) → violation, identical patterns → violation, empty `implementation_clusters` → no-op."
+          },
+          {
+            "title": "`cluster-disjointness` CI job (`.github/workflows/validate.yml`)",
+            "body": "new job that runs the new script on every push to main and every pull request. Joins the existing `schema-syntax` / `schema-drift` / `changelog-drift` / `template-conformance` / `hooks-selftest` / `validator-python-tests` / `validator-node-tests` / `version-consistency` jobs. Matches the existing no-untrusted-input property of this workflow (only hardcoded `pip install` + `python3 .github/scripts/...` commands; no `github.event.*` interpolation)."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/references/cluster-parallelism.md §Relation to other documents`",
+            "body": "new row pointing at the validator script and the CI job so readers can locate the mechanical enforcement from the canonical reference."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.13.0",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "Cluster parallelism reference (`skills/engineering-workflow/references/cluster-parallelism.md`)",
+            "body": "new normative reference defining **Pattern C — Phase 4 cluster-parallel canonical Implementers**, the within-Phase-4 complement to 1.11.0's Pattern-A/B non-canonical sub-agent fan-out and 1.12.0's between-phase overlap zones. Core mechanism: the Planner declares 2–4 file-disjoint implementation clusters in `implementation_clusters` at Phase 2 approval; at Phase 4 the Planner spawns one canonical Implementer per cluster in a single tool-call batch (cache-window rule). Each spawned Implementer has the full canonical Implementer envelope (read, write, shell) and writes its own cluster's code and evidence directly — this is the key distinction from Patterns A/B (non-canonical sub-agents that return findings for the canonical role to synthesize). A single Reviewer downstream performs a **cross-cluster cross-cutting gap check**: issues that emerge only at cluster intersections (e.g. cluster A's API field matches cluster B's frontend call but cluster C's analytics event still references the old name) that no individual Implementer would catch. Four mandatory invariants: (1) file-disjoint scope per cluster (validator-enforced pair-wise disjointness); (2) single-batch spawn; (3) any cluster's Discovery-loop trigger halts all clusters by default (conservative — other clusters may be building on an invalidated plan); (4) Reviewer performs cross-cluster cross-cutting gap check. Cluster cap 2–4 (symmetric with Patterns A/B visibility argument). Full mode only; Lean and Zero-ceremony explicitly excluded. Anti-patterns documented: \"mostly\" disjoint clusters, serial spawn, one-cluster-Discovery-ignored-while-others-continue, per-cluster isolated Review without cross-cluster check, Implementer writes outside scope_files, cluster identity shared between clusters, Pattern C used in Lean mode, heterogeneous-envelope-per-cluster."
+          },
+          {
+            "title": "`implementation_clusters` Change Manifest field (`schemas/change-manifest.schema.yaml` + `.json` mirror + `docs/change-manifest-spec.md`)",
+            "body": "new optional top-level array recording Pattern C's cluster delegation. `minItems: 2` (1-wide cluster is just serial Phase 4), `maxItems: 4` (cross-cluster visibility argument). Per-cluster: required `cluster_id`, `scope_files` (glob patterns the cluster's Implementer may modify — pair-wise disjoint across clusters, validator-enforced), `independence_rationale` (narrative; a hand-wavy rationale signals clusters are not actually independent), `status` (enum `pending | in_progress | completed | blocked_discovery`). Optional: `label`, `scope_surfaces`, `task_refs`, `evidence_refs`, `assigned_identity`. Transitions: `pending → in_progress` at Implementer spawn; `in_progress → completed` at pre-handoff self-check cleared; `in_progress → blocked_discovery` on Discovery-loop, which halts all other clusters by default. Backward-compatible: pre-1.13 manifests and Full-mode changes that used a single Implementer both validate without this field."
+          },
+          {
+            "title": "Pattern 7 in `reference-implementations/roles/role-composition-patterns.md`",
+            "body": "non-normative companion to the new normative reference. Pattern 7 extends the existing six patterns (four serial sub-agent, two parallel sub-agent fan-out) with the canonical-role multi-delegation mechanism. The TL;DR rewrites to name the two distinct composition mechanisms — (a) non-canonical sub-agent composition for Patterns 1–6, (b) canonical-role multi-delegation for Pattern 7. The invariant section expands to cover Pattern 7's different shape: each cluster's canonical Implementer writes its own manifest fields directly (this is not an escape because the spawned identity carries the canonical Implementer's contractual ownership); anti-collusion applies transitively across clusters; tool-permission matrix gives each cluster the full canonical Implementer envelope (the same envelope the matrix already grants — nothing new is unlocked). Anti-pattern table extended with three Pattern-7-specific entries."
+          },
+          {
+            "title": "`C_cluster_implementers` value on `parallel_groups.pattern` enum",
+            "body": "new enum value alongside `A_surface_investigators`, `B_specialized_audit`, and `other`. A `parallel_groups` entry with `pattern: C_cluster_implementers` serves as an audit breadcrumb for Pattern C (the substantive cluster data lives in the top-level `implementation_clusters` field; the `parallel_groups` entry records that the multi-delegation happened and was performed by the Planner)."
+          },
+          {
+            "title": "Glossary entry — Implementation cluster (`docs/glossary.md`)",
+            "body": "new canonical term in the Process section, sibling to Fan-out / Fan-in / Context pack / Parallel group / Phase overlap zone. Cross-references the canonical reference, the schema field, and the distinction between Pattern C (canonical-role multi-delegation) and Patterns A/B (non-canonical sub-agent fan-out)."
+          },
+          {
+            "title": null,
+            "body": "**Phase-file Pattern C cues (`skills/engineering-workflow/phases/phase{2,4,5}-*.md`)** — Phase 2 file gains \"Optional: declare implementation clusters for Pattern C\" guidance; Phase 4 file gains \"Optional: Pattern C cluster-parallel execution\" section with the discovery-halt-all-clusters rule; Phase 5 file gains \"Cross-cluster audit\" section naming the Reviewer's cross-cluster cross-cutting gap check as mandatory when Pattern C was used. Phase files remain the 30–60-line size-style the skill uses."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/references/parallelization-patterns.md` Phase applicability table",
+            "body": "Phase 4 row changes from \"intentionally has no parallel pattern\" to \"Pattern C — cluster-parallel canonical Implementers\" with explicit note that Pattern C is canonical-role multi-delegation, not sub-agent fan-out. A new paragraph below the table distinguishes the two parallelism mechanisms (non-canonical sub-agent fan-out for Patterns A/B; canonical-role multi-delegation for Pattern C) and names the orthogonal relationship with overlap zones from 1.12.0. The `Relationship to other documents` section gains pointers to `cluster-parallelism.md` and `schemas/change-manifest.schema.yaml §implementation_clusters`."
+          },
+          {
+            "title": "`docs/multi-agent-handoff.md §Tool-permission matrix`",
+            "body": "the \"Only Planner may delegate canonical roles\" rationale bullet gains an explicit mention of Pattern C: \"A Planner may spawn **multiple** canonical Implementers in parallel for file-disjoint clusters per Pattern C … this is canonical-role multi-delegation, distinct from the non-canonical sub-agent fan-out of Patterns 5–6.\" The anti-collusion rule's transitive extension (each cluster identity differs from Planner, every other cluster, and Reviewer) is named in the same bullet."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md`",
+            "body": "Quick refresher list gains a bullet pointing at `cluster-parallelism.md` with the canonical-role vs non-canonical distinction explicit. Phase-4 tool-category block gains a \"Canonical-role delegation, optional\" bullet naming Pattern C."
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/subagent-strategy.md`",
+            "body": "new closing section \"Pattern C — canonical-role multi-delegation (not sub-agent fan-out)\" explicitly distinguishes the two mechanisms so readers of the sub-agent strategy doc do not treat Pattern C as another sub-agent pattern."
+          },
+          {
+            "title": "`agents/planner.md`, `agents/implementer.md`, and reference-implementations mirrors",
+            "body": "Planner role files gain \"Optional: Pattern C cluster-parallel Implementers\" sections documenting the declare-and-spawn duties; Implementer role files gain \"Optional: cluster-scoped execution\" sections documenting the Task-Prompt-cluster_id contract, the hard `scope_files` write boundary, and the Pattern-C-specific handoff (cluster status, not top-level phase)."
+          },
+          {
+            "title": "Version bump",
+            "body": "`plugin.json`, `marketplace.json`, `README.md` badge, `CHANGELOG.md` latest-release heading, and `CHANGELOG.json` all agree on `1.13.0`. Schema change: `schemas/change-manifest.schema.yaml` + `.json` gain the optional `implementation_clusters` top-level field and the `C_cluster_implementers` value on the `parallel_groups.pattern` enum; both additions are backward-compatible."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.12.0",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "Phase overlap zones reference (`skills/engineering-workflow/references/phase-overlap-zones.md`)",
+            "body": "new normative reference defining **between-phase pipeline parallelism**, the complement to 1.11.0's within-phase fan-out. Core concept: specific prep work for Phase N+1 may begin in session-scoped working space before Phase N's gate passes, provided three properties hold: (1) the prep does not depend on Phase N's gate output, (2) it produces an artifact the downstream phase will consume, (3) it is **discarded and redone** if Phase N's gate fails. Five named zones: **P1 → P2** (change-map skeleton from stable surface + SoT list), **P2 → P3** (test-plan skeleton from stable ACs), **P3 → P4** (baseline verification environment — harness scaffold, CI branch, screenshot baseline, metric snapshot — explicitly not implementation code), **P4 → P5** (Reviewer context-pack pre-distillation + reference-sampler seeding; approval language explicitly forbidden during overlap), **P5 → P6** (pre-filter structural scan + sign-off template pre-fill of AC headers; verdict language explicitly forbidden). **Three zones explicitly NOT overlap zones**: P0 → P1 (classification before clarification fails too often), P6 → P7 (pre-filled completion report is an anti-rationalization hazard), P7 → P8 (observation waits for real post-delivery signal). Five mandatory constraints: (1) no canonical-role work-ahead, (2) no manifest-field writes in overlap, (3) discard-on-fail recorded in `Phase log`, (4) ≤20% of downstream phase's work (past 20% the prep has become execution and is bypassing the gate by degree), (5) Full mode only. Relation to parallelization-patterns: orthogonal — fan-out is within-phase sub-agent parallelism; overlap is between-phase pipeline parallelism; the two stack in the same initiative without interference."
+          },
+          {
+            "title": "Glossary entry — Phase overlap zone (`docs/glossary.md`)",
+            "body": "new canonical term in the Process section, sibling to Fan-out / Fan-in / Context pack / Parallel group. Cross-references the five named zones, the three excluded boundaries, and the canonical reference. Full-mode-only constraint and ≤20% soft cap surfaced at the glossary level so the distinction between within-phase fan-out and between-phase overlap is discoverable from the vocabulary layer without reading the full reference."
+          },
+          {
+            "title": null,
+            "body": "**Phase-file overlap cues (`skills/engineering-workflow/phases/phase{1,2,3,4,5}-*.md`)** — each phase file gains a terse one-paragraph \"Optional: P{N} → P{N+1} overlap zone\" section pointing at the relevant zone in the new reference. Phase 4's cue explicitly names approval-language-during-overlap as forbidden (anti-rationalization hazard); Phase 5's cue explicitly names verdict-language-during-overlap as forbidden (same hazard, P5 → P6 boundary). Phase files remain the 20–50-line size-style the skill uses."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/SKILL.md`",
+            "body": "Quick refresher list gains a bullet pointing at `phase-overlap-zones.md`; the existing `parallelization-patterns.md` bullet is clarified to \"within a phase\" to match the new \"between phases\" distinction. Misuse-protection list gains a new entry: \"Starting Phase N+1 work during Phase N outside a named overlap zone, or keeping overlap prep when the prior gate fails — both collapse into silent gate bypass.\""
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/subagent-strategy.md`",
+            "body": "new closing section \"Within-phase fan-out vs between-phase overlap\" explicitly distinguishes the two parallelism disciplines so the reader does not conflate them (fan-out does not cross phase gates; overlap does not spawn sub-agents; both may stack but solve different problems)."
+          },
+          {
+            "title": "`docs/phase-gate-discipline.md` See also",
+            "body": "new pointer to `phase-overlap-zones.md` with the note that Rule 1 (explicit gate) and Rule 5a (working-space discipline) together keep overlap from degenerating into gate bypass. Rule 1 stays binding — overlap is prep, not an early gate pass."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.11.0",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "Parallelization patterns reference (`skills/engineering-workflow/references/parallelization-patterns.md`)",
+            "body": "new normative execution-layer reference defining two canonical parallel sub-agent fan-out patterns: **Pattern A — Phase 1 surface-parallel investigators** (Planner-owned; 2–4 read-only investigators per surface, single-batch spawn, Planner performs fan-in synthesis), and **Pattern B — Phase 5 specialized audit fan-out** (Reviewer-owned; security / cross-cutting / evidence-reference / acceptance-coverage sub-agents inheriting the Reviewer's read-only envelope, Reviewer performs fan-in synthesis). Five mandatory disciplines lifted out of principle 9 to the sub-agent layer: (1) **cache-window rule** — fan-out sub-agents are spawned in a single tool-call batch so the prompt-cache prefix hits; serial spawning erases the parallelization benefit; (2) **context pack rule** — every fan-out shares a pre-distilled context artifact so sub-agents do not redundantly re-read `docs/`; (3) **fan-in discipline** — synthesis is performed by the canonical role itself, never delegated, with every sub-agent return read in full; (4) **cross-cutting gap check** — the specific failure mode parallelization introduces is a gap visible only in the intersection of two sub-agents' findings; the check asks for union-emergent gaps, contradictions between sub-agents, and suspiciously empty returns; (5) **audit trail** — the fan-out is recorded in the manifest's new `parallel_groups` field. Full-mode only; Lean / Zero-ceremony explicitly excluded by the existing role-composition contract. Phase applicability table included: Phase 1 → Pattern A; Phase 5 → Pattern B; Phase 4 intentionally has no parallel pattern (Pattern 3 covers serial Implementer + test-writer composition)."
+          },
+          {
+            "title": "Context pack reference and template (`skills/engineering-workflow/references/context-pack.md` + `skills/engineering-workflow/templates/context-pack-template.md`)",
+            "body": "new session-scoped working-space artifact shared across every sub-agent in a fan-out group, so sub-agents do not each re-read the full methodology tree. Purpose: keep fan-out economics net-positive and increase sub-agent consistency (shared SoT candidates, shared surface list, shared terminology). Six required contents: change identity, pre-classified SoT candidates, surfaces in scope with sub-agent scope boundaries, terminology snapshot, hard boundaries, return-slot shape. Four exclusions: full document copies, the Change Manifest itself, implementation diffs, cross-role context. Budget: under 400 words typically; hard cap 800 (symmetric with the handoff-prompt budget). Lives in working space per Rule 5a; never persisted, never cited as evidence."
+          },
+          {
+            "title": "Patterns 5 and 6 in `reference-implementations/roles/role-composition-patterns.md`",
+            "body": "non-normative companion to the new normative parallelization doc. Pattern 5 (Planner + surface-parallel investigators) and Pattern 6 (Reviewer + specialized audit fan-out) extend the existing four serial patterns with the parallel variant. The existing \"three canonical roles remain canonical\" invariant is unchanged; fan-out sub-agents are still non-canonical, still have distinct identities, still inherit envelope, still do not write manifest fields. TL;DR and \"What this document is not\" sections updated from \"four patterns\" → \"six patterns\"; anti-pattern table gains three parallel-specific entries (serial spawn of fan-out, missing `parallel_groups` entry, missing cross-cutting gap check)."
+          },
+          {
+            "title": "`parallel_groups` Change Manifest field (`schemas/change-manifest.schema.yaml` + `schemas/change-manifest.schema.json` + `docs/change-manifest-spec.md`)",
+            "body": "new optional top-level array recording every parallel fan-out that occurred within the change. Each entry captures: `owning_role` + `owning_identity` (canonical role that fanned out), `phase`, `pattern` (enum `A_surface_investigators` / `B_specialized_audit` / `other`), `context_pack_summary`, `sub_agents` (`minItems: 2` / `maxItems: 4` — a 1-wide fan-out is a serial sub-agent call, a >4-wide fan-out degrades cross-cutting visibility), and `synthesis` (with `performed_by_identity` that MUST equal `owning_identity`, `manifest_fields_written`, and `cross_cutting_gap_check` recording gaps / contradictions / empty returns). Backward-compatible: pre-1.11 manifests and Full-mode changes that did not fan out both validate without this field. What is NOT valid is a fan-out that happened but was not recorded — that is a contract escape at the audit layer. The Reviewer's audit responsibility for this field documented alongside: verify the owning identity, verify anti-collusion across sub-agent identities, verify synthesis identity equals owning identity, verify the manifest fields named were actually populated, verify the gap-check lists concrete items or explicitly records \"none found.\""
+          },
+          {
+            "title": "Glossary entries — Fan-out, Fan-in (synthesis), Context pack, Parallel group (`docs/glossary.md`)",
+            "body": "four new canonical terms in the Process section, sibling to `Resume mode` / `State snapshot` / `Cross-Change Knowledge Note (CCKN)`. Each term cross-references its normative source per the glossary's own usage rules."
+          },
+          {
+            "title": "Phase-file fan-out cues (`skills/engineering-workflow/phases/phase1-investigate.md` + `phases/phase5-review.md`)",
+            "body": "terse one-paragraph additions pointing to Pattern A / Pattern B respectively, with the \"Full-mode only; never in Lean\" constraint surfaced at the phase-file level. Phase files remain the 20–40-line size-style the skill uses."
+          },
+          {
+            "title": "Phase-4 eager evidence collection rule (`skills/engineering-workflow/phases/phase4-implement.md`)",
+            "body": "new rule: populate `evidence_plan.artifacts` as each sub-task's verification completes, not batched to end-of-Phase-4. Session interrupts during implementation are common; evidence batched to the end is evidence lost on interrupt. Tier-`critical` evidence (schema §evidence_plan.tier from 1.8.0) is highest priority for eager capture."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`docs/multi-agent-handoff.md` tool-permission matrix — canonical vs non-canonical delegation split",
+            "body": "the single \"Sub-agent delegation (spawn downstream role)\" row is split into two rows to resolve a long-standing imprecision: (1) **Canonical-role delegation** — spawning another Planner / Implementer / Reviewer — only the Planner may spawn an Implementer; Implementer and Reviewer are forbidden from spawning canonical roles (keeps the canonical execution tree flat); (2) **Non-canonical sub-agent delegation** — spawning a research / code-explorer / test-writer / reference-sampler / surface-investigator / audit sub-agent per `reference-implementations/roles/role-composition-patterns.md` Patterns 1–6 — allowed to each canonical role for its own patterns, with envelope-inheritance and anti-collusion constraints. The rationale bullets are rewritten to match: \"Only Planner may spawn sub-agents\" was imprecise (Patterns 1–6 imply otherwise and have been in the repo since 1.8.0); the rule was always about canonical-role chains, never about internal sub-agent decomposition. No semantic regression — the stricter interpretation of the pre-1.11 wording would have invalidated Pattern 3 and Pattern 4 which were legal, and this release makes the scope explicit without loosening the canonical-chain constraint."
+          },
+          {
+            "title": "`AGENTS.md` §7 multi-agent role separation table",
+            "body": "the per-role May do / May not do columns updated to match the canonical / non-canonical delegation split. Planner may optionally spawn research / code-explorer / surface-investigator sub-agents (Patterns 1, 2, 5); Implementer may optionally spawn a test-writer sub-agent (Pattern 3); Reviewer may optionally spawn reference-sampler / audit sub-agents (Patterns 4, 6). The anti-collusion rule gains an explicit transitivity clause covering sub-agent identities. A new \"Two delegation categories\" paragraph below the table makes the distinction visible at the contract layer, not only in the deep reference."
+          },
+          {
+            "title": "`agents/reviewer.md` and `reference-implementations/roles/reviewer.md`",
+            "body": "the `tools:` frontmatter in the Claude Code reviewer gains `Task` (exclusively for non-canonical audit sub-agents; never to spawn another canonical role). The prose \"Reviewers are terminal, not decomposing\" line is rewritten to \"terminal at the canonical-role layer\" — terminal about spawning canonical roles, but allowed to invoke non-canonical audit sub-agents per Patterns 4 and 6. Capability-envelope table in the reference implementation splits the old single-row into \"Canonical-role sub-agent delegation: ❌\" and \"Non-canonical audit sub-agent delegation: ✅\" with the envelope-inheritance constraint. Closes the 1.8.0-era gap where Pattern 4 was documented in role-composition-patterns but mechanically unsupported by the bundled Reviewer agent."
+          },
+          {
+            "title": "`agents/planner.md`, `agents/reviewer.md`, and their reference-implementations mirrors",
+            "body": "each gains a short \"Optional: fan-out\" section pointing at the corresponding parallelization pattern, the context pack, and the `parallel_groups` audit requirement. Terse pointers only — the normative content lives in the reference doc."
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/subagent-strategy.md`",
+            "body": "expanded from 8 lines to ~50 lines. The original three base rules (independent tasks only, dependent tasks serial, review cannot be skipped) are preserved at the top; serial composition (Patterns 1–4) and parallel composition (Patterns 5–6) are named with trigger conditions; a discipline summary table maps each parallelization concern to its canonical source."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` — principle 9 extended to the sub-agent layer + Investigate / Review phase blocks",
+            "body": "principle 9 (\"Batch independent tool calls in a single message\") gains a sub-agent-layer clause: parallel fan-out spawns all sub-agents in a single batch because serial spawning breaks the prompt-cache window. The Investigate phase block gains the Pattern A cue; the Review phase block gains the Pattern B cue, including the fan-in / anti-rationalization / cross-cutting-gap-check responsibilities. Quick-refresher list links to the two new reference docs."
+          },
+          {
+            "title": "Version bump",
+            "body": "`plugin.json`, `marketplace.json`, `README.md` badge, and `CHANGELOG` latest-release heading all agree on `1.11.0`. Schema change: `schemas/change-manifest.schema.yaml` and `schemas/change-manifest.schema.json` both gain the optional `parallel_groups` property; the addition is backward-compatible. YAML and JSON mirrors verified to parse."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.10.0",
+      "date": "2026-04-22",
+      "sections": {
+        "added": [
+          {
+            "title": "Step 0 of the resumption protocol (`skills/engineering-workflow/references/resumption-protocol.md`)",
+            "body": "new pre-Step-1 section distinguishing two resume-prompt shapes: **AI-authored handoff prompts** (dense pointer block, Steps 1–6 apply mechanically) vs **human-originated directives** (`continue`, `resume`, `go`, `繼續`, `resume: <verb> <object>`, or similar short user instruction). Normative rule: a short human directive is a request to act on `Manifest.next_action`, not a passive context update; `system-reminder` / MCP-state / deferred-tool availability / other runtime-injected content appearing in the same turn is **not** part of the user's directive and cannot reinterpret it into silence. If the directive is genuinely ambiguous, the incoming session declares Lazy mode, reads the Manifest, and surfaces `next_action` for the user to confirm — the one thing it must not do is silently end the turn. A non-mandatory `resume: <verb> <object>` user-side format is recommended for ambiguity-sensitive workflows. Cross-referenced with `docs/ai-operating-contract.md §11` as the symmetric outgoing-side rule — §11 governs narrate-then-act compliance on the outgoing session, Step 0 governs short-directive interpretation on the incoming session, and together they close both ends of the session boundary. Closes the \"`continue` + heavy system-reminder noise → `No response requested.`\" silent-break failure mode reported against 1.9.0."
+          },
+          {
+            "title": "Manifest size ceiling sub-clause (`docs/change-manifest-spec.md` §State-snapshot discipline)",
+            "body": "new sub-section after \"Anti-pattern: the fat handoff prompt\" naming the ~25,000 token / ~2,000 line single-file read ceiling common to AI runtimes. Rule: a manifest that crosses the ceiling stops working as a state snapshot, because the incoming session cannot open it in one read, and any fallback to `grep` / offset reads (a) bypasses the `last_updated` / `phase` / `status` header that drift-detection relies on, (b) cannot distinguish \"field not populated\" from \"field not in this read window,\" and (c) produces role-divergent views of state in multi-agent changes — the opposite of the shared-snapshot guarantee. Prescribed remedies, in order of preference: compact in place (move verbose narrative into `implementation_notes[]` / `review_notes[]` / `handoff_narrative` / `escalations[]`) or split via `part_of` (umbrella initiative with child manifests, each independently satisfying §State-snapshot discipline). Handoff prompts that instruct \"grep for X\" or \"read lines N–M\" of a manifest are explicitly named as compensating for an oversized manifest — compact the manifest first. Closes the \"oversized child manifest forcing grep/offset workaround\" gap reported against 1.9.0."
+          },
+          {
+            "title": "Glossary entry — Resume prompt (`docs/glossary.md`)",
+            "body": "new canonical term sibling to the existing `Resume mode` and `State snapshot` entries. Distinguishes the AI-authored and human-originated shapes of resume prompts, codifies the rule that runtime-injected content is not a user message, and cross-references the Step 0 normative definition. The existing `State snapshot` entry gains a paragraph on the size ceiling referencing the new sub-clause in the manifest spec."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` resumption rule",
+            "body": "the 3-bullet rule gains a new leading bullet (\"Interpret the incoming prompt first\") covering Step 0's prompt-shape distinction. The existing \"Change Manifest is the state snapshot\" bullet gains a clause pointing at the size ceiling, so both new rules surface in the skill-level quick reference and not only in the deep references."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/lazy-resume-checklist.md` — new Step 0",
+            "body": "pre-Step-1 section mirrors the resumption-protocol change so the 60-second checklist surfaces short-directive interpretation before mode selection. Renumbering preserved: existing Steps 1–5 keep their numbers."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/misuse-signals.md` — new Misuse 6",
+            "body": "\"silently ending the turn on a short resume prompt,\" with signals (short directive + heavy system-reminder noise → \"no response requested\" or empty turn) and the Step 0 fix. Complements Misuse 5 (\"resuming by immediately patching\"): the two together cover both over- and under-reacting to a resume prompt."
+          },
+          {
+            "title": "`docs/ai-operating-contract.md §11 Relation to other sections`",
+            "body": "gains a new bullet cross-referencing Step 0 as the symmetric incoming-side rule. §11 governs the outgoing session; Step 0 governs the incoming session; neither alone prevents the full class of silent-break failures at role-handoff points."
+          },
+          {
+            "title": "Version bump",
+            "body": "`plugin.json`, `marketplace.json`, `README.md` badge, and `CHANGELOG` latest-release heading all agree on `1.10.0`. Verified by the existing `version-consistency` CI job. No schema change: `schemas/change-manifest.schema.yaml` and its JSON mirror have zero diff in this release — every new rule fits existing fields (`part_of`, `implementation_notes[]`, `review_notes[]`, `handoff_narrative`, `escalations[]`)."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.9.0",
+      "date": "2026-04-21",
+      "sections": {
+        "added": [
+          {
+            "title": "Resume-mode protocol (`skills/engineering-workflow/references/resumption-protocol.md` rewrite)",
+            "body": "Step 2 of the resumption protocol rewritten from an unconditional \"re-read at minimum\" artifact dump into a **five-mode decision table** (Lazy / Targeted / Role-scoped / Full / Minimal). The incoming session's first action is now to *declare* which mode applies; only the artifacts that mode requires are read. Per-phase artifact map (Targeted) and per-role artifact map (Role-scoped) hard-coded in the protocol so the new session does not have to chase through phase files to find what to read. Full mode is preserved but **downgraded to an explicitly-declared disaster-recovery fallback** — every Full-mode resume must state *why* (Manifest absent / stale / drift suspected) in the first message, or it counts as a gate-discipline failure per Rule 1. A new Step 2a manifest-completeness check and Step 2b context-budget rule (~30% soft ceiling; downgrade one tier when breached) close the \"I'll read everything just to be safe\" reflex that was causing session-handoff context collapse on Full-mode work. Fixes the real-world failure where a 7+ surface / 50+ file Full-mode change produced a verbose handoff prompt whose sequential file-reads exhausted the incoming session's context before any implementation work began — both reported \"session stopped responding\" crashes happened in this window."
+          },
+          {
+            "title": "Compact handoff-prompt template (`skills/engineering-workflow/templates/handoff-prompt-template.md`)",
+            "body": "new template for the *outgoing* session. Enforces a 400-word soft cap / 800-word hard cap on handoff prompts (measured in words, not tokens, to stay tokenizer-independent). MUST include: change_id, phase, Manifest path, resume mode + one-sentence reason, one-line next action, ≤ 3 open items (each pointing at a Manifest field), ROADMAP row reference, and a read block of ≤ 3 paths limited to what the next action genuinely needs. MUST NOT include: re-explanations of prior phases, inline copies of spec / plan / test report, re-statements of methodology rules, long file-path lists. A read block needing more than 3 paths is a Manifest-completeness failure — the fix is to populate the Manifest, not to expand the prompt. A Lean-mode variant (Minimal resume, ≤ 1 path read, Lean-spec as the snapshot) collapses into the same file. Worked Phase 3 → Phase 4 example at 94 words demonstrates the budget is comfortable in practice."
+          },
+          {
+            "title": "Lazy-resume checklist (`skills/engineering-workflow/references/lazy-resume-checklist.md`)",
+            "body": "new 60-second per-mode checklist for the *incoming* session. Five steps: (1) name the mode without reading anything yet; (2) apply the per-mode read list (Lazy = Manifest only; Targeted / Role-scoped = hard-coded tables; Full = disaster fallback with stated reason; Minimal = Lean-spec + current task item); (3) drift detection (six mechanical triggers: prompt over 800 words, read block over 3 paths, unresolvable Manifest path, phase mismatch, stale `last_updated`, missing listed file — any one stops the resume); (4) context-budget check (~30% ceiling, downgrade one tier when breached); (5) announce mode + phase + next action before any code touches. Replaces the pre-1.9.0 reflex of \"re-read spec, plan, test plan, latest test report, completion report, then figure out where you left off.\""
+          },
+          {
+            "title": "State-snapshot discipline (`docs/change-manifest-spec.md` §State-snapshot discipline)",
+            "body": "new normative section after \"One manifest per change\" that elevates the Change Manifest to its **role as the single state snapshot** for a change. Core rule: if the manifest cannot answer \"what comes next\" without opening another file, the manifest is incomplete — fix the manifest, not the reading ritual. Includes a pointer-completeness checklist enumerating which manifest fields serve as pointers for each required artifact (spec, plan, test plan, latest test report, completion report, ROADMAP row) and at which phase each becomes required. Uses **existing manifest fields only** — `evidence_plan[*].artifact_location`, `handoff_narrative`, `part_of` — so **no schema change** is required. Anti-pattern callout names the fat handoff prompt as the visible symptom of an underfilled manifest."
+          },
+          {
+            "title": "Glossary entries — Resume mode, State snapshot, Handoff extension (`docs/glossary.md`)",
+            "body": "new canonical definitions for `Resume mode` (the five-mode system) and `State snapshot` (the Manifest's role in it). The existing `Handoff` entry gains a sentence distinguishing the handoff *prompt* (compact pointer block, capped at 400 / 800 words) from the handoff *content* (which lives in the Manifest). Cross-references into the resumption protocol, handoff template, and state-snapshot discipline ensure other docs defer to the glossary as the canonical term source per the glossary's own usage rules."
+          },
+          {
+            "title": "Action continuity rule (`docs/ai-operating-contract.md` §11)",
+            "body": "new normative section addressing the **verbal-completion illusion**: an AI narrates \"I'll now call X\" and emits end-of-turn instead of the tool call. Diagnosed from real-world usage where both \"session stopped responding\" incidents happened at role-handoff transition points immediately after verbose narrative sentences — not context exhaustion, not permission denial, but the model mistaking *stating an action* for *performing it*. The rule is mechanical: when stating an action intent, the next emitted tokens must be the tool call itself, in the same turn. Risk-point inventory enumerates the five transitions where this failure concentrates (after task-list updates, after plan approval, at new phase start, after confirmation-shaped sentences, across handoff-prompt boundaries). Cross-referenced from §6 (stop conditions — §6 says when to stop; §11 says when not to), §9 (non-fabrication — §11 extends to fabrication by silence), and §7 (fact > self-narrative applied to action transitions)."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` resumption rule + misuse-protection bullet",
+            "body": "the 5-bullet resumption rule collapses into 3 bullets that name the discipline at the right level of abstraction: (1) declare a resume mode; (2) the Manifest is the state snapshot; (3) respect the context budget. Pointers link to the detailed protocol, checklist, and handoff template. Misuse-protection list gains a new entry naming the verbose handoff prompt as a failure mode to watch for."
+          },
+          {
+            "title": "`docs/multi-agent-handoff.md` downstream-agent minimum actions",
+            "body": "replaced the unconditional \"read manifest in full + read any referenced spec / plan / test report\" rule with a five-step mode-aware variant: declare resume mode first; read Manifest; read only what the chosen mode requires; check for drift; stop and report if Manifest insufficient. Most cross-role handoffs map to Role-scoped mode. The `Prohibited` list now names two symmetric failures — reading only the summary, *and* reading every listed artifact \"to be safe\" — and explicitly rejects handoff prompts over ~400 words as a Manifest-completeness signal."
+          },
+          {
+            "title": "`docs/phase-gate-discipline.md` Rule 6 — re-entry vs resumption",
+            "body": "new paragraph immediately after the rule header distinguishes **re-entry** (re-opening a closed phase because new information invalidated prior work — Rule 6's subject) from **resumption** (reattaching context across a session break without re-opening a phase — the resumption-protocol's subject). A session can resume without re-entry; a re-entry always resumes afterward into the re-opened phase. Closes a confusion that otherwise lets agents conflate the two and open unnecessary ROADMAP re-entry rows on routine session boundaries."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md` — two new core operating principles",
+            "body": "principle 9 (batch independent tool calls in a single message; serialize only when a later call depends on an earlier one's output) and principle 10 (narration is not action; cross-references `docs/ai-operating-contract.md` §11). Principle 9 addresses the measurable cost of serialized tool calls in long-running stages; principle 10 surfaces the single root cause of observed role-handoff crashes in Full-mode work."
+          },
+          {
+            "title": "Version bump",
+            "body": "`plugin.json`, `marketplace.json`, `README.md` badge, and `CHANGELOG` latest-release heading now all agree on `1.9.0`. Verified by the existing `version-consistency` CI job. No schema change: `schemas/change-manifest.schema.yaml` and its JSON mirror have zero diff in this release — every new pointer requirement fits existing fields."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.8.0",
+      "date": "2026-04-21",
+      "sections": {
+        "added": [
+          {
+            "title": "Role composition patterns (`reference-implementations/roles/role-composition-patterns.md`)",
+            "body": "non-normative companion to the three-role contract, documenting four sketch patterns (Planner + research sub-agent / Planner + code-explorer sub-agent / Implementer + test-writer sub-agent / Reviewer + reference-sampler sub-agent) that let a canonical role internally decompose without violating the field-ownership contract or the anti-collusion rule. Canonical roles remain Planner / Implementer / Reviewer; sub-agents are tools the role uses, never additional roles with field authority. Four invariants are enforced: sub-agents never write manifest fields directly, sub-agents have distinct identities from every canonical role in the change, sub-agents inherit the tool-permission envelope of their parent role (cannot be granted capabilities the parent is denied), and the canonical role remains fully accountable for all output regardless of sub-agent contribution. Seven anti-patterns documented (sub-agent writes manifest fields, anti-collusion bypass via identity reuse, capability expansion, sub-agent sign-off, plausibly-complete narrative by proxy, composition in Lean/Zero modes, unbounded nesting). `reference-implementations/roles/README.md` updated with a §Optional: role composition pointer. Non-normative by design — teams may adopt zero or all of the four patterns without affecting operating-contract compliance."
+          },
+          {
+            "title": "Machine-readable re-entry trigger (`reference-implementations/re-entry-trigger/`)",
+            "body": "new pure-function reference implementation of `docs/phase-gate-discipline.md` Rule 6's decision table. Given two manifest states (old committed + new in-progress), `suggest_reentry(old, new)` returns the structured list of re-entry suggestions: which phase to re-open (`0_clarify` / `1_investigate` / `2_plan` / `4_implement_append` / `4_implement_evidence`), why (list of human-readable reasons), and which manifest fields must be rewritten. Six of seven Rule 6 rows covered (the \"spec updated mid-change by user\" row requires an external signal and is explicitly out of scope, documented in `DEVIATIONS.md`). Behaviour details: down-grades (breaking_change.level falling) do not trigger re-entry — only rises do, per Rule 6 literal wording; append-only suggestions are suppressed when a higher-severity re-entry also fires; SoT pattern-change detection is keyed on `info_name` identity so a rename is reported as remove+add rather than pattern-change. CLI wrapper included (`python3 suggest_reentry.py <old> <new>`) emitting JSON on stdout with exit codes 0/1/2 per the automation-contract convention. 12 unit tests covering each decision-table row plus happy path, down-grade suppression, append-only suppression, and multi-trigger cases. Not integrated into the three reference validators by default because the decision needs two manifest states; `docs/phase-gate-discipline.md` Rule 6 cross-references the module so runtimes wanting mechanical re-entry prompting have a canonical implementation to embed."
+          },
+          {
+            "title": "Evidence tier (`schemas/change-manifest.schema.yaml` + Rule 2.11)",
+            "body": "each entry in `evidence_plan` gains an optional `tier` enum `[critical, standard]`. `critical` evidence blocks Phase 6 sign-off if missing and cannot be waived into `residual_risk`; `standard` evidence may be moved to `residual_risk` with `conditional_approval`. Absent `tier` defaults to `standard` — pre-1.8 manifests continue to validate. The Planner assigns tier at Phase 2 Plan; the Reviewer may upgrade (triggers send-back to collect more evidence) but must not downgrade. **New automation-contract Rule 2.11** (`evidence.critical_required_for_high_severity`, blocking) enforces a floor: at least one evidence entry must be `tier: critical` when any of these conditions hold — breaking_change.level ∈ {L2, L3, L4}, rollback.overall_mode == 3, or a high-risk surface (`compliance`, `real_world`, `experience`) is touched with role=primary. All three reference validators (POSIX shell / Python / Node) implement Rule 2.11 identically, including the \"backward-compat silent when no high-severity condition\" and \"silent when a consumer-role high-risk surface is present\" cases. Two templates updated to demonstrate tier in practice: `game-gacha.yaml` (mode 3 + experience/real_world primary) and `security-sensitive.yaml` (mode 3 + compliance primary) now carry mixed `critical` / `standard` tiers; the other three templates are left without `tier` to demonstrate backward compatibility. `docs/automation-contract.md` gains a new \"§Evidence tier\" section and `docs/automation-contract-algorithm.md` gains the normative pseudocode for Rule 2.11. Validator DEVIATIONS.md files updated to list Rule 2.11 as implemented across all three."
+          },
+          {
+            "title": "Cross-Change Knowledge Note (CCKN) pattern",
+            "body": "new `docs/cross-change-knowledge.md` defines a lightweight artifact for reusable technical knowledge that spans multiple changes (library gotchas, third-party API quirks, platform-specific behavior, domain rules). Distinct from the per-change Change Manifest and from the temporal memory tiers in `ai-project-memory.md` — CCKNs are organized by **topic**, carry `topics` keyword index and `scope` tag (library / domain-rule / external-api / platform-quirk), require dated verified-references, and maintain a changelog tracking the change_ids that extended the note. Four hard limits prevent scope drift: not task-specific, not a replacement for `sot_map`, not a substitute for `evidence_plan` artifacts, stale references (>12 months) must be re-verified. Complete worked example included in the document. The manifest schema gains an optional `knowledge_notes_touched` array for reverse-lookup (given a CCKN, which changes contributed to it). `docs/ai-project-memory.md` and `docs/glossary.md` updated to cross-reference; the glossary distinguishes CCKN (topical) from Tier 2 project memory (temporal). Backward-compatible: existing manifests without `knowledge_notes_touched` remain valid; the new field is optional."
+          },
+          {
+            "title": "Optional machine-readable pre-filter (`docs/multi-agent-handoff.md`)",
+            "body": "a new section between the single-agent anti-collusion rule and the manifest progression phases defines an optional sub-agent layer that runs between the Implementer's handoff and the Reviewer's audit. Purpose: cheap binary structural verification (does every `artifact_location` resolve, does every cited identifier exist via code-search, are `surfaces_touched` and diff consistent) so the Reviewer spends audit time on substance rather than structural gaps. Four hard limits prevent drift into the Reviewer's role: (1) not a Reviewer replacement — passing pre-filter only proves structural completeness; (2) Reviewer citing \"pre-filter passed\" as basis for approval triggers Anti-Rationalization Rule 4; (3) pre-filter outputs binary findings only, never subjective scores; (4) disabled in Zero-ceremony and Lean modes (Full mode only). Pre-filter identity must differ from Planner / Implementer / Reviewer under the same anti-collusion rule as the canonical roles. `docs/ai-operating-contract.md` §10 updated with a cross-reference clarifying the pre-filter is **adjacent to**, not a substitute for, the AI's own six-question self-check."
+          },
+          {
+            "title": "Operational cheat sheet (`docs/operational-cheat-sheet.md`)",
+            "body": "a single-page, skim-optimized lookup surface added to bridge the gap between \"don't know where to start\" and \"read the normative doc in full.\" Structure: per-role top 5 actions (Planner / Implementer / Reviewer, each with deep links to the source doc), five-second checks for the standard change vetting questions (surface / SoT / breaking change / rollback / evidence), and a \"when you see X, go to Y\" navigation table covering the common situations (schema change, public-API consumer, mobile long-lived client, payment/push/on-chain, plan gap mid-implementation, multi-agent handoff, etc.). Entry points (README.md \"Reading paths\" + orientation.md header + AGENTS.md \"Recommended reading order\") updated to reference it as the 30-second lookup path. Explicitly not a rule spec — rules remain in the normative docs — and explicitly calls out \"if this sheet feels like overhead, the task probably belongs in the skip bucket\" so adding the cheat sheet does not become new mandatory ceremony."
+          },
+          {
+            "title": "Reading-order guide in `docs/multi-agent-handoff.md`",
+            "body": "a new section after the TL;DR that clarifies three pairs of rules that look redundant to first-time readers but are not: (1) Global self-check (ai-operating-contract §10, 6 questions, for every AI delivery) vs Pre-handoff self-check (agents/implementer.md, 5 questions, Implementer-specific before advancing `phase: review`); (2) Phase re-entry (phase-gate-discipline Rule 6, internal workflow bookkeeping) vs Breaking-change migration path (breaking-change-framework Paths A/B/C, external consumer handling — can apply simultaneously to one change); (3) Anti-rationalization 6 rules (mechanical heuristic) vs \"Rubber-stamp is not a finding\" (principle statement — rules refine the principle, do not replace it). Closes the \"am I being asked to do the same thing twice?\" reader confusion that surfaced during Stage 1 review."
+          },
+          {
+            "title": "Scenario coverage limitations in `docs/onboarding/when-not-to-use-this.md`",
+            "body": "a new section after \"Situations where the methodology does not apply\" listing eight scenarios where the methodology **partially fits but has known gaps**: incident response under pressure, pure research / exploratory work, A/B test / experiment design, pure content / i18n / copy-only changes, AI agent / prompt system's own development, UI/UX design iteration, ML model training / hyperparameter iteration, open-source library's own development. Each row names why the fit is imperfect and gives a pragmatic path today (backfill Lean manifest as post-mortem; use CCKN for research findings; run design-spike outside the methodology then Lean on the implementation phase; etc.). The section distinguishes itself from the preceding \"methodology does not apply\" table: those situations skip the methodology entirely, these scenarios use parts of it and document the gap honestly. Closes the \"this doesn't fit my situation, so I'll ignore the whole thing\" failure mode."
+          },
+          {
+            "title": "Implementer pre-handoff self-check (five questions)",
+            "body": "`agents/implementer.md` and `reference-implementations/roles/implementer.md` gain a role-specific self-check that must clear before advancing `phase: review`. The five questions (acceptance-criterion coverage with concrete `file:line`; verification coverage per criterion; reference-existence verified via code-search; pattern alignment with `sot_map`; evidence-path completion) enforce honest reporting at the Implementer → Reviewer boundary. Vague / hedged answers are failing answers — the Implementer returns to the work or triggers the Discovery loop. Global self-check in `docs/ai-operating-contract.md` §10 still applies; this sits on top of it. Scales with ceremony: Lean keeps all five; Zero-ceremony collapses to one question."
+          },
+          {
+            "title": "Reference-existence verification protocol (`docs/ai-operating-contract.md` §2a)",
+            "body": "new section naming the *protocol* the AI uses to avoid fabricating identifiers. Section 9 (\"Non-fabrication list\") is the prohibition; §2a is the act. Source-tree identifiers require a code-search producing a concrete `path:line`; external references require a network-fetch confirming the URL resolves and the referenced anchor exists, with verification date cached; in-flight artifact references require a file-read confirming presence. Failure to verify downgrades the claim to an `assumption` and triggers the Discovery loop. The Reviewer has an explicit **sampling right** (documented in `agents/reviewer.md` and `docs/multi-agent-handoff.md`) to pick any cited identifier and require the Implementer to reproduce the verification command plus output on request."
+          },
+          {
+            "title": "Reviewer anti-rationalization rules (`agents/reviewer.md` + `reference-implementations/roles/reviewer.md`)",
+            "body": "six hard send-back triggers that catch rubber-stamping in language even when the Reviewer is mechanically prevented from editing code: (1) perfect-confidence hallucination, (2) hedging language, (3) unsubstantiated `pass` entries, (4) read-only review without any verification command executed, (5) editing through the back door via prose-dictated patches, (6) thin residual-risk section. Any one applying is a mandatory send-back, not a judgment call. `docs/multi-agent-handoff.md` updated to cross-reference the rules and the sampling right in the Reviewer section."
+          },
+          {
+            "title": "Phase-gate-discipline Rule 5a — Final artifacts are produced from a working space",
+            "body": "`docs/phase-gate-discipline.md` gains a sub-rule under Rule 5 that requires phase-boundary artifacts (manifest fragments, ROADMAP rows, `review_notes`, `handoff_narrative`, completion reports) to be drafted in a session-scoped, auditable, non-canonical working space before being copied into their canonical location. Prevents thinking-in-progress from polluting canonical artifacts and gives the Reviewer an audit surface per anti-rationalization rule 1. Scales with ceremony: Zero-ceremony waives the rule entirely; Lean applies once (before Implementer codes); Full applies at every boundary. Runtime-specific working-space locations are documented in `docs/bridges/*`, not here."
+          },
+          {
+            "title": "Phase-gate-discipline Rule 6 — Phase re-entry protocol",
+            "body": "`docs/phase-gate-discipline.md` gains a sixth rule with a decision table mapping variation types (new surface touched / SoT mis-classified / breaking-change level rises / rollback mode rises / implementation strategy changes / evidence insufficient / spec updated mid-change) to the exact re-entry phase, the manifest fields that must be rewritten, and the commit-history treatment. Every re-entry opens a fresh ROADMAP row with an explicit `phase_reentry` marker; silent re-entry is prohibited. Re-entry frequency per initiative becomes a usable anti-metric per Principle 10. `agents/reviewer.md` send-back instructions and `skills/engineering-workflow/phases/fix-retest-loop.md` both cross-reference the rule so the right re-entry phase is chosen mechanically rather than by intuition."
+          }
+        ],
+        "changed": [
+          {
+            "title": "Phase-gate-discipline heading \"The five rules\" → \"The six rules\"",
+            "body": "reflects the addition of Rule 6 (phase re-entry protocol). Rule 5a is an extension of Rule 5 and is not counted separately. Existing references to Rules 1–5 remain stable."
+          },
+          {
+            "title": "`agents/implementer.md`, `reference-implementations/roles/implementer.md`, `skills/engineering-workflow/phases/phase4-implement.md`",
+            "body": "Discovery loop and Handoff sections updated to reference Rule 6 (phase re-entry) and the pre-handoff self-check. No change to existing field-ownership semantics or tool-permission matrix."
+          },
+          {
+            "title": "`agents/reviewer.md`, `reference-implementations/roles/reviewer.md`, `docs/multi-agent-handoff.md`",
+            "body": "Reviewer sections augmented with anti-rationalization rules, reference-existence sampling right, and a pointer to Rule 6 for choosing the correct send-back re-entry phase. No change to the absolute \"no write / edit tools\" constraint, which remains the single most important enforcement in the multi-agent contract."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.7.3",
+      "date": "2026-04-20",
+      "sections": {
+        "fixed": [
+          {
+            "title": "Claude Code plugin layout non-conformance",
+            "body": "`agents/` and `hooks/` were placed under `.claude-plugin/`, which violates the Claude Code plugin convention that requires components at plugin root and only `plugin.json` inside `.claude-plugin/` (per https://code.claude.com/docs/en/plugins.md). The Customize panel in Claude Desktop silently listed only the Skills tab for this plugin; Agents and Hooks never surfaced because the autoloader does not scan `.claude-plugin/agents/` or `.claude-plugin/hooks/`. Moved the three sub-agent definitions from `.claude-plugin/agents/` to `agents/` (via `git mv` so history is preserved). Pre-existed from 1.6.0 when the role artifacts were introduced; surfaced now because the discoverability gap was not visible until the Claude Desktop Customize panel was inspected directly."
+          }
+        ],
+        "added": [
+          {
+            "title": "`hooks/hooks.json` plugin entry point",
+            "body": "a thin wrapper that makes the existing Claude Code hook bundle discoverable as plugin hooks. Wires the five reference hooks (`manifest-required`, `evidence-artifact-exists`, `consumer-registry-check`, `sot-drift-check`, `completion-audit`) onto `PreToolUse` / `PostToolUse` / `Stop` events using `${CLAUDE_PLUGIN_ROOT}` paths. Scripts continue to live under `reference-implementations/hooks-claude-code/hooks/` so that the Cursor / Gemini CLI / Windsurf / Codex bridges can reference the same source — no duplication. Users can toggle individual hooks on or off in the Customize panel."
+          }
+        ],
+        "changed": [
+          {
+            "title": "Cross-reference sweep for the new plugin layout",
+            "body": "`README.md` layout tree updated so `agents/` and `hooks/` are shown at plugin root with `.claude-plugin/` reduced to the two manifest files; README auto-load sentence now names all four autoload surfaces (`plugin.json`, `skills/*/SKILL.md`, `agents/*.md`, `hooks/hooks.json`) with an inline reminder that components live at plugin root, not under `.claude-plugin/`; `AGENTS.md §7`, `docs/multi-agent-handoff.md` §Enforcement across runtimes, and `reference-implementations/roles/README.md` all updated from `.claude-plugin/agents/{...}` to `agents/{...}`. Historical references under `CHANGELOG.md` / `CHANGELOG.json` / `ROADMAP.md` closed-initiative entries intentionally left as-is per the repo's \"CHANGELOG is a factual record, do not rewrite history\" discipline (CLAUDE.md §3)."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.7.2",
+      "date": "2026-04-20",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`consumer-registry-check` hook yq query",
+            "body": "the recursive-descent filter `.. | .external_registry_url? // empty` uses jq syntax that mikefarah/yq v4 rejects (`lexer: invalid input text \"empty\"`). The hook swallowed the yq error via `2>/dev/null`, leaving `urls` empty so every invocation silently exited 0 — the `warn-unreachable` selftest fixture never triggered a warning, but the failure was masked because the repo's CI had not yet run the selftest on a machine with yq installed. Replaced with the yq-v4-idiomatic filter `.. | select(has(\"external_registry_url\")) | .external_registry_url`. Pre-existed from 1.3.0; surfaced on the first post-push CI run, which is how CI earns its keep."
+          },
+          {
+            "title": "`validator-node` test script glob",
+            "body": "the `test` script invoked `node --test 'dist/tests/**/*.test.js'`; the single-quoted pattern is opaque to bash (no expansion) and Node 20's `--test` does not parse glob patterns as paths, so the CI job failed with `Could not find '.../dist/tests/**/*.test.js'`. Replaced with an explicit file path (`node --test dist/tests/rules.test.js`) which Node 20+ handles directly. Pre-existed from 1.7.0 Sprint 4 P6; same \"first real CI run exposes it\" dynamic as above."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.7.1",
+      "date": "2026-04-20",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`hooks-claude-code` selftest now skips `yq`-dependent cases cleanly on local dev machines without `yq`",
+            "body": "previously `selftest.sh` printed a warning and then ran every fixture anyway, producing 9 FAILs across the four yq-dependent hook directories (`completion-audit`, `consumer-registry-check`, `evidence-artifact-exists`, `sot-drift-check`) because the hooks correctly degrade to `exit=2` (TOOL_ERROR) but fixtures assert `exit=0` or `exit=1`. The adapter selftests (cursor / gemini-cli / windsurf / codex) already solved the same problem with an `# SKIP yq not on PATH` marker; this patch ports the pattern. Summary line now reports `N cases, F failed, K skipped` when any case skipped. CI (`.github/workflows/validate.yml` → `hooks-selftest`) is unaffected — it installs `yq` explicitly, so every case executes on every push / PR exactly as before."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`hooks-claude-code/selftests/README.md` drift fixes",
+            "body": "header corrected from \"four hooks\" to \"five hooks\" (leftover drift from 1.3.0's `consumer-registry-check` addition); Requirements section rewritten to describe the new SKIP-on-missing-yq pattern; Minimum-coverage table extended to 14 cases with the previously-omitted `consumer-registry-check.sh` row."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.7.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "Dual-format schemas (YAML authoritative + generated JSON mirror)",
+            "body": "every `schemas/*.yaml` now has a machine-consumable `schemas/*.json` sibling generated by `.github/scripts/generate-schema-json.py`. YAML remains the single source of truth (authoring + review); JSON is a derived artifact for tooling that prefers or requires JSON Schema. A new `schema-json-drift` CI job regenerates all JSON mirrors and fails if any diverges from the committed copy, so the two representations cannot drift silently. Rationale: editors and validators across the Node / browser / JVM ecosystems often consume JSON Schema directly without a YAML step; publishing both lets consumer projects validate manifests without adding a YAML loader to their toolchain."
+          },
+          {
+            "title": "Machine-readable CHANGELOG (`CHANGELOG.json`)",
+            "body": "generated by `.github/scripts/generate-changelog-json.py` from the Markdown source so the Markdown stays the writing surface while downstream tooling (release dashboards, dependency bots, methodology-drift checkers) consumes the structured form. Schema: `releases[] { version, date, sections { Added?, Changed?, Removed?, Deprecated?, Fixed?, Security? } }` with each section a list of bullet-prose strings. The `version-consistency` CI job now parses `CHANGELOG.json` via `python3 -c` rather than grepping the Markdown, so the structured release heading is load-bearing."
+          },
+          {
+            "title": "Schema deprecation markers (`$defs.deprecation`)",
+            "body": "`schemas/change-manifest.schema.yaml` gains a reusable `$defs.deprecation` object with `since`, `removal_at`, `replacement`, `rationale` fields. Applied via `anyOf` on fields where L3 (source-of-truth shape) or L4 (public contract) breaking changes require a deprecation window — this aligns the schema with automation-contract-algorithm rule 2.6 (every L3 / L4 breaking change MUST carry a deprecation timeline with a removal date). Existing manifests remain valid because `deprecation_timeline` is retained as an alias; the rule layer in `validator-python` and the new `validator-node` accept either field name for backwards compatibility."
+          },
+          {
+            "title": "Onboarding path consolidation",
+            "body": "`docs/onboarding/orientation.md` is now the single normative entry point for new readers; competing pointers from README, AGENTS.md, and the bridge index all funnel through it. The page gained a top-of-file \"What you read next\" decision tree keyed by role (new contributor / consumer-project integrator / bridge author / validator implementer / auditor), pointers to the runtime-hook-contract and the validator trio, and a §Contract + automation section rewritten to reflect the dual-format schemas and the validator-python / validator-node / validator-posix-shell split. Prior scattered onboarding bullets across README / AGENTS.md were shortened to one-liners that link here."
+          },
+          {
+            "title": "Language-native Node validator (`validator-node`)",
+            "body": "`reference-implementations/validator-node/` is a TypeScript + Node 20 reference that implements every layer of `docs/automation-contract-algorithm.md` with parity against `validator-python`. Built with plain `tsc` targeting ES2022 / NodeNext; tests run via Node 20's built-in `node --test` against compiled JS (no `tsx` / `ts-node` dependency). Runtime deps limited to `ajv` (with `{strict: false, logger: false}` to avoid the `ajv-formats` dependency — rule 1.3 already enforces ISO-8601 at the rule layer, so format-assertion loss has no coverage impact), `glob`, and `yaml`. 13 tests under `tests/rules.test.ts` exercise fixtures copied byte-for-byte from the Python reference so any rule-layer divergence surfaces as a parity bug. CI `.github/workflows/validate.yml` gains a `validator-node-tests` job running `npm ci && npm test` on every push / PR. `DEVIATIONS.md` documents the `ajv-formats` omission and the path-resolution quirk (fixtures live at `tests/fixtures/`, compile output lives at `dist/tests/`, so tests resolve fixtures via `../../tests/fixtures`). The three validators — POSIX-shell reference (minimal, portable), Python (feature-complete), Node/TypeScript (feature-complete, ecosystem-native) — give consumer projects a validator in whichever language their CI already speaks."
+          },
+          {
+            "title": "Runtime-hooks-in-practice how-to",
+            "body": "`docs/runtime-hooks-in-practice.md` is a practical companion to the normative `docs/runtime-hook-contract.md`: installation per runtime (Claude Code / Cursor / Gemini CLI / Windsurf / Codex), how to read a hook-refusal message and what to fix, how to author a new category-C (drift) hook that matches the exit-code contract, and troubleshooting for the common failure modes (manifest not found, `yq` missing, network-dependent hook without timeout, settings-file event-name drift). The contract document now has a visible home for \"I am wiring this up right now\" content without polluting the normative spec."
+          }
+        ],
+        "changed": [
+          {
+            "title": "Top-level README slimmed from ~400 to ~296 lines",
+            "body": "the \"Agent-runtime hooks\" section was a 100-line feature-by-feature enumeration that duplicated `docs/runtime-hook-contract.md` and `reference-implementations/hooks-claude-code/README.md`; replaced with a ~15-line summary that defines the primitive, lists the five reference hooks by category, and funnels readers to the normative contract + the new how-to. The \"What you get\" block and the \"When your situation matches\" block both gained validator-trio and deprecation-discipline entries so the slimmed content still surfaces the new capabilities, just via shorter prose."
+          },
+          {
+            "title": "Cross-reference sweep across entry-point docs",
+            "body": "`README.md` layout tree lists the new JSON schema mirrors, `CHANGELOG.json`, and `validator-node`; `AGENTS.md` §Structured output enumerates all four schema files (canonical YAML + generated JSON mirrors) and §Reference implementations lists both validator-python and validator-node; `docs/onboarding/orientation.md` Navigation map adds the runtime-hook-contract pointer and the validator-trio bullet, and §Contract + automation is rewritten; `docs/diagrams.md` §6 \"See also\" now references the canonical + JSON-mirror schema pair and enumerates the three validator references. No orphan links; every new artifact is discoverable from at least one of README, AGENTS.md, and orientation.md."
+          },
+          {
+            "title": "Version bump",
+            "body": "`plugin.json`, `marketplace.json`, `README.md` badge, and `CHANGELOG` latest-release heading now all agree on `1.7.0`. Verified by the existing `version-consistency` CI job, which this release extends to read `CHANGELOG.json` instead of grepping Markdown. Closes the 4-sprint post-1.3.0 improvement programme (machine-readability + onboarding-clarity initiative)."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "Non-Claude-Code multi-agent enforcement",
+            "body": "Planner / Implementer / Reviewer role separation is now published for runtimes that cannot gate tool exposure per persona. `reference-implementations/roles/{planner,implementer,reviewer}.md` ship the runtime-neutral role prompts (paste-ready for Cursor Custom Mode, Gemini CLI session, Windsurf mode, Codex profile). `docs/multi-agent-handoff.md` adds a §Enforcement across runtimes matrix distinguishing mechanical enforcement (Claude Code per-agent `tools:` frontmatter; Cursor Custom Mode excluding edit/apply tools) from prose-only enforcement (Gemini CLI / Windsurf / Codex — paired with distinct sessions per role, OS-level read-only working dir for Reviewer, and session-identity recording in `approvals` to keep the anti-collusion rule auditable). `AGENTS.md §7` tightened with the per-runtime bullet list; `.windsurfrules`, `GEMINI.md`, and the Cursor `.cursor/rules/{planner,implementer,reviewer}.mdc` bridges updated so every non-Claude-Code entry point points at the role artifacts."
+          },
+          {
+            "title": "Cross-runtime adapter selftests",
+            "body": "`reference-implementations/hooks-{cursor,gemini-cli,windsurf,codex}/selftests/selftest.sh` ship hermetic TAP-ish smoke tests per adapter. Each selftest runs the runtime adapter's `parse-event.sh` inside a clean subshell with synthetic runtime env vars (CURSOR_HOOK_TRIGGER/CURSOR_TOOL, GEMINI_HOOK_EVENT/GEMINI_TOOL_NAME, WINDSURF_HOOK_EVENT/WINDSURF_TOOL_NAME, CODEX_HOOK_EVENT/CODEX_TOOL_NAME) and asserts `AP_EVENT` / `AP_TOOL` / `AP_STAGED_FILES` / `AP_PHASE` come out correct. Four cases per adapter: unset-env-yields-empty-ap-vars, runtime-env-maps-to-event-and-tool, manifest-yaml-populates-phase (skipped if `yq` absent), missing-manifest-leaves-phase-empty. CI `.github/workflows/validate.yml` now runs all four adapter selftests on every push / PR. Each adapter's `DEVIATIONS.md §\"No runtime-level selftest\"` downgraded from gap to covered-but-narrow: **adapter layer** is now tested; **runtime-wiring layer** (Cursor actually invoking the adapter with the documented env var names) remains an unavoidable per-workspace smoke test because it depends on the runtime's own event wiring."
+          },
+          {
+            "title": "Adoption anti-metrics doc",
+            "body": "`docs/adoption-anti-metrics.md` is a **non-normative** diagnostic aid for catching the specific failure mode where a team adopts the methodology's ceremony without adopting its substance. Names seven anti-signals (evidence paths all pointing at the same artifact; `rollback.overall_mode` always 1; `surfaces_touched` always 4/4 or always 1/4; review notes always `LGTM`; phase-gate ticks land faster than commits; manifests copy-and-renamed across changes; `cross_cutting.*` always boilerplate) paired with counter-signals, \"why this happens\" root-cause paragraphs so readers fix the incentive not the symptom, and non-normative detection sketches. Opens with an explicit warning that operationalizing these as CI gates would create Goodhart targets — they are for review conversations, not gates. `docs/automation-contract.md` and `docs/operational-disciplines.md` cross-reference the new doc; `AGENTS.md` reading order lists it after `docs/adoption-strategy.md`."
+          },
+          {
+            "title": "Security-sensitive worked example",
+            "body": "`templates/change-manifest.example-security-sensitive.yaml` demonstrates the full manifest surface for a JWT signing-key rotation: exercises the `compliance` extension surface alongside the four canonical surfaces; SoT pattern 8 (Dual-Representation) for signing keys with a required `dual_representation` object capturing editor / runtime / sync-step / CI sync-check; pattern 4 for the claims contract; pattern 1 for the audit event schema; `cross_cutting.security` with `impact=high`, `pii_access_added=false` (claims unchanged), `supply_chain_review_needed=true` (verifier-library behavior is the trusted dependency); `breaking_change.level=L1` escalated to L2 structural because long-tail consumers (JWKS cache TTL, mobile app install base) cannot refresh synchronously; `rollback.overall_mode=3` with a compensation_plan because issued tokens cannot be recalled; mixed `per_surface_modes` showing that a single change can be mode-1 on ops config, mode-2 on server deploy, and mode-3 on the public contract; evidence plan citing SAST sarif, threat-model diff, dual-kid integration test, rotation-runbook dry-run, compliance changelog; two resolved `escalations` (`security_or_pii_path` + `rollback_mode_3`). Validates against `schemas/change-manifest.schema.yaml` via the existing `template-conformance` CI job."
+          }
+        ],
+        "changed": [
+          {
+            "title": "Index hygiene for Sprint 3 additions",
+            "body": "`README.md` \"When your situation matches\" block adds three new discovery paths (multi-agent roles on non-Claude-Code runtime → enforcement matrix + role artifacts; security / supply-chain / PII path → appended security-sensitive example; adoption-review path → anti-metrics doc). `docs/onboarding/orientation.md` Navigation map adds bullets for the anti-metrics doc and the `reference-implementations/roles/` directory, appends a worked-example pointer on the security-supply-chain line, and adds an enforcement-across-runtimes callout on the multi-agent-handoff line. `AGENTS.md` reading order lists the anti-metrics doc after adoption-strategy; Structured-output section includes the security-sensitive example; Reference-implementations section includes the roles directory. All additions grep-clean: no orphan link targets."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "iOS/Swift stack bridge + surface map",
+            "body": "`docs/bridges/ios-swift-stack-bridge.md` maps the four canonical surfaces to a Swift 5.9+ / iOS 15+ UIKit + SwiftUI mixed codebase. Covers UIKit ↔ SwiftUI interop as four boundary patterns (UIHostingController, UIViewControllerRepresentable, NotificationCenter bridges, shared `@Observable` view model); multi-process state via App Groups + Widget + Share Extension + Darwin notifications as Pattern 4a + Pattern 8 instances; CloudKit rollback asymmetry (public DB forward-only mode 3 vs private DB effectively mode 2); Core Data `.xcdatamodeld` lightweight vs heavyweight migration as a three-way dual representation (bundle ↔ generated classes ↔ on-device store); App Store compliance surface singling out PrivacyInfo.xcprivacy, Info.plist usage descriptions, AASA, `.entitlements`, and StoreKit catalog as review-gated files; build-time risk (WMO, Swift 6 strict concurrency, DEBUG-only code, App Thinning) and uncontrolled-external register (iOS major, App Store review, StoreKit policy, network reachability variance). Machine-consumable companion `docs/bridges/ios-swift-surface-map.yaml` validates against `schemas/surface-map.schema.yaml` and unblocks validator rule 3.2 for iOS repos."
+          },
+          {
+            "title": "React / Next.js stack bridge + surface map",
+            "body": "`docs/bridges/react-nextjs-stack-bridge.md` covers React 18+ / Next.js 14+ App Router. Pipeline order documented as `middleware → RSC render → route handlers → client hydration → server actions` (Pattern 4a); the four-layer Next.js cache model (Data Cache / Full Route Cache / Router Cache / Browser-CDN) with per-layer invalidator responsibility makes explicit why `revalidateTag` alone is not always sufficient; dual-representation hotspots (DB schema ↔ generated TS types, Zod schema ↔ `z.infer` type, server HTML ↔ hydrated DOM) as Pattern 8 instances; runtime-export (`edge` vs `nodejs`) as a per-route capability contract; rollback modes (client-component change = mode 2, middleware matcher change = mode 3, Server Action shape change = mode 3, nullable-column additive DB migration = mode 2). Pages Router, pure SPA React, and React Native explicitly out of scope with pointers to project-local overlay docs; experimental flags (`ppr`, `dynamicIO`) pinned to project-local addenda. Machine-consumable companion `docs/bridges/react-nextjs-surface-map.yaml` validates against the same schema."
+          },
+          {
+            "title": "iOS/Swift worked example",
+            "body": "`docs/examples/ios-swift-app-example.md` walks through adding a CloudKit-synced tag feature with a Home Screen Widget end-to-end: private CloudKit schema (mode 2), public CloudKit schema (mode 3, staged to next release), Core Data v3 → v4 lightweight migration tested against a 10k-row store, App Group snapshot struct owned in a shared Swift package to prevent Widget ↔ app drift, PrivacyInfo.xcprivacy updates tied to the iCloud data-type change, and Widget AppIntent parameter stability as a user-configuration contract. Phase 0–7 structure identical to other bridge-linked examples."
+          },
+          {
+            "title": "React / Next.js worked example",
+            "body": "`docs/examples/react-nextjs-app-example.md` walks through migrating a Pages Router form to App Router with a Server Action. Exercises belt-and-suspenders `revalidateTag` + `revalidatePath` for Data Cache + Full Route Cache invalidation, middleware pipeline order (A/B assignment must run **after** auth or the bucket flips on sign-in), Server Action shape change as Pattern 4 mode 3 with one-release legacy compat, Prisma schema as the upstream dual-representation SoT (Pattern 8) with CI `prisma generate` diff gate, and Client Component promotion as a performance-budget surface change (bundle analyzer diff in the PR is the evidence)."
+          },
+          {
+            "title": "Bridge/example index updates",
+            "body": "`README.md` stack-bridges list, `docs/onboarding/orientation.md` both bridge-enumeration blocks, and `AGENTS.md` worked-examples + stack-bridges lists now include iOS/Swift and React/Next.js so both additions are reachable from every top-level discovery point."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.4.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "Self-validation CI workflow",
+            "body": "`.github/workflows/validate.yml` runs five jobs on every push / PR to `main`: (1) **schema-syntax** validates every `schemas/*.yaml` against the JSON Schema 2020-12 meta-schema; (2) **template-conformance** validates every `templates/change-manifest.example-*.yaml` AND `examples/starter-repo/change-manifest.yaml` against `schemas/change-manifest.schema.yaml`; (3) **hooks-selftest** runs the hermetic hook bundle selftest with `yq` installed; (4) **validator-python-tests** runs the Python reference validator's pytest suite; (5) **version-consistency** confirms `plugin.json` / `marketplace.json` / README badge / CHANGELOG latest release agree on the same version. Supporting scripts: `.github/scripts/validate-schema-syntax.py`, `.github/scripts/validate-templates.py`, `.github/scripts/check-version-consistency.sh`. The workflow uses **no untrusted event inputs** — every `run:` command invokes a hardcoded script or fixed tool invocation, eliminating injection surface. The repo now holds itself to the same evidence-before-completion contract it preaches."
+          },
+          {
+            "title": "Runnable starter-repo example",
+            "body": "`examples/starter-repo/` is a minimal, self-contained end-to-end demonstration: a schema-valid `change-manifest.yaml` for a tiny change (adding a `/healthz` endpoint), three cited evidence artifacts under `evidence/`, a closed ROADMAP initiative, a 30-line `scripts/validate-manifest.py` using only `pyyaml` + `jsonschema` (no dependency on this repo's packages), and a `Makefile` with `install` / `validate` / `clean` targets. Running `make install && make validate` in a fresh clone produces `ok   change-manifest.yaml` in under a minute, showing the full contract — surface mapping, SoT map with Host-Lifecycle pattern 10 for the uptime counter, rollback mode 1, evidence plan with three collected artifacts, residual-risk acceptance, multi-author provenance — executing against the real schema. Intended as both onboarding material and a seed for consumer projects. README \"What you get\" adds bullet 7 pointing at it."
+          },
+          {
+            "title": "All-pieces-together architectural diagram",
+            "body": "`docs/diagrams.md` §6 adds a four-layer Mermaid stack map showing how the **normative layer** (`AGENTS.md` + `schemas/change-manifest.schema.yaml` + `docs/runtime-hook-contract.md` + `docs/ci-cd-integration-hooks.md`), **execution layer** (the engineering-workflow skill + Phase 0–8 gates), **carrier-artifact layer** (`change-manifest.yaml` + `evidence/*` + `ROADMAP.md`), and **mechanical-enforcement layer** (runtime hooks + CI hooks) plug together. Dashed arrows show the feedback direction — guards refuse, they do not edit. README \"What you get\" and `docs/onboarding/orientation.md` one-paragraph-version both add a top-of-page callout linking into the diagram so readers get the full stack in one scroll before drilling into per-doc detail."
+          },
+          {
+            "title": "Repo-level contribution hygiene",
+            "body": "`.github/SECURITY.md` (threat surface + in-scope / out-of-scope lists + dual-path private reporting preferring GitHub security advisory with email fallback + 30-day disclosure timeline + safe-harbor statement), `.github/ISSUE_TEMPLATE/{bug,doc,bridge}.md` (three purpose-specific templates with YAML frontmatter — bugs for broken scripts / schemas / hooks, doc for cross-doc drift and methodology gaps, bridge for proposing new stack bridges), `.github/ISSUE_TEMPLATE/config.yml` (security-advisory contact link + blank-issue escape hatch), `.github/PULL_REQUEST_TEMPLATE.md` (Lean / Full / Trivial scope classification + 4-surface checklist + SoT impact + scriptable evidence checkboxes + breaking-change level + rollback mode + cross-cutting concerns + ROADMAP-initiative link). Templates mirror the methodology's own vocabulary so a PR to this repo exercises the framework the repo defines."
+          }
+        ],
+        "changed": [
+          {
+            "title": "README version badge realigned",
+            "body": "badge read `1.0.0` through 1.1.0 → 1.3.0 despite the rest of the manifest set advancing; pre-existing drift detected by the new `check-version-consistency.sh` script on its first run. Bumped to `1.4.0` along with this release. The script now enforces consistency across `plugin.json`, `marketplace.json`, the README badge, and the latest CHANGELOG release heading on every CI run, so this drift cannot reappear silently."
+          },
+          {
+            "title": "Template drift fixes uncovered by new CI",
+            "body": "`templates/change-manifest.example-mobile-offline.yaml` had `host_type: android_process` which is not a valid enum value for `host_lifecycle.host_type`; corrected to `mobile_os_process`. `templates/change-manifest.example-multi-agent-handoff.yaml` was using pre-1.0 field names (`info`, `sot_path`, string-form `pattern`, `mode/notes` under rollback) and cross-document YAML aliases that PyYAML does not resolve across `safe_load_all()` documents; rewritten end-to-end against the current schema with each snapshot self-contained. Both drifts were caught by the new `template-conformance` CI job on its first run — the self-validation foundation validating itself."
+          },
+          {
+            "title": "Diagrams page TL;DR realigned",
+            "body": "`docs/diagrams.md` intro previously enumerated six phantom diagrams (SoT pattern taxonomy / breaking-change decision / rollback-mode selection / agent-handoff) against a file containing a different set of five (surfaces / phase flow / Lean-Full decision / SoT relationships / team adoption). Rewrote the TL;DR to match the actual content plus the new §6 stack map."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-04-20",
+      "sections": {
+        "added": [
+          {
+            "title": "Per-bridge surface-map artifacts",
+            "body": "`docs/bridges/flutter-surface-map.yaml`, `docs/bridges/android-kotlin-surface-map.yaml`, `docs/bridges/android-compose-surface-map.yaml`, `docs/bridges/ktor-surface-map.yaml`, `docs/bridges/unity-surface-map.yaml` publish each bridge's mapping from the four canonical surfaces (plus stack extensions such as asset / performance-budget / compliance / experience / data-quality) to machine-consumable file-path globs. The new `schemas/surface-map.schema.yaml` (JSON Schema 2020-12) validates the shape; the artifacts unblock validator rule 3.2 (surface ↔ file-pattern drift) in `docs/automation-contract-algorithm.md`."
+          },
+          {
+            "title": "Hook bundle self-test harness",
+            "body": "`reference-implementations/hooks-claude-code/selftests/` ships a hermetic, framework-free fixture runner (`selftest.sh`, `run-case.sh`, a `git` stub, and eleven fixtures covering all four category-A / B / C / D hooks). The harness PATH-shims `git`, `cd`s into each case directory, and matches against a minimal `expected` grammar (`exit=`, `stderr~=`, `stdout~=`). Closes the `DEVIATIONS.md §1` gap; CI jobs that enable these hooks in `block` mode should now run the selftest on every PR that touches `hooks/` or `selftests/`."
+          },
+          {
+            "title": "Network-degradation reference hook",
+            "body": "`reference-implementations/hooks-claude-code/hooks/consumer-registry-check.sh` demonstrates the runtime-hook-contract clause that \"checks requiring network must degrade to advisory.\" The hook probes every `.consumers[].external_registry_url` in the manifest with `curl --max-time ${AGENT_PROTOCOL_NET_TIMEOUT:-5}` and warns with `exit 2` on timeout, DNS failure, non-HTTP URL, or non-2xx response — never blocks. A `curl` stub + three fixtures (`pass-no-consumers`, `pass-reachable`, `warn-unreachable`) cover the branches hermetically. `settings.example.json` adds a `PreToolUse` + `Bash(git push*)` matcher wiring it at pre-push. Closes `DEVIATIONS.md §4`."
+          },
+          {
+            "title": "Cross-runtime hook adapters",
+            "body": "thin adapter bundles at `reference-implementations/hooks-cursor/`, `reference-implementations/hooks-gemini-cli/`, `reference-implementations/hooks-windsurf/`, and `reference-implementations/hooks-codex/`. Each ships a runtime-native settings example (Cursor / Windsurf / Codex use JSON, Gemini CLI uses TOML), a README, a DEVIATIONS.md documenting the contract-trigger → native-event mapping, and an `adapter/parse-event.sh` that normalizes the runtime's event payload into cross-runtime `AP_EVENT` / `AP_TOOL` / `AP_STAGED_FILES` / `AP_PHASE` env vars. Hook scripts are not duplicated; each adapter's settings point back at the Claude Code bundle's `hooks/` directory so a regression fix propagates everywhere with a single edit. `README.md` hook section and `docs/runtime-hook-contract.md` \"Relationship to other documents\" updated to list the four new adapters; `reference-implementations/hooks-claude-code/DEVIATIONS.md §5` downgraded from \"only Claude Code covered\" to \"cross-runtime coverage — partial\" with wiring smoke tests listed as the remaining gap."
+          },
+          {
+            "title": "Language-native validator",
+            "body": "`reference-implementations/validator-python/` is a Python 3.10+ reference that implements every layer of `docs/automation-contract-algorithm.md`, including the four rules the POSIX reference defers: 2.4 (decomposition graph acyclicity via DFS), 2.5 (`depends_on` ↔ `blocks` bidirectional mirror via sibling manifest scan), 3.2 (surface ↔ file-path drift via `--surface-map docs/bridges/<stack>-surface-map.yaml`), and 3.4 (uncontrolled-interface monitoring-channel staleness via a local `.agent-protocol/monitoring-cache.json`). Exit codes (0 / 1 / 2) stay identical to the POSIX reference. Shipped with a 12-test pytest suite covering every closed-gap rule. `validator-posix-shell/DEVIATIONS.md` now points the four unsupported rows at this validator as the recommended implementation; root `README.md` layout tree updated to list both."
+          },
+          {
+            "title": "Project-local overlay pattern",
+            "body": "`docs/bridges-local-deviations-template.md` is the canonical section skeleton (Parent bridge, Overlay name + purpose, Surface mapping, SoT mapping, Rollback mapping, Drift signals, Anti-patterns, Example stubs, Review + retirement, See also) that consumer projects copy into their own repo as `docs/bridges-local-deviations.md`. `docs/bridges-local-deviations-howto.md` walks through authoring a Flame (Flutter game engine) overlay end-to-end — the worked example shows how a small-audience or stack-adjacent overlay (Flame, Unity UaaL, KMM-iOS depth, visual-scripting graphs, event-sourcing, vendor-specific APM exporter, iOS Swift sibling bridge) stays project-local rather than bloating the mainstream bridge index. Each of the five upstream bridges' \"Known limitations\" sections now links to the template + how-to so the local-overlay path is discoverable from the bridge the consumer is already reading."
+          }
+        ],
+        "changed": [
+          {
+            "title": "Orientation entry point clarified",
+            "body": "`docs/onboarding/orientation.md` is the canonical single-page onboarding doc; README, AGENTS.md, CHANGELOG, and ROADMAP references updated to match. Five-rules + navigation + walkthrough content unchanged."
+          },
+          {
+            "title": "Language policy tightened",
+            "body": "in `README.md`, the `[1.0.0]` Design invariants block, and the orientation page — forward-looking, single-sentence statement without enforcement-mechanism elaboration."
+          },
+          {
+            "title": "Phase-gate discipline examples retargeted",
+            "body": "`docs/phase-gate-discipline.md` now uses an enum-split migration and a JSON-Schema validation command as its illustrative gate examples."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.2.1",
+      "date": "2026-04-20",
+      "sections": {
+        "fixed": [
+          {
+            "title": "Claude Code hook wiring",
+            "body": "`reference-implementations/hooks-claude-code/settings.example.json` used invented event names (`preCommit` / `postToolUse` / `stop`) that Claude Code silently ignores, so hooks never fired. Rewrote the file to use the actual native events (`PreToolUse` / `PostToolUse` / `Stop`, PascalCase) with the correct matcher-grouped structure. `pre-commit` semantics now map to `PreToolUse` with `matcher: \"Bash(git commit*)\"` — this fires **before** the Bash tool runs `git commit`, so exit code 1 actually cancels the commit (the 1.2.0 `postToolUse` mapping would have fired after the commit, giving the hook no blocking power). `docs/runtime-hook-contract.md` registration example updated to match. `reference-implementations/hooks-claude-code/DEVIATIONS.md` notes the historical mismatch."
+          }
+        ],
+        "added": [
+          {
+            "title": "Agent-runtime hooks section in `README.md`",
+            "body": "new top-level section covering: what runtime hooks are (vs. CI hooks), the four reference hooks + their checks + block/warn levels, Claude Code install steps (copy the bundle + merge `settings.example.json`), contract-trigger-to-native-event mapping table, configuration environment variables (`AGENT_PROTOCOL_MANIFEST_PATH` / `MIN_EVIDENCE_PER_PRIMARY` / `LEAN_SKIP_MANIFEST` / `STRUCTURED_OUTPUT`), an adoption-ramp recommendation (weeks 1-4, observe → gate → evidence → completion), and guidance on writing custom hooks. Bullet 7 added to the \"What you get\" section at the top of the README."
+          },
+          {
+            "title": "Correct install-path guidance",
+            "body": "in `reference-implementations/hooks-claude-code/README.md` — the \"What's here\" table now shows both the abstract contract trigger and the concrete Claude Code event + matcher for each of the four hooks; a new note explains why `PreToolUse` (not `PostToolUse`) is the right choice for commit-gating hooks."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-04-19",
+      "sections": {
+        "added": [
+          {
+            "title": "Multi-agent role separation — Claude Code bridge",
+            "body": "`.claude-plugin/agents/planner.md`, `.claude-plugin/agents/implementer.md`, `.claude-plugin/agents/reviewer.md` ship the three canonical Full-mode roles as Claude Code sub-agent definitions. Each definition encodes the role's responsibilities plus its tool-permission envelope: Planner has sub-agent delegation (`Task`) but no edit/write capability; Implementer has edit/write but no sub-agent delegation (cannot spawn reviewers of itself); Reviewer intentionally lacks edit/write entirely so a single AI identity cannot both implement and approve its own change. `docs/multi-agent-handoff.md` adds two normative sections — a capability-category tool-permission matrix and a single-agent anti-collusion rule (Lean-mode exception permits Planner ≡ Implementer; Implementer ≡ Reviewer is forbidden outright). `AGENTS.md` §7 carries the tool-permission matrix + anti-collusion rule so the constraint is runtime-neutral; `GEMINI.md`, `.windsurfrules`, and `.cursor/rules/engineering-workflow.mdc` add per-runtime summaries pointing at the canonical doc."
+          },
+          {
+            "title": "Runtime hook contract + reference bundle",
+            "body": "`docs/runtime-hook-contract.md` defines the complementary of `docs/ci-cd-integration-hooks.md`: how an agent runtime (not CI) consumes manifest events. Four categories (A phase-gate / B evidence / C drift / D completion-audit), JSON-over-stdin event schema, exit-code semantics 0 / 1 / 2 identical to the automation contract, latency budgets (< 500 ms phase-gate & evidence; < 2 s drift), and non-functional requirements (offline, deterministic, no side effects, no model-in-hook). `reference-implementations/hooks-claude-code/` provides an executable bundle: four POSIX-shell hooks (`manifest-required.sh`, `evidence-artifact-exists.sh`, `sot-drift-check.sh`, `completion-audit.sh`), a `settings.example.json` showing Claude Code event wiring with `agentProtocol.category` metadata, a README with install paths + environment variables, and a DEVIATIONS.md. Hooks parse the manifest via `yq` and emit contract-compliant exit codes; bundle is portable to any runtime via its own event-registration mechanism. `docs/ci-cd-integration-hooks.md` gains a \"Relationship to runtime-layer hooks\" section; `docs/automation-contract.md` cross-refs the runtime contract."
+          },
+          {
+            "title": "`strategic_parent` schema field",
+            "body": "`schemas/change-manifest.schema.yaml` adds an optional top-level object anchoring a manifest to an external strategic artifact (ADR / RFC / OKR / design doc / external ticket). Required fields `kind` + `location`; optional `summary` (≤ 400 chars) + `initiative_id` (stable cross-manifest identifier for aggregation queries). `docs/strategic-artifacts.md` (new) explains what the anchor is and what it deliberately is NOT (no ADR / RFC format definition, no \"Phase -1\" ceremony, no parent-content validation), the `part_of` vs `strategic_parent` relationship (internal-epic vs external-decision — complementary), and anti-patterns (stale pointers, PR-URL back-fills, trivial Lean-mode over-use). `docs/change-manifest-spec.md` adds a `strategic_parent` subsection to the Decomposition-relationship fields section."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-04-19",
+      "sections": {
+        "added": [
+          {
+            "title": "Per-stack worked examples",
+            "body": "`docs/examples/flutter-app-example.md` (multi-platform \"Save & Share\" exercising platform-channel two-sided contract and per-target rollback asymmetry), `docs/examples/android-kotlin-example.md` (offline draft-saving exercising Room migration + WorkManager unique-name discipline + ViewBinding dual-representation), `docs/examples/ktor-server-example.md` (order-lifecycle enum + migration + plugin install order + three-rollback-mode discipline within one feature), `docs/examples/unity-game-example.md` (save-data format migration exercising schema versioning + IL2CPP / AOT build-time risk + three-track rollback asymmetry). Each bridge's Reference Worked Example section now points at its dedicated file; the Ktor and Android-Kotlin bridges' \"future update\" placeholders are removed."
+          },
+          {
+            "title": "Jetpack Compose stack bridge",
+            "body": "`docs/bridges/android-compose-stack-bridge.md`. Companion to the Kotlin + XML bridge: inherits Room / WorkManager / FCM / runtime-permission / vendor-fork / deep-link / ProGuard-R8 sections and adds Compose-specific deltas for state ownership (`remember` / `rememberSaveable` / ViewModel + `StateFlow`), recomposition hygiene, effect-API pipeline order (`LaunchedEffect` / `SideEffect` / `DisposableEffect`) as a new Pattern 4a case, `CompositionLocal` provider nesting as a Pattern 4a case, navigation-route strings as a Pattern 3 enum, Compose compiler metrics as a drift signal, and Paparazzi / Roborazzi + `createComposeRule()` verification. XML bridge's \"known limitations\" entry for Compose now cross-references this bridge."
+          },
+          {
+            "title": "Flutter bridge deduction-closure sections",
+            "body": "`docs/bridges/flutter-stack-bridge.md` now covers: Flutter Web target discipline (`dart2js` / `dart2wasm` pipelines, service-worker cache invalidation, CDN-flag rollback vs. store binaries), Flutter Desktop target discipline (window lifecycle, per-OS packaging, signing / notarization asymmetry), federated plugin lifecycle (app-facing / platform-interface / per-platform-impl trio with version-compat tables), code push / dynamic delivery (Shorebird / custom OTA as Pattern 4a + store-policy constraints), and state-management library pipeline-order (Provider / Riverpod / Bloc initialization order as Pattern 4a)."
+          },
+          {
+            "title": "Android Kotlin bridge deduction-closure sections",
+            "body": "`docs/bridges/android-kotlin-stack-bridge.md` now covers: KMM shared-code SoT (`expect` / `actual` declarations as Pattern 4, per-target builds, serialization drift), Play Feature Delivery (install-time / conditional / on-demand / instant-app module rollback characteristics + SoT-split fan-out), and instrumented-test OS-API version discipline (silent-skip anti-pattern, min / mid / max API matrix enforcement)."
+          },
+          {
+            "title": "Ktor bridge deduction-closure sections",
+            "body": "`docs/bridges/ktor-stack-bridge.md` now covers: observability depth discipline (logs / metrics / traces each as Pattern 4 with cardinality budgets, coroutine-context propagation of `trace_id`, PII hashing), multi-tenant / sharding overlay (row-level / schema-per-tenant / DB-per-tenant rollback asymmetry with both default and per-tenant auth-provider pipeline-order variants, cross-tenant drift as a unique failure mode), gRPC parallel IDL overlay (protobuf-specific L0–L4 + dual-IDL manifest fields), GraphQL parallel IDL overlay (SDL as Pattern 4, DataLoader registration as Pattern 4a, GraphQL-specific L0–L4 with no wire-level versioning, subscription lifecycle as Pattern 10, federation / stitching as cross-subgraph contract, N+1 + query-complexity budget), hexagonal / onion / clean architecture overlay (remapping SoT source fields to domain ports), virtual threads (Loom) / alternative concurrency overlay (pinning hazards + reactive-framework substitution), and a JVM / Kotlin / Ktor / coroutines version-drift discipline for the build-time-risk manifest field."
+          },
+          {
+            "title": "Unity bridge deduction-closure sections",
+            "body": "`docs/bridges/unity-stack-bridge.md` now covers: DOTS / ECS overlay (API stability caveat scoped to companion subpackages since core `Entities` is GA 1.x; system update-order graph as canonical Pattern 4a, three-way authoring ↔ baked ↔ archetype dual-representation, Burst + Baker + IL2CPP triple verification), render pipeline variant discipline (URP / HDRP / built-in RP as pipeline-specific asset targets, shader-variant-count budget, pipeline migration as its own change type), and custom engine fork discipline (fork as an additional SoT layer, patch-set contract with upstream, `UPSTREAM.md` requirement, fork-exit-plan expectation). Scope note updated so these are first-class overlays, not deferrals."
+          }
+        ],
+        "changed": [
+          {
+            "title": null,
+            "body": "`README.md`, `AGENTS.md`, and `docs/onboarding/orientation.md` bridge indexes updated to include the Compose bridge."
+          },
+          {
+            "title": null,
+            "body": "`AGENTS.md` worked-examples index updated to include the four new per-stack examples."
+          },
+          {
+            "title": null,
+            "body": "`docs/stack-bridge-template.md` TL;DR bridge list updated to include the Compose bridge."
+          },
+          {
+            "title": null,
+            "body": "Each of the four base bridges' \"Known limitations\" lists rewritten to reflect only residual items after the deduction-closure sections — prior entries that are now covered in-bridge (Flutter web/desktop/federated/code-push/state-mgmt; Android KMM/PFD/instrumented-test API gap; Ktor multi-tenant/sharding/gRPC/hexagonal/Loom; Unity DOTS/ECS/render-pipelines/custom-engine-fork) have been removed or retargeted to narrower residual scopes."
+          }
+        ],
+        "fixed": [
+          {
+            "title": null,
+            "body": "Android Kotlin bridge Scope note no longer calls the Compose bridge \"(future)\" — it is now linked as an existing companion with an inherited-sections summary."
+          },
+          {
+            "title": null,
+            "body": "Unity DOTS / ECS overlay caveat clarified — core `Entities` package is GA 1.x (since 2023) with stable `IComponentData` / `ISystem` / `[UpdateInGroup]`; the volatility is scoped to companion subpackages (Entities Graphics, DOTS Animation, Unity Physics for ECS, Netcode for Entities)."
+          },
+          {
+            "title": null,
+            "body": "Ktor multi-tenant pipeline-order overlay adds the per-tenant auth-provider variant (Keycloak realm-per-tenant, Auth0 organization, per-tenant OIDC issuer, regulated B2B) where `TenantResolution` correctly precedes `Authentication` — the previous guidance presented the single-auth-provider order as universal."
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-04-19",
+      "sections": {
+        "notes": [
+          {
+            "title": "Operating contract",
+            "body": "`AGENTS.md` defines the universal runtime contract: honest reporting, scope discipline, source-of-truth rules, surface-first analysis, evidence requirements, Change Manifest contract, phase-gate discipline.",
+            "subsection": "included"
+          },
+          {
+            "title": "Engineering workflow skill",
+            "body": "`skills/engineering-workflow/` provides Lean and Full modes, phase minimums for Phase 0 through Phase 8, capability-category guidance, and spec / plan / test / completion templates. Supporting references cover the mode decision tree, discovery loop, resumption protocol, startup checklist, and misuse signals.",
+            "subsection": "included"
+          },
+          {
+            "title": "Methodology documentation",
+            "body": "`docs/` contains the four canonical surfaces plus nine extension surfaces (asset, experience, performance-budget, data-quality, compliance, hardware-interface, real-world, model, uncontrollable-external), ten Source-of-Truth patterns, the L0–L4 breaking-change severity matrix, three rollback modes (Reversible / Forward-fix / Compensation-only), cross-cutting concerns, the AI operating contract, security and supply-chain disciplines, change decomposition, team / org-scale disciplines, AI project memory, multi-agent handoff, automation contract, and phase-gate discipline.",
+            "subsection": "included"
+          },
+          {
+            "title": "Change Manifest contract",
+            "body": "`schemas/change-manifest.schema.yaml` plus four worked example manifests (CRUD, mobile offline, game gacha, multi-agent handoff progression). The schema enforces human-approver waivers, expiry timestamps, bidirectional decomposition links, and phase-appropriate narrative fields.",
+            "subsection": "included"
+          },
+          {
+            "title": "Stack bridges",
+            "body": "`docs/bridges/` maps the tool-agnostic methodology to concrete stacks: Flutter, Android Kotlin + XML, Ktor, Unity 3D. Bridge files are the only place where specific vendor / framework / language names appear. The stack-bridge template (`docs/stack-bridge-template.md`) supports adding your own stack.",
+            "subsection": "included"
+          },
+          {
+            "title": "Automation contract",
+            "body": "capability-level specification (`docs/automation-contract.md`) plus normative algorithm (`docs/automation-contract-algorithm.md`) defining three forced check layers (structural / cross-reference / drift), exit-code stability, and offline operability. A non-normative reference validator (`reference-implementations/validator-posix-shell/`) built on POSIX shell plus `yq` plus a pluggable schema validator illustrates the contract.",
+            "subsection": "included"
+          },
+          {
+            "title": "Worked examples",
+            "body": "`docs/examples/` covers ten domains: worked (batch-resend invoices), bugfix (pagination-filter desync), refactor (order-status canonical alignment), migration-rollout (structured-preferences SoT transition), game-dev (in-game shop), game-liveops (three-track asset/config/binary strategy), mobile-offline-feature, ml-model-training, data-pipeline, embedded-firmware (OTA with hardware-interface + real-world surfaces).",
+            "subsection": "included"
+          },
+          {
+            "title": "Multi-agent entry points",
+            "body": "packaged simultaneously as a Claude Code plugin (`.claude-plugin/`), a Cursor rules bundle (`.cursor/rules/`), a Gemini CLI instruction set (`GEMINI.md`), Windsurf rules (`.windsurfrules`), and an AGENTS.md-compatible contract for Codex / Aider / OpenCode.",
+            "subsection": "included"
+          },
+          {
+            "title": "English-only.",
+            "body": "All normative content — methodology, skills, schemas, templates, operating contract, READMEs — is authored in English.",
+            "subsection": "design invariants"
+          },
+          {
+            "title": "Tool-agnostic.",
+            "body": "Specific vendor, model, framework, or product names appear only in `docs/bridges/` and `reference-implementations/`, both of which are explicitly marked non-normative. Methodology docs, the skill layer, the schema, and the Change Manifest templates remain stack-neutral.",
+            "subsection": "design invariants"
+          },
+          {
+            "title": "Capability categories, not tool names.",
+            "body": "Every operational instruction names a category (file read, file write, code search, shell execution, sub-agent delegation) rather than a specific tool, so the plugin ports cleanly between AI runtimes.",
+            "subsection": "design invariants"
+          },
+          {
+            "title": "Canonical terminology held fixed.",
+            "body": "Severity L0–L4 (Additive / Behavioral / Structural / Removal / Semantic-reversal), rollback modes 1/2/3 (Reversible / Forward-fix / Compensation-only), four canonical surfaces plus extension surfaces, SoT patterns addressed by number, automation tiers L0–L3, three multi-agent roles by responsibility (Planner / Implementer / Reviewer).",
+            "subsection": "design invariants"
+          }
+        ]
+      }
+    }
+  ]
+}
