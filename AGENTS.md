@@ -218,6 +218,40 @@ See `README.md` for installation details per runtime.
 
 ---
 
+## File role map (where normative content is allowed to live)
+
+The table above lists **installation entry points** per runtime. This map classifies the same files — plus the rest of the repo surface — by their **architectural role**, so a contributor adding a new rule can tell which file owns it. Drift between duplicated rules is the anti-pattern this repo most often warns against; this map is the index that prevents it.
+
+| File / directory | Role | Normative weight |
+|---|---|---|
+| `AGENTS.md` (this file) | SoT — operating contract (the 8 core rules above) | Canonical; all runtimes inherit from here |
+| `docs/multi-agent-handoff.md` | SoT — role contract (Planner / Implementer / Reviewer definitions, field-ownership matrix, tool-permission matrix, anti-collusion, handoff minima) | Canonical for multi-agent discipline; `agents/`, `.cursor/rules/`, `reference-implementations/roles/` all point back here |
+| `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `glossary.md`, …) | Canonical per topic; referenced from the contracts above |
+| `skills/engineering-workflow/SKILL.md` + `skills/**` | SoT — execution layer (modes, phases, templates, references) | Canonical for workflow execution |
+| `schemas/**` + `templates/**` | SoT — machine-readable Change Manifest contract + worked examples | Canonical structural output |
+| `CLAUDE.md` | Thin-bridge — Claude Code entry; points at `AGENTS.md` + `skills/` | Onboarding only, no new normative content |
+| `GEMINI.md` | Thin-bridge — Gemini CLI entry | Same |
+| `.windsurfrules` | Thin-bridge — Windsurf entry | Same |
+| `.cursor/rules/engineering-workflow.mdc` | Thin-bridge with `alwaysApply: true` — Cursor repo-level onboarding | Condensed summary only; every bullet must defer to a `docs/` source |
+| `.cursor/rules/{planner,implementer,reviewer}.mdc` | Runtime role-spec — Cursor Custom Mode system prompts | Must remain self-contained because Cursor does not auto-resolve Markdown path references; normative rules are mirrored **from** `docs/multi-agent-handoff.md`, never authored here |
+| `agents/{planner,implementer,reviewer}.md` | Runtime role-spec — Claude Code sub-agent definitions with mechanical `tools:` enforcement | Role behaviour must cite `docs/multi-agent-handoff.md` as the source; runtime-specific supplements (Lean-mode collapse, tool-permission rows) are allowed, new normative rules are not |
+| `reference-implementations/roles/*.md` | Reference wrappers — runtime-neutral paste-ready prompts for Gemini / Windsurf / Codex / Aider | Never introduce normative content; if the wrapper says something `docs/multi-agent-handoff.md` does not, one of them is wrong |
+| `reference-implementations/validator-*/` | Reference wrappers — executable validators for the automation contract | Track the spec in `docs/automation-contract*.md`; `DEVIATIONS.md` is the gap record |
+
+### Where a new rule belongs
+
+- New **operating-contract rule** (applies to every runtime) → extend §Core operating contract in this file; bridges and role-spec files inherit automatically.
+- New **multi-agent / role-boundary rule** → `docs/multi-agent-handoff.md` first; update every consumer that cites it in the same change (per `CLAUDE.md` §5).
+- New **topic-specific definition** (a surface type, an SoT pattern, a breaking-change level) → its own `docs/*.md` file or section; contracts reference it.
+- New **runtime-specific shim** (Cursor quirk, Gemini session idiom, Claude Code frontmatter field) → thin-bridge or runtime role-spec file only; never in `docs/` or this file.
+- New **reference implementation** → `reference-implementations/…` with `README.md` + `DEVIATIONS.md`. Always non-normative.
+
+### The invariant this map enforces
+
+A normative claim appears in **exactly one** SoT file. Every consumer cites that section by name. When two files state the same rule in different words, the thin-bridge / runtime role-spec / reference wrapper yields; the SoT file wins.
+
+---
+
 ## Stop conditions
 
 Do not proceed if any of these are true:
