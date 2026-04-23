@@ -6,6 +6,28 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-04-24
+
+### Added
+
+- **`reference-implementations/roles/role-composition-patterns.md` §Shape of a composition → §Invocation lifecycle** — new subsection closing a previously-undocumented mental-model gap: sub-agent calls are **one-shot invocations**, not long-lived processes. The section names the invocation-lifecycle rule (spawn → run → return → terminate), introduces the **invocation handle** concept (some runtimes expose a handle that can seed a new invocation inheriting prior memory), and distinguishes **continuation primitive / state reconstruction** from **state continuation**. Three consequences for the canonical role are enumerated: no cleanup attempts on a returned invocation, no assumed persistence without an explicit continuation call, no dangling handle treated as a pending task. A closing paragraph re-affirms identity is session-bounded — a new invocation seeded from a handle is a new identity for anti-collusion purposes per `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule and `§The invariant` above. Prior state: the composition contract was implicitly correct (each canonical-role invocation terminates on return; handoff is manifest-based) but did not name the lifecycle rule — a reader coming from a runtime that exposes an invocation handle could plausibly misread the handle as "the still-running sub-agent," which structurally breaks `§The invariant` identity separation.
+
+- **`reference-implementations/roles/role-composition-patterns.md` §Anti-patterns — two new rows** covering the concrete runtime-bridge failure modes the new §Invocation lifecycle rule forbids: (1) canonical role attempts cleanup / termination on a sub-agent whose invocation has already returned (wastes tool calls; on runtimes that return a "not found" error, the error further pollutes the canonical role's mental model with a false signal); (2) canonical role treats a stale invocation handle as identity-equivalent to a still-running sub-agent (e.g. reuses the handle for audit work) — a new invocation seeded from a handle is a new identity whose anti-collusion constraints (Rule 5 / Pattern 6) must be re-evaluated, not inherited.
+
+- **`docs/glossary.md` §Sub-agent invocation** — new canonical vocabulary term defining the one-shot spawn-run-return cycle, the invocation handle as a continuation primitive (state reconstruction, not state continuation), and the session-bounded identity rule. Placed between §CCKN and §Fan-out as the foundational concept that §Fan-out, §Fan-in, §Parallel group, §Implementation cluster, and §Phase overlap zone all build on. Points at `reference-implementations/roles/role-composition-patterns.md §Shape of a composition → §Invocation lifecycle` as the canonical reference.
+
+### Why minor, not patch
+
+Adds new normative content (one named subsection in the canonical composition-patterns reference + two anti-pattern rows + one glossary term) rather than correcting existing wording. Matches `VERSIONING.md` minor category ("*new workflow guidance*" + "*additional references*"); compare 1.14.0 (new §When to query a CCKN + new Phase 1 startup step + matching glossary paragraph) which was classified minor for the same reason. Not a breaking change: the rule was already structurally enforced by how canonical roles write manifest fields (each canonical-role invocation fills in its own fields and terminates); this release names the invariant so readers coming from runtime bridges with invocation-handle primitives do not misread handles as "still-running agents." Backward-compatible: pre-1.17 changes, compositions that did not misuse handles, and runtimes that do not expose any handle primitive at all remain fully valid.
+
+### Why this release closes a mental-model gap
+
+§Shape of a composition (1.12.0) defined the four parts of a composition — canonical invocation / sub-agent invocation / consolidation / handoff — in a way that is correct but silent on invocation lifecycle. The composition contract says the canonical role reads the sub-agent's return and continues; it does not say the sub-agent invocation has terminated at that point. For runtimes where a sub-agent is literally a long-lived process this silence is harmless. For runtimes that expose an **invocation handle** for continuation (the increasingly common pattern), the silence was load-bearing in the wrong direction: a canonical role could plausibly read the handle as "my sub-agent is still running, I should stop it now," which is both a wasted tool call and — if the same handle is later re-used for audit work — a structural anti-collusion violation per Rule 5 / Pattern 6. This release names the lifecycle rule in the canonical reference, records the two concrete failure modes as anti-patterns, and surfaces the concept at the vocabulary layer so readers do not need to infer it from the composition shape alone.
+
+### Tool-agnostic discipline
+
+The new content uses runtime-neutral language per `CLAUDE.md §2` (no specific tool names in normative content): **invocation**, **invocation handle**, **continuation primitive**, **state reconstruction / state continuation**. Specific runtime bridges (e.g. `agents/*.md`, `.cursor/rules/*.mdc`, `reference-implementations/roles/*.md`) may later translate these concepts into concrete tool names from their runtime, but the normative layer named in this release stays tool-agnostic.
+
 ## [1.16.0] - 2026-04-23
 
 ### Added

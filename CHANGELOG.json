@@ -1,6 +1,26 @@
 {
   "releases": [
     {
+      "version": "1.17.0",
+      "date": "2026-04-24",
+      "sections": {
+        "added": [
+          {
+            "title": "`reference-implementations/roles/role-composition-patterns.md` §Shape of a composition → §Invocation lifecycle",
+            "body": "new subsection closing a previously-undocumented mental-model gap: sub-agent calls are **one-shot invocations**, not long-lived processes. The section names the invocation-lifecycle rule (spawn → run → return → terminate), introduces the **invocation handle** concept (some runtimes expose a handle that can seed a new invocation inheriting prior memory), and distinguishes **continuation primitive / state reconstruction** from **state continuation**. Three consequences for the canonical role are enumerated: no cleanup attempts on a returned invocation, no assumed persistence without an explicit continuation call, no dangling handle treated as a pending task. A closing paragraph re-affirms identity is session-bounded — a new invocation seeded from a handle is a new identity for anti-collusion purposes per `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule and `§The invariant` above. Prior state: the composition contract was implicitly correct (each canonical-role invocation terminates on return; handoff is manifest-based) but did not name the lifecycle rule — a reader coming from a runtime that exposes an invocation handle could plausibly misread the handle as \"the still-running sub-agent,\" which structurally breaks `§The invariant` identity separation."
+          },
+          {
+            "title": "`reference-implementations/roles/role-composition-patterns.md` §Anti-patterns — two new rows",
+            "body": "covering the concrete runtime-bridge failure modes the new §Invocation lifecycle rule forbids: (1) canonical role attempts cleanup / termination on a sub-agent whose invocation has already returned (wastes tool calls; on runtimes that return a \"not found\" error, the error further pollutes the canonical role's mental model with a false signal); (2) canonical role treats a stale invocation handle as identity-equivalent to a still-running sub-agent (e.g. reuses the handle for audit work) — a new invocation seeded from a handle is a new identity whose anti-collusion constraints (Rule 5 / Pattern 6) must be re-evaluated, not inherited."
+          },
+          {
+            "title": "`docs/glossary.md` §Sub-agent invocation",
+            "body": "new canonical vocabulary term defining the one-shot spawn-run-return cycle, the invocation handle as a continuation primitive (state reconstruction, not state continuation), and the session-bounded identity rule. Placed between §CCKN and §Fan-out as the foundational concept that §Fan-out, §Fan-in, §Parallel group, §Implementation cluster, and §Phase overlap zone all build on. Points at `reference-implementations/roles/role-composition-patterns.md §Shape of a composition → §Invocation lifecycle` as the canonical reference."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.16.0",
       "date": "2026-04-23",
       "sections": {

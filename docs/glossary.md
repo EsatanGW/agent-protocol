@@ -195,6 +195,14 @@ A single-file artifact recording **reusable knowledge that spans multiple change
 
 CCKNs have asymmetric timing: **query at Phase 1 Investigate startup** (before tracing the main flow, grep the CCKN directory for topics overlap with the change's anticipated surfaces / uncontrolled_interfaces / libraries — §When to query a CCKN); **write during Phase 1** — at initial Investigate per §Ceremony scaling, or at re-entry after a Phase 4 Discovery loop per §Relation to Change Manifest §3. Phase 4 Discovery triggers re-entry; it does not itself write. Querying late is the primary anti-pattern — decisions the CCKN should have informed have already been made.
 
+### Sub-agent invocation
+
+A single spawn-run-return cycle of a non-canonical sub-agent. One-shot: the invocation begins when the canonical role spawns it, ends when the sub-agent produces its structured return, and does not persist as a running process afterward. The canonical role must not treat a returned sub-agent as a long-lived process that needs cleanup or termination.
+
+Some runtimes expose an **invocation handle** (identifier, address, or similar) usable to spawn a *new* invocation inheriting the prior one's memory — a **continuation primitive** (state reconstruction), not a reference to a running process (state continuation). Handles to returned invocations point at something that has already ended; identity is session-bounded, so a new invocation seeded from a handle is a new identity for anti-collusion purposes per `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule.
+
+Canonical reference: `reference-implementations/roles/role-composition-patterns.md` §Shape of a composition → §Invocation lifecycle.
+
 ### Fan-out
 
 A composition pattern in which a canonical role (Planner / Implementer / Reviewer) spawns multiple non-canonical sub-agents in parallel to cover sub-tasks whose concerns are mutually independent. Each sub-agent has a distinct identity per `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule, inherits the tool-permission envelope of the canonical role per `reference-implementations/roles/role-composition-patterns.md` §The invariant, and returns findings into a structured slot — never writes manifest fields directly.

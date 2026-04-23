@@ -149,6 +149,18 @@ A valid composition has four parts:
 
 The canonical role is accountable for the output regardless of how many sub-agents contributed to it. A sub-agent that produced wrong information does not absolve the canonical role — the canonical role failed to verify before using the output.
 
+### Invocation lifecycle
+
+Each sub-agent call is a **one-shot invocation**: the sub-agent runs, produces a structured return, and the invocation terminates. The canonical role must not treat the sub-agent as a long-lived process that continues running between invocations or needs explicit shutdown after return.
+
+Some runtimes expose an **invocation handle** (identifier, address, or similar) that can seed a *new* invocation inheriting the prior one's memory. This is a continuation primitive — state reconstruction, not state continuation. A handle to a returned invocation points at something that has already ended; operations against it cannot reach a "running" instance because none exists. Consequences for the canonical role:
+
+- Do not attempt cleanup, termination, or resource-release on a sub-agent whose invocation has returned — the invocation has already ended.
+- Do not assume state persists between sub-agent invocations without an explicit continuation call — context dies with the invocation unless re-seeded via a handle or passed through the canonical role's own state.
+- Do not let a dangling invocation-handle linger in working memory as a "pending task" — it points at something that has ended, not a reference to a running process.
+
+Identity is a property of the invocation, not of the handle. A new invocation seeded from a prior handle is a new identity for anti-collusion purposes (per `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule and §The invariant above); handles are not a mechanism to reuse identity across invocations.
+
 ---
 
 ## Anti-patterns
@@ -167,6 +179,8 @@ The canonical role is accountable for the output regardless of how many sub-agen
 | Parallel fan-out without the cross-cutting gap check | The specific failure mode parallelization introduces — gaps invisible to any individual sub-agent / cluster but present in the union |
 | Pattern 7 clusters that are not file-disjoint | Merge conflicts → implicit serialization + unclear ownership of the conflicted file |
 | Pattern 7 Discovery-loop trigger in one cluster while others continue | Default-halt-all invariant broken; other clusters produce work based on an invalidated plan |
+| Canonical role attempts cleanup / termination on a sub-agent whose invocation has already returned | Misreads one-shot invocation as a long-lived process; wastes tool calls; on runtimes that return a "not found" error, the error pollutes the canonical role's mental model with a false signal |
+| Canonical role treats a stale invocation handle as identity-equivalent to a still-running sub-agent (e.g. reuses the handle for audit work) | Identity is session-bounded per §The invariant and §Invocation lifecycle — a new invocation seeded from a handle is a new identity whose anti-collusion constraints (Rule 5 / Pattern 6) must be re-evaluated, not inherited |
 
 ---
 
