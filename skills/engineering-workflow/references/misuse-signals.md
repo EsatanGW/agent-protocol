@@ -19,6 +19,7 @@ Signals:
 - The task has public behavior impact but is being patched quickly.
 - Changes to contract / schema / consumers without acceptance criteria or evidence.
 - A forced-Full trigger (migration, contract break, enum consumer-visible, payments, auth, PII, cross-team, long-lived flag, staged rollout) is hitting Lean or below.
+- A canonical methodology content edit at breaking-change level ≥ L1 (changing an existing normative claim, adding a new normative rule, or renaming a cross-cutting term — see `mode-decision-tree.md §Scenarios that force Full`) is being routed through Lean or below. Purely additive L0 edits (new non-normative reference file; pointer additions; CHANGELOG-only edits) remain Lean-eligible and are not a misuse.
 
 Fix:
 - Upgrade to Full mode per `mode-decision-tree.md §Mode upgrade / downgrade`.

@@ -42,6 +42,8 @@ The runtime operating contract in [`AGENTS.md`](./AGENTS.md) also applies to Cla
 
 If you change a term that appears in multiple files (e.g. a canonical name in `docs/glossary.md`, a surface definition in `docs/surfaces.md`, a phase file name in `skills/`), **find and update all consumers** in the same change. Drift between canonical source and consumers is the anti-pattern this repo most often warns against; do not create it here.
 
+**Mode implication.** A canonical methodology content edit at breaking-change level ≥ L1 (changing an existing normative claim, adding a new normative rule to SoT, or renaming a cross-cutting term) is a forced-Full trigger — see the "Canonical methodology content edit (L1+)" row in [`skills/engineering-workflow/references/mode-decision-tree.md §Scenarios that force Full`](./skills/engineering-workflow/references/mode-decision-tree.md). Purely additive L0 edits (new non-normative reference files, pointer additions, CHANGELOG entries) remain Lean-eligible. Default to the lightest mode the scenario tables allow; upgrade on discovery rather than force-fitting the original pick. The upgrade procedure lives in `mode-decision-tree.md §Mode upgrade / downgrade`; silent scope-shrink to avoid the upgrade is prohibited per `AGENTS.md §6`.
+
 ---
 
 ## Multi-agent packaging

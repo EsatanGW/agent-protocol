@@ -1,6 +1,6 @@
 # Execution-Mode Decision Tree
 
-Use this tree at the start of Phase 0 (or before any code is touched) to pick a mode. The four canonical modes are **Zero-ceremony, Three-line delivery, Lean, Full** — definitions in `docs/glossary.md §Execution mode`. The decision is not permanent — if scope grows during implementation, upgrade (see `discovery-loop.md`).
+Use this tree at the start of Phase 0 (or before any code is touched) to pick a mode. The four canonical modes are **Zero-ceremony, Three-line delivery, Lean, Full** — definitions in `docs/glossary.md §Execution mode`. The decision is not permanent. **Default bias is the lightest mode the scenario tables below allow; upgrade on the spot when in-flight discovery reveals a forced-trigger that was not visible at mode-pick time (see `§Mode upgrade / downgrade` below and `discovery-loop.md`); do not force-fit a lighter mode to hide scope that has already grown — silent scope-shrink is prohibited per `AGENTS.md §6` and `docs/phase-gate-discipline.md §Rule 1`.**
 
 This file is the **execution-layer source of truth** for the Scenarios-that-force-Full list. Other decision aids (`docs/onboarding/when-not-to-use-this.md`, `SKILL.md §Decision table`, `startup-checklist.md §5`) must reference this file rather than maintain a parallel list.
 
@@ -55,6 +55,7 @@ The following **must** use Full mode regardless of size. This is the **canonical
 | Cross-team delivery requiring handoff | The handoff narrative must be complete. |
 | Long-lived feature-flag coexistence | Needs explicit flag lifecycle + cleanup plan. |
 | Staged rollout (canary / phased %) | Rollout sequencing is itself a contract. |
+| Canonical methodology content edit (L1+) | When this repo's own SoT files (`AGENTS.md`, `docs/*.md`, `schemas/*`, or `skills/**` files listed as canonical per `AGENTS.md §File role map`) are edited at breaking-change level ≥ L1 — changing an existing normative claim, adding a new normative rule to SoT, or renaming a cross-cutting term — force Full. Bridges / consumers cite these files by name; a silent normative change drifts every consumer. L0-additive edits (new non-normative reference file; pointer additions; CHANGELOG-only edits) stay Lean-eligible. |
 
 ## Scenarios that force Lean
 

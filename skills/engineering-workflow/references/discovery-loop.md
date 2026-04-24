@@ -69,6 +69,7 @@ The Discovery Loop may trigger a Lean → Full upgrade (see `mode-decision-tree.
 Criteria:
 - If the new findings push the surface count from 1-2 to 3+ → consider upgrading.
 - If the new findings pull in a forced-Full scenario (migration, public API, security) → upgrade is mandatory.
+- If the new findings require changing an existing normative claim in canonical methodology content (L1+ canonical edit per `mode-decision-tree.md §Scenarios that force Full`) → upgrade is mandatory.
 - If the new findings are just additional detail within the same surface → no upgrade needed.
 
 ---
