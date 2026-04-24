@@ -1,6 +1,67 @@
 {
   "releases": [
     {
+      "version": "1.18.0",
+      "date": "2026-04-25",
+      "sections": {
+        "added": [
+          {
+            "title": "`skills/engineering-workflow/references/long-running-delegation.md`",
+            "body": "new execution-layer reference naming the time-axis discipline for any sub-agent invocation whose expected runtime exceeds one prompt-cache window (commonly ~5 minutes). Three disciplines: **D1 Checkpoint-bounded delegation** (single-invocation scope must fit within one cache window; long scope is split into reviewable segments; lower bound ~2 minutes per segment to avoid over-decomposition), **D2 Artifact-grounded progress** (sub-agent writes append-only structured progress to a session-scoped Rule-5a path known to the canonical role at spawn time; last progress entry is the failure-signalling primary source; canonical writes only after segment return), **D3 Canonical-role non-idle rule** (canonical role must have defined concurrent work or a polling plan during the delegation — allowed: D2-tail / context-pack pre-distill / named overlap-zone prep / independent batched fan-out; prohibited: canonical-role work-ahead per `phase-overlap-zones.md §Rule 1` / mid-flight manifest writes per `phase-gate-discipline.md §Rule 5a` / polling-by-re-invocation per `role-composition-patterns.md §Invocation lifecycle`). D3 is the within-delegation analog of `docs/ai-operating-contract.md §11` (narration is not action) — §11 closes the pre-tool-call silence gap; D3 closes the post-tool-call silence gap; neither subsumes the other. Full mode only (sub-agent composition is Full-only per `role-composition-patterns.md §When`). Tool-agnostic capability-category mapping names **background spawn**, **working-space artifact read**, **sub-agent progress write**, and **addressable sub-agent (optional)**; explicit fallback behavior when a runtime lacks background spawn (D1 remains, D3 collapses) or lacks addressable sub-agent (D3 checkpoint-only). Three existing named scenarios are documented as specific instances of the general rule — Phase 8 observer (`phase8-trigger-guide.md` + `docs/post-delivery-observation.md`), Pattern C cluster halt-all (`cluster-parallelism.md §4`), and Reviewer Tier-1 send-back (`docs/multi-agent-handoff.md §Conflict resolution`)."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/mode-decision-tree.md §Scenarios that force Full`",
+            "body": "new row **Canonical methodology content edit (L1+)** closing a self-referential gap: for this tool-agnostic methodology-plugin repo whose \"product\" IS the methodology, editing canonical SoT content (files listed as canonical per `AGENTS.md §File role map`: `AGENTS.md`, `docs/*.md`, `schemas/*`, canonical `skills/**` files) at breaking-change level ≥ L1 — changing an existing normative claim, adding a new normative rule to SoT, or renaming a cross-cutting term — forces Full. Purely additive L0 edits (new non-normative reference file; pointer additions; CHANGELOG-only edits) remain Lean-eligible. Prior state: the forced-Full table was phrased in product-engineering terms only (DB migration / public API / enum / money / auth / PII / cross-team / rollout); the equivalence \"editing the methodology's own SoT structurally equals Public API breaking change\" was not spelled out."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/discovery-loop.md §Mode upgrade trigger`",
+            "body": "new mandatory-upgrade Criterion bullet: *\"If the new findings require changing an existing normative claim in canonical methodology content (L1+ canonical edit per `mode-decision-tree.md §Scenarios that force Full`) → upgrade is mandatory.\"* Consistent with the new forced-Full row."
+          },
+          {
+            "title": "Pointer updates",
+            "body": "across six consumer files pointing at the new `long-running-delegation.md` reference: `skills/engineering-workflow/SKILL.md` Quick-refresher block (one-liner with Full-mode-only caveat), `skills/engineering-workflow/phases/subagent-strategy.md` new §Long-running invocations closing section (parallel to the existing §Within-phase fan-out vs between-phase overlap), `skills/engineering-workflow/references/parallelization-patterns.md §Relationship to other documents` (sibling-rule framing: spawn timing vs single-invocation runtime scope), `skills/engineering-workflow/references/cluster-parallelism.md §Relation to other documents` (Pattern C Planner's cluster-status monitoring as a D3 instance; D1 applies when a cluster's scope would exceed one cache window), `skills/engineering-workflow/references/phase-overlap-zones.md §Relation to other rules` (D3's allowed-concurrent-work list respects Rule 1; overlap prep into an unnamed zone is still a violation regardless of whether a sub-agent is running)."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`skills/engineering-workflow/references/mode-decision-tree.md` intro paragraph",
+            "body": "tightened from *\"The decision is not permanent — if scope grows during implementation, upgrade\"* to the composite rule: *\"Default bias is the lightest mode the scenario tables allow; upgrade on the spot when in-flight discovery reveals a forced-trigger that was not visible at mode-pick time; do not force-fit a lighter mode to hide scope that has already grown — silent scope-shrink is prohibited per `AGENTS.md §6` and `docs/phase-gate-discipline.md §Rule 1`.\"* Prior state: the three mechanisms (default-lightest / upgrade-on-discovery / silent-scope-shrink-prohibited) were each normative but distributed across five files — `mode-decision-tree.md §Mode upgrade / downgrade`, `misuse-signals.md §Misuse 2`, `discovery-loop.md §Mode upgrade trigger`, `ai-operating-contract.md §2` + `§5`, `phase-gate-discipline.md:52`, and `AGENTS.md:71`. A reader picking a mode had to reconstruct the composite from five reads. The new intro is the single findable statement; the distributed rules remain authoritative on each mechanism's details."
+          },
+          {
+            "title": "`CLAUDE.md §5`",
+            "body": "added a `**Mode implication.**` paragraph connecting the existing cross-cutting-term discipline (*\"find and update all consumers\"*) to the mode-selection consequence: a cross-cutting-term edit at breaking-change level ≥ L1 is a forced-Full trigger (points at the new `mode-decision-tree.md` row); L0-additive edits remain Lean-eligible. Default lightest / upgrade on discovery is re-stated here so a contributor reading this repo-specific bridge file does not need to open two canonical files to understand the mode consequence."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/misuse-signals.md §Misuse 2`",
+            "body": "added a Signal bullet recognizing the canonical-edit misuse case explicitly: *\"A canonical methodology content edit at breaking-change level ≥ L1 is being routed through Lean or below. Purely additive L0 edits (new non-normative reference file; pointer additions; CHANGELOG-only edits) remain Lean-eligible and are not a misuse.\"* The existing Fix (upgrade to Full per `mode-decision-tree.md §Mode upgrade / downgrade`) applies without change."
+          }
+        ],
+        "fixed": [
+          {
+            "title": "`.github/scripts/check-version-consistency.sh`",
+            "body": "the script's Unreleased policy was inconsistent with `generate-changelog-json.py`. The generator keeps Unreleased in `.releases[]` when it has sections (line 138-141 prune logic: Unreleased is dropped only if empty). The consistency check compared `.releases[0].version` verbatim, which can be the Unreleased entry rather than the latest numbered release. Line 38 already filtered Unreleased out of the CHANGELOG.md comparison; line 41 (before this fix) did not filter the JSON path. Symptom: DRIFT fail whenever a contributor added Unreleased content and regenerated CHANGELOG.json. Fix: changed the jq expression to `[.releases[] | select(.version != \"Unreleased\")][0].version` making the JSON path symmetric with the MD path. Updated the file-header comment (line 8), report label (line 60), and drift message (line 75) to match the new semantics (\"first non-Unreleased release\"). Verified against three cases: current state (empty Unreleased, returns 1.17.0), simulated populated Unreleased (returns 1.17.0 via filter), empty `.releases[]` edge case (returns null without crashing)."
+          }
+        ],
+        "notes": [
+          {
+            "title": null,
+            "body": "Contributors editing canonical methodology content: check whether the edit is L0 (additive: new reference file, pointer additions, CHANGELOG-only) or L1+ (changing an existing normative claim, adding a new normative rule, renaming a cross-cutting term). L0 remains Lean-eligible; L1+ goes Full per the new row in `mode-decision-tree.md §Scenarios that force Full`.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "Contributors who had been working around the `check-version-consistency.sh` drift by avoiding Unreleased entries in PRs: the drift is fixed in this release. The repo's Unreleased-in-PR convention (commit `5aa13e6 revert: drop [Unreleased] CHANGELOG entry from this PR`) still applies as a separate editorial policy; this release does not change that policy, only removes the CI drift that made the policy enforcement feel accidental.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "No code migration required. No schema migration required. No manifest field change.",
+            "subsection": "migration notes"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.17.0",
       "date": "2026-04-24",
       "sections": {
