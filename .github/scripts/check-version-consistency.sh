@@ -5,7 +5,7 @@
 #   2. .claude-plugin/marketplace.json -> .metadata.version
 #   3. README.md                       -> the "Version: X.Y.Z" badge
 #   4. CHANGELOG.md                    -> the most recent non-Unreleased section
-#   5. CHANGELOG.json                  -> .releases[0].version (generated)
+#   5. CHANGELOG.json                  -> first non-Unreleased release's .version (generated)
 #
 # Drift between these is the single most common release-hygiene bug.
 # This check is cheap and catches it before a release tag lands.
@@ -38,7 +38,11 @@ readme_version=$(grep -oE 'version-[0-9]+\.[0-9]+\.[0-9]+' README.md | head -1 |
 changelog_version=$(grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | head -1 | sed 's/^## \[\(.*\)\]/\1/')
 
 if [ -f CHANGELOG.json ]; then
-  changelog_json_version=$(jq -r '.releases[0].version' CHANGELOG.json 2>/dev/null || echo "")
+  # Filter out an Unreleased entry — the generator (generate-changelog-json.py)
+  # keeps [Unreleased] in .releases[] when it has sections, so .releases[0] is
+  # not guaranteed to be a numbered release. Symmetric with line 38 which
+  # already filters Unreleased out of the CHANGELOG.md comparison.
+  changelog_json_version=$(jq -r '[.releases[] | select(.version != "Unreleased")][0].version' CHANGELOG.json 2>/dev/null || echo "")
 else
   changelog_json_version="<missing>"
 fi
@@ -53,7 +57,7 @@ report "plugin.json .version" "$plugin_version"
 report "marketplace.json .metadata.version" "$marketplace_version"
 report "README.md badge" "$readme_version"
 report "CHANGELOG.md latest release" "$changelog_version"
-report "CHANGELOG.json .releases[0].version" "$changelog_json_version"
+report "CHANGELOG.json first non-Unreleased" "$changelog_json_version"
 
 if [ "$plugin_version" != "$marketplace_version" ]; then
   echo "DRIFT: plugin.json vs marketplace.json" >&2
@@ -68,7 +72,7 @@ if [ "$plugin_version" != "$changelog_version" ]; then
   fail=1
 fi
 if [ "$plugin_version" != "$changelog_json_version" ]; then
-  echo "DRIFT: plugin.json vs CHANGELOG.json .releases[0].version" >&2
+  echo "DRIFT: plugin.json vs CHANGELOG.json first non-Unreleased release" >&2
   echo "  Hint: regenerate with 'python3 .github/scripts/generate-changelog-json.py'" >&2
   fail=1
 fi
