@@ -41,6 +41,7 @@ Quick refresher:
 - `references/context-pack.md` — shared-context mechanism for fan-out sub-agents
 - `references/cluster-parallelism.md` — when the Planner spawns **multiple canonical Implementers** in parallel for file-disjoint Phase 4 clusters (Pattern C, Full mode only; distinct from non-canonical sub-agent fan-out)
 - `references/phase-overlap-zones.md` — prep work that may begin **between** phases before the prior gate passes (Full mode only; hard discard-on-fail rule; ≤20% budget)
+- `references/long-running-delegation.md` — discipline for long-running sub-agent invocations: checkpoint-bounded scope, artifact-grounded progress, canonical-role non-idle rule (Full mode only; applies to Patterns 1–7 when invocation exceeds one cache window)
 
 ## The four core surfaces
 

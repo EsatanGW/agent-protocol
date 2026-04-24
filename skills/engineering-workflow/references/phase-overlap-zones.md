@@ -109,6 +109,7 @@ All four must hold. A "mostly" answer is a "no."
 | `parallelization-patterns.md` | Orthogonal — fan-out is within-phase; overlap is between-phase. Both may occur in the same initiative |
 | `multi-agent-handoff.md §Optional machine-readable pre-filter` | The P5 → P6 pre-filter scan is the primary named overlap at that boundary |
 | `SKILL.md` principle 9 (batch independent tool calls) | Tool-layer analog: same independence principle applied at a different layer |
+| `long-running-delegation.md §D3` (canonical-role non-idle rule) | D3's "allowed concurrent work" list cites this document as the boundary — overlap prep is permitted during a long-running delegation only within named zones and the ≤20% budget. Overlap prep into an un-named zone is still a Rule 1 violation regardless of whether a sub-agent is running |
 
 ---
 

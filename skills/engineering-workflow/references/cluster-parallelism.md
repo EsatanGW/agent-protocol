@@ -173,6 +173,7 @@ Findings go into `review_notes` as usual. A finding whose root cause is "cluster
 | `schemas/change-manifest.schema.yaml §implementation_clusters` + §parallel_groups | `implementation_clusters` is the substantive record of Pattern C; `parallel_groups` with `pattern: C_cluster_implementers` is the audit breadcrumb that points at it |
 | `agents/planner.md`, `agents/implementer.md` | Role files gain "Optional: Pattern C" sections naming the Planner's declare-and-spawn duties and the Implementer's cluster-scoped execution duty |
 | `skills/engineering-workflow/references/phase-overlap-zones.md` | Orthogonal: Pattern C is within-Phase-4 parallelism; overlap zones are between-phase prep. The two stack — e.g. Pattern C's Phase 4 runs in parallel while Phase 5 Reviewer's context pack is being pre-distilled in overlap |
+| `skills/engineering-workflow/references/long-running-delegation.md` | The Planner's monitoring of cluster statuses (§4 halt trigger and §5 completion detection) is a D3 non-idle instance — the Planner reads each cluster's session-scoped status artifact (D2) rather than polling by re-invocation. A cluster whose planned scope would exceed one cache window is a D1 decomposition problem, not a halt problem |
 
 ---
 

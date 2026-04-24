@@ -161,6 +161,7 @@ For the canonical-role multi-delegation discipline that Pattern C introduces, se
 - `docs/cross-cutting-concerns.md` — what the cross-cutting gap check is checking against
 - `docs/multi-agent-handoff.md` §Anti-rationalization rules — still fire on the canonical Reviewer regardless of how many audit sub-agents fed it findings or how many clusters Pattern C split the work across
 - `skills/engineering-workflow/SKILL.md` principle 9 — symmetric rule at the tool-call layer; this doc extends the same principle to the sub-agent layer
+- `skills/engineering-workflow/references/long-running-delegation.md` — orthogonal time-axis discipline for any individual sub-agent invocation that outlasts one cache window (D1 checkpoint-bounded scope, D2 artifact-grounded progress, D3 canonical-role non-idle rule). This document's §Cache-window rule governs spawn timing; long-running-delegation.md governs single-invocation runtime scope. Both may apply to the same fan-out.
 
 ---
 
