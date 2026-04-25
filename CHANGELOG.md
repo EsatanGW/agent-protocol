@@ -6,6 +6,8 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.18.2] - 2026-04-25
+
 ### Changed
 
 - **`reference-implementations/hooks-claude-code/hooks/sot-drift-check.sh` and `consumer-registry-check.sh`** — replaced unquoted `for X in $list` iteration of yq output with `yq … | while IFS= read -r X` pipelines, capturing emitted warnings into a single variable so the warn-counter survives the pipeline subshell. Eliminates word-splitting and pathname-expansion hazards if a manifest declares a SoT source path or `external_registry_url` containing whitespace or glob metacharacters. Behavior preserved: `consumer-registry-check.sh` still routes the "non-HTTP URL skipped" notice to stderr only (does not promote it to a warning); both hooks still exit 2 on any real warning. Verified against the existing fixture suite (`pass-no-consumers`, `pass-reachable`, `warn-unreachable`, `pass-sot-touched`, `warn-sot-untouched`).
