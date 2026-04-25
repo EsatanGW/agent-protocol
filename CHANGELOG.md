@@ -6,6 +6,18 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-04-25
+
+### Added
+
+- **`docs/multi-agent-handoff.md` §Three canonical roles — non-normative rationale paragraph** — one paragraph after the "responsibility, not by identity" line spelling out why the role split is by what each role *does* + which tool envelope enforces it, rather than by which human-organization category the role nominally resembles. Names the one-way "PM → RD → QA" knowledge-bottleneck failure mode the existing contract is designed to break, and points at three already-canonical mechanisms that prevent it — every downstream role reads every upstream artifact (no compression at the boundary), differential write permission per Reviewer §Must not do (audit value mechanical rather than trust-based), and three-tier `§Conflict resolution` reopens the upstream phase rather than letting scope shifts get overwritten silently. Cited anchors verified to exist (`§Conflict resolution` line 337; Reviewer `§Must not do` line 123). The paragraph is explanatory only — it cites existing rules in surrounding sections rather than introducing new ones.
+
+### Why patch, not minor
+
+The added paragraph is **non-normative rationale**. No new normative claim, no new rule, no schema change, no glossary term added, no cross-cutting term renamed. A reader who already understood the contract reaches the same conclusions; a reader who skimmed only §Three canonical roles now has the rationale visible without leaving the section. L0-additive per `skills/engineering-workflow/references/mode-decision-tree.md §Scenarios that force Full` — the `Canonical methodology content edit (L1+)` row carves out *"new non-normative reference file; pointer additions; CHANGELOG-only edits"* as Lean-eligible, and the same logic applies to non-normative explanatory content added to an existing canonical file. Matches the `VERSIONING.md` patch category (*"wording clarifications"*).
+
+The 1.18.0 CHANGELOG entry is preserved verbatim per `CLAUDE.md §3`.
+
 ## [1.18.0] - 2026-04-25
 
 ### Added

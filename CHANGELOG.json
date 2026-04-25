@@ -1,6 +1,18 @@
 {
   "releases": [
     {
+      "version": "1.18.1",
+      "date": "2026-04-25",
+      "sections": {
+        "added": [
+          {
+            "title": "`docs/multi-agent-handoff.md` §Three canonical roles — non-normative rationale paragraph",
+            "body": "one paragraph after the \"responsibility, not by identity\" line spelling out why the role split is by what each role *does* + which tool envelope enforces it, rather than by which human-organization category the role nominally resembles. Names the one-way \"PM → RD → QA\" knowledge-bottleneck failure mode the existing contract is designed to break, and points at three already-canonical mechanisms that prevent it — every downstream role reads every upstream artifact (no compression at the boundary), differential write permission per Reviewer §Must not do (audit value mechanical rather than trust-based), and three-tier `§Conflict resolution` reopens the upstream phase rather than letting scope shifts get overwritten silently. Cited anchors verified to exist (`§Conflict resolution` line 337; Reviewer `§Must not do` line 123). The paragraph is explanatory only — it cites existing rules in surrounding sections rather than introducing new ones."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.18.0",
       "date": "2026-04-25",
       "sections": {
