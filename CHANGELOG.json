@@ -1,6 +1,38 @@
 {
   "releases": [
     {
+      "version": "Unreleased",
+      "date": null,
+      "sections": {
+        "changed": [
+          {
+            "title": "`reference-implementations/hooks-claude-code/hooks/sot-drift-check.sh` and `consumer-registry-check.sh`",
+            "body": "replaced unquoted `for X in $list` iteration of yq output with `yq … | while IFS= read -r X` pipelines, capturing emitted warnings into a single variable so the warn-counter survives the pipeline subshell. Eliminates word-splitting and pathname-expansion hazards if a manifest declares a SoT source path or `external_registry_url` containing whitespace or glob metacharacters. Behavior preserved: `consumer-registry-check.sh` still routes the \"non-HTTP URL skipped\" notice to stderr only (does not promote it to a warning); both hooks still exit 2 on any real warning. Verified against the existing fixture suite (`pass-no-consumers`, `pass-reachable`, `warn-unreachable`, `pass-sot-touched`, `warn-sot-untouched`)."
+          },
+          {
+            "title": "`reference-implementations/hooks-{codex,cursor,gemini-cli,windsurf}/selftests/selftest.sh`",
+            "body": "removed `eval \"export $key=\\\"\\$val\\\"\"` from the test-input loop; replaced with the POSIX-portable `export \"$key=$val\"` (which all reference shells — sh, bash, dash, mksh, busybox ash — accept directly). Trust boundary unchanged: callers are hardcoded literals (`\"CURSOR_HOOK_TRIGGER=pre-commit\"` etc.), so this was not exploitable in practice, but the prior pattern propagated a `key`-not-quoted footgun into a reference implementation that other workspaces copy from."
+          }
+        ],
+        "fixed": [
+          {
+            "title": "`reference-implementations/hooks-claude-code/hooks/evidence-artifact-exists.sh`",
+            "body": "removed two unused locals (`missing=\"\"`, `empty_location=\"\"`, lines 29–30) flagged by `shellcheck` as SC2034. Dead since the hook switched to inline `printf … >&2; exit 1` reporting; their persistence served no purpose and would have masked accidental-aliasing bugs in any future edit that re-introduced them."
+          }
+        ],
+        "added": [
+          {
+            "title": "`.github/workflows/validate.yml` `hooks-shellcheck` job",
+            "body": "new lint gate that runs `shellcheck -s sh` on every `.sh` file under `reference-implementations/hooks-{claude-code,codex,cursor,gemini-cli,windsurf}/{hooks,adapter,selftests}`. Made a prerequisite of `hooks-selftest` (`needs: hooks-shellcheck`) so a lint failure short-circuits the slower selftest job. This is the deterministic second-line defense the `runtime-hook-contract.md` security clauses imply but did not previously enforce: `shellcheck` mechanically catches the heredoc-without-single-quotes / unquoted-`$var` / unquoted-word-splitting / `eval` patterns that classify as code-injection footguns when input data flows through them. Scope is intentionally narrow — the runtime-hook surface itself; `reference-implementations/validator-posix-shell/` has separate pre-existing findings (SC3012 non-portable `\\<` in POSIX `[`, SC2015 `A && B || C` idiom usage) that are out of scope for this hook-security pass and remain unlinted by this job."
+          },
+          {
+            "title": null,
+            "body": "Inline `# shellcheck disable=SC1007` directives on the `CDPATH= cd …` POSIX-CDPATH-neutralization idiom (selftests in 5 runtimes), and `# shellcheck source=/dev/null` directives on the runtime-resolved `. \"$adapter\"` source statement (4 adapter selftests). Both patterns are intentional; the directives document the intent so CI does not silence legitimate future findings via a project-wide ignore."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.18.1",
       "date": "2026-04-25",
       "sections": {

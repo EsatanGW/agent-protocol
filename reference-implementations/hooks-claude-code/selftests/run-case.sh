@@ -24,7 +24,9 @@ fi
 hook_name="$1"
 case_dir="$2"
 
+# shellcheck disable=SC1007  # `CDPATH= cd` is the POSIX idiom to neutralize $CDPATH.
 selftests_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck disable=SC1007
 bundle_dir=$(CDPATH= cd -- "$selftests_dir/.." && pwd)
 hook_path="$bundle_dir/hooks/$hook_name"
 
@@ -41,6 +43,7 @@ if [ ! -f "$case_dir/expected" ]; then
   exit 64
 fi
 
+# shellcheck disable=SC1007
 SELFTEST_CASE_DIR=$(CDPATH= cd -- "$case_dir" && pwd)
 export SELFTEST_CASE_DIR
 

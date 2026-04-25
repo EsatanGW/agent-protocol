@@ -36,30 +36,33 @@ fi
 
 timeout_s="${AGENT_PROTOCOL_NET_TIMEOUT:-5}"
 
-urls=$(yq -r '.. | select(has("external_registry_url")) | .external_registry_url' "$MANIFEST_PATH" 2>/dev/null | grep -v '^$' || true)
-if [ -z "$urls" ]; then
-  exit 0
-fi
+# Iterate URLs via newline-delimited read instead of unquoted word splitting,
+# so URLs containing whitespace or glob metacharacters are handled as data.
+# Warnings emitted on stdout inside the pipeline subshell are captured into
+# $warns so the counter survives.
+warns=$(yq -r '.. | select(has("external_registry_url")) | .external_registry_url' "$MANIFEST_PATH" 2>/dev/null \
+  | grep -v '^$' \
+  | while IFS= read -r url; do
+      case "$url" in
+        http://*|https://*) ;;
+        *)
+          # Informational: non-HTTP URL is skipped, but it does NOT count as a
+          # warning. Send straight to the real stderr so it bypasses the
+          # captured-stdout warning channel.
+          printf '[agent-protocol/drift.consumer-registry-stale] non-HTTP consumer URL skipped: %s\n' "$url" >&2
+          continue
+          ;;
+      esac
 
-warn_count=0
-for url in $urls; do
-  case "$url" in
-    http://*|https://*) ;;
-    *)
-      printf '[agent-protocol/drift.consumer-registry-stale] non-HTTP consumer URL skipped: %s\n' "$url" >&2
-      continue
-      ;;
-  esac
+      if curl -fsS --max-time "$timeout_s" -o /dev/null "$url" 2>/dev/null; then
+        continue
+      fi
 
-  if curl -fsS --max-time "$timeout_s" -o /dev/null "$url" 2>/dev/null; then
-    continue
-  fi
+      printf '[agent-protocol/drift.consumer-registry-stale] consumer registry unreachable or non-2xx within %ss: %s\n' "$timeout_s" "$url"
+    done)
 
-  warn_count=$((warn_count + 1))
-  printf '[agent-protocol/drift.consumer-registry-stale] consumer registry unreachable or non-2xx within %ss: %s\n' "$timeout_s" "$url" >&2
-done
-
-if [ "$warn_count" -gt 0 ]; then
+if [ -n "$warns" ]; then
+  printf '%s\n' "$warns" >&2
   exit 2
 fi
 
