@@ -100,9 +100,38 @@ jobs:
       - name: Validate implementation_clusters scope_files are pair-wise disjoint
         run: python3 .github/scripts/validate-cluster-disjointness.py
 
+  hooks-shellcheck:
+    name: Hook bundle shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print shellcheck version
+        # shellcheck is preinstalled on ubuntu-latest runners; pin a known
+        # baseline by failing fast if it is ever missing.
+        run: shellcheck --version
+      - name: Lint hook scripts and adapters
+        # Targeted at the runtime-hook surface (hooks + adapters + selftests).
+        # This is the second-line deterministic defense against shell injection
+        # patterns (heredoc-without-quoting, unquoted word splitting, eval) that
+        # a model-only review can miss. Other shell files in the repo (e.g.
+        # validator-posix-shell/) have separate scope and are not gated here.
+        run: |
+          shellcheck -s sh \
+            reference-implementations/hooks-claude-code/hooks/*.sh \
+            reference-implementations/hooks-claude-code/selftests/*.sh \
+            reference-implementations/hooks-codex/adapter/*.sh \
+            reference-implementations/hooks-codex/selftests/*.sh \
+            reference-implementations/hooks-cursor/adapter/*.sh \
+            reference-implementations/hooks-cursor/selftests/*.sh \
+            reference-implementations/hooks-gemini-cli/adapter/*.sh \
+            reference-implementations/hooks-gemini-cli/selftests/*.sh \
+            reference-implementations/hooks-windsurf/adapter/*.sh \
+            reference-implementations/hooks-windsurf/selftests/*.sh
+
   hooks-selftest:
     name: Hook bundle selftest
     runs-on: ubuntu-latest
+    needs: hooks-shellcheck
     steps:
       - uses: actions/checkout@v4
       - name: Install yq

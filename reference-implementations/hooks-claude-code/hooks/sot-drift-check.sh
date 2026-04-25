@@ -32,23 +32,23 @@ if [ -z "$touched" ]; then
   exit 0
 fi
 
-sot_sources=$(yq -r '.sot_map[].source' "$MANIFEST_PATH" 2>/dev/null | grep -v '^null$' | grep -v '^$' || true)
-if [ -z "$sot_sources" ]; then
-  exit 0
-fi
+# Iterate sot_map sources via newline-delimited read instead of unquoted word
+# splitting, so paths containing whitespace or glob metacharacters are handled
+# as data, not as shell tokens. Warnings are emitted on stdout inside the
+# pipeline subshell and captured into $warns so the counter survives.
+warns=$(yq -r '.sot_map[].source' "$MANIFEST_PATH" 2>/dev/null \
+  | grep -v '^null$' | grep -v '^$' \
+  | while IFS= read -r src; do
+      # Strip any "field:" suffix (e.g. "app/models/voucher.py:expiry_at") down to the filename.
+      file_part=${src%%:*}
+      [ -z "$file_part" ] && continue
+      if ! printf '%s\n' "$touched" | grep -Fxq -- "$file_part"; then
+        printf '[agent-protocol/drift.sot-file-must-move] SoT source declared but not touched: %s\n' "$file_part"
+      fi
+    done)
 
-warn_count=0
-for src in $sot_sources; do
-  # Strip any "field:" suffix (e.g. "app/models/voucher.py:expiry_at") down to the filename.
-  file_part=$(printf '%s\n' "$src" | cut -d: -f1)
-  if [ -z "$file_part" ]; then continue; fi
-  if ! printf '%s\n' "$touched" | grep -Fxq "$file_part"; then
-    warn_count=$((warn_count + 1))
-    printf '[agent-protocol/drift.sot-file-must-move] SoT source declared but not touched: %s\n' "$file_part" >&2
-  fi
-done
-
-if [ "$warn_count" -gt 0 ]; then
+if [ -n "$warns" ]; then
+  printf '%s\n' "$warns" >&2
   exit 2
 fi
 

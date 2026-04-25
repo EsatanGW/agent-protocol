@@ -14,6 +14,7 @@
 
 set -eu
 
+# shellcheck disable=SC1007  # `CDPATH= cd` is the POSIX idiom to neutralize $CDPATH.
 selftests_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 fixtures_dir="$selftests_dir/fixtures"
 runner="$selftests_dir/run-case.sh"

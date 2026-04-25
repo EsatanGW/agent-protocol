@@ -14,6 +14,7 @@
 
 set -u
 
+# shellcheck disable=SC1007  # `CDPATH= cd` is the POSIX idiom to neutralize $CDPATH.
 selftests_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 adapter="$selftests_dir/../adapter/parse-event.sh"
 
@@ -34,10 +35,11 @@ invoke_adapter() {
     for kv in "$@"; do
       key=${kv%%=*}
       val=${kv#*=}
-      eval "export $key=\"\$val\""
+      export "$key=$val"
     done
     # cd to /tmp so `git diff --cached` returns empty (no git repo context)
     cd /tmp 2>/dev/null || cd /
+    # shellcheck source=/dev/null  # path resolved at runtime; cannot follow statically.
     . "$adapter"
     printf '%s|%s|%s|%s' "${AP_EVENT:-}" "${AP_TOOL:-}" "${AP_PHASE:-}" "${AP_STAGED_FILES:-}"
   )

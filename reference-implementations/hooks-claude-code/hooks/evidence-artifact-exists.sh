@@ -26,9 +26,6 @@ if ! command -v yq >/dev/null 2>&1; then
   exit 2
 fi
 
-missing=""
-empty_location=""
-
 # Iterate every evidence_plan entry. Each entry is emitted as: <status>|<location>
 yq -r '.evidence_plan[] | [.status, (.artifact_location // "")] | @tsv' "$MANIFEST_PATH" 2>/dev/null | while IFS="	" read -r status location; do
   if [ "$status" = "collected" ]; then
