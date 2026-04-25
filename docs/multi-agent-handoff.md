@@ -59,6 +59,8 @@ If two rules look redundant, read each one's **trigger condition** carefully. Th
 These roles are **defined by responsibility, not by identity.**
 The same agent can play different roles in different phases; a human can play any of these roles too.
 
+**Responsibility, not job title.** The split is by what each role *does* (investigate without writing, write under a fixed plan, audit without writing) and which tool envelope enforces it — not by which human-organization category the role nominally resembles. A pipeline shaped after a human "PM → RD → QA" handoff replicates a knowledge bottleneck the contract above is designed to break: information would flow one way, downstream roles would see only conclusions, and original intent would decay at every transfer. Three properties of the contract below prevent that — every downstream role reads every upstream artifact (no compression at the boundary), differential write permission makes audit value mechanical rather than trust-based (see Reviewer §Must not do), and the three-tier conflict resolution (§Conflict resolution) reopens the upstream phase when scope shifts rather than letting it get overwritten silently. The intent is functional capability + permission boundary + role-specific reasoning posture, not org-chart mimicry.
+
 ### Planner
 
 **Responsibilities:**
