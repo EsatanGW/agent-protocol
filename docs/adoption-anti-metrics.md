@@ -270,7 +270,7 @@ adoption-honesty legible, not to add more fields to the template.
   fatigue, covert bypass). This document is the **artifact-layer**
   counterpart: what the output looks like when the human process is
   going through the motions.
-- `docs/operational-disciplines.md` — evidence / rollback / handoff
+- [`docs/situational-disciplines.md §Operational surface`](situational-disciplines.md#operational-surface) — evidence / rollback / handoff
   quality floors. The anti-metrics here detect violations of those
   floors that schema validation cannot catch.
 - `docs/adoption-strategy.md` — counter-metric monitoring for

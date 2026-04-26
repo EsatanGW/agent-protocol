@@ -215,9 +215,7 @@ Canonical doc list, ordered by when you'll typically read it.
 
 ### Per-surface disciplines
 
-- `docs/user-surface-disciplines.md` — user-surface checklist.
-- `docs/implementation-disciplines.md` — implementation checkpoints.
-- `docs/operational-disciplines.md` — operational-surface checklist.
+- [`docs/situational-disciplines.md`](../situational-disciplines.md) — three per-surface checklists merged into one file in 1.20.0; activate the section that matches your change (`#user-surface`, `#implementation-surface`, or `#operational-surface`).
 - `docs/playtest-discipline.md` — experience-surface verification (for game/consumer apps).
 
 ### Process + coordination

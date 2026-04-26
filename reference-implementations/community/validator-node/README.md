@@ -1,12 +1,18 @@
-# Reference Validator — TypeScript / Node
+# Reference Validator — TypeScript / Node (community-maintained)
 
-> **Not normative.** Language-native sibling to `validator-python/` and
-> `validator-posix-shell/`. All three implement the algorithm in
-> [`docs/automation-contract-algorithm.md`](../../docs/automation-contract-algorithm.md).
-> This implementation closes the same four rules the Python reference
-> closes (2.4, 2.5, 3.2, 3.4) and is the recommended choice for CI
-> pipelines and editor integrations that already ship with a Node
-> runtime.
+> **Not normative. Community-maintained.** Functional sibling to the
+> first-class [`validator-python/`](../../validator-python/) reference.
+> Both implement the same algorithm in
+> [`docs/automation-contract-algorithm.md`](../../../docs/automation-contract-algorithm.md)
+> with byte-for-byte equivalent fixtures (see
+> `tests/fixtures/`). Per `INVENTORY.md` §Validator parity note, adopters
+> need only one language-native reference; this one was demoted from
+> first-class to community-maintained in 1.20.0 to remove the implicit
+> three-way official-sync obligation. Rule parity with `validator-python`
+> is **not guaranteed** going forward — if you adopt this reference, run
+> the test suite under `tests/` against your manifest as part of CI.
+> Recommended for JS/TS/web-leaning pipelines or editor integrations
+> that already ship with a Node runtime.
 
 ---
 
@@ -49,8 +55,8 @@ is `typescript` + `@types/node`; both live in `devDependencies` so
 ```sh
 npm run build
 node dist/src/cli.js <manifest> \
-  --schema      ../../schemas/change-manifest.schema.yaml \
-  --surface-map ../../docs/bridges/flutter-surface-map.yaml \
+  --schema      ../../../schemas/change-manifest.schema.yaml \
+  --surface-map ../../../docs/bridges/flutter-surface-map.yaml \
   --base-ref    origin/main
 ```
 
@@ -149,13 +155,14 @@ requirement.
 
 ## See also
 
-- [`../validator-python/`](../validator-python/) — Python reference;
-  identical rule coverage and exit-code contract.
-- [`../validator-posix-shell/`](../validator-posix-shell/) — minimal
-  POSIX-shell reference; supported rule set is a strict subset of this
-  one.
+- [`../../validator-python/`](../../validator-python/) — first-class
+  Python reference; functional sibling of this implementation with
+  byte-for-byte equivalent fixtures.
+- [`../../validator-posix-shell/`](../../validator-posix-shell/) —
+  first-class POSIX-shell reference; supported rule set is a strict
+  subset of this one.
 - [`DEVIATIONS.md`](./DEVIATIONS.md) — precise gap map.
-- [`../../docs/automation-contract.md`](../../docs/automation-contract.md)
+- [`../../../docs/automation-contract.md`](../../../docs/automation-contract.md)
   — capability contract (normative).
-- [`../../docs/automation-contract-algorithm.md`](../../docs/automation-contract-algorithm.md)
+- [`../../../docs/automation-contract-algorithm.md`](../../../docs/automation-contract-algorithm.md)
   — algorithm spec (normative).

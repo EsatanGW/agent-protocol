@@ -73,7 +73,7 @@ Output: JSON `{"suggestions": [...]}` on stdout. Exit codes:
 
 ## Integration with validators
 
-The three reference validators (`validator-posix-shell`, `validator-python`, `validator-node`) implement Layers 1–3 of the automation contract. Rule 6 re-entry detection is **Layer 3-adjacent** — it compares two manifest states, not just one. Integration options:
+The first-class reference validators (`validator-posix-shell`, `validator-python`) and the community-maintained `community/validator-node` implement Layers 1–3 of the automation contract. Rule 6 re-entry detection is **Layer 3-adjacent** — it compares two manifest states, not just one. Integration options:
 
 - **Wrap as a Layer 3 rule.** A validator can invoke `suggest_reentry(git_show(base_ref, manifest_path), current_manifest)` and emit each suggestion as an advisory finding. The rule_id stable name is `drift.phase_reentry_suggested` (reserved for this use).
 - **Standalone CI check.** A CI job can run the CLI and post suggestions as a PR comment — useful when the team wants re-entry to be visible but not blocking.

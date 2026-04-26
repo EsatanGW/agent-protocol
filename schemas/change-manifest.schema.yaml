@@ -844,7 +844,7 @@ properties:
     type: string
     description: |
       Free-form human-readable summary for the next operator: what shipped,
-      how to observe it, residual risks, rollback trigger. See docs/operational-disciplines.md.
+      how to observe it, residual risks, rollback trigger. See docs/situational-disciplines.md#operational-surface.
 
   # ─── Cross-change knowledge link (docs/cross-change-knowledge.md) ──────
 

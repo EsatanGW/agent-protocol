@@ -60,11 +60,9 @@ These activate when the change touches a specific dimension. Skip the ones that 
 
 | File | Activates when |
 |------|----------------|
-| [`operational-disciplines.md`](operational-disciplines.md) | The change has operational surface (deployments, migrations, infra). |
+| [`situational-disciplines.md`](situational-disciplines.md) | The change touches one or more of the user / implementation / operational surfaces. Three sections (`#user-surface`, `#implementation-surface`, `#operational-surface`) replace the three sibling discipline files merged in 1.20.0. |
 | [`team-org-disciplines.md`](team-org-disciplines.md) | The change crosses team / org boundaries; handoff is needed. |
 | [`security-supply-chain-disciplines.md`](security-supply-chain-disciplines.md) | Auth / PII / secrets / dependency provenance is in scope. |
-| [`user-surface-disciplines.md`](user-surface-disciplines.md) | The change affects user-visible surfaces (UI, copy, A/B variant). |
-| [`implementation-disciplines.md`](implementation-disciplines.md) | Phase 4 implementation-time specifics (test layering, rollout staging). |
 | [`playtest-discipline.md`](playtest-discipline.md) | Game / interactive / experience-driven changes need playtest evidence. |
 | [`post-delivery-observation.md`](post-delivery-observation.md) | Phase 8 observation: production findings, metrics, continuous-evidence. |
 | [`adoption-strategy.md`](adoption-strategy.md) | Rolling out the methodology to a team that isn't using it yet. |
