@@ -495,4 +495,4 @@ The only differences:
 - `change-manifest-spec.md` — field semantics.
 - `automation-contract.md` — automated verification of each stage threshold.
 - `references/resumption-protocol.md` — single-agent takeover after a session break.
-- `templates/change-manifest.example-multi-agent-handoff.yaml` — a full-progression example.
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-multi-agent-handoff.yaml` — a full-progression example.

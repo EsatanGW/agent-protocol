@@ -61,7 +61,7 @@ The two historical onboarding files (`quick-start.md` and `if-you-only-read-one-
 - `docs/source-of-truth-patterns.md` — 10 SoT patterns
 - `docs/breaking-change-framework.md` — L0–L4 severity + consumer classification
 - `docs/rollback-asymmetry.md` — rollback modes 1/2/3
-- `docs/security-supply-chain-disciplines.md` — threat modeling, supply chain (worked example: `templates/change-manifest.example-security-sensitive.yaml`)
+- `docs/security-supply-chain-disciplines.md` — threat modeling, supply chain (worked example: `skills/engineering-workflow/templates/manifests/change-manifest.example-security-sensitive.yaml`)
 - `docs/change-decomposition.md` — splitting and merging changes
 - `docs/team-org-disciplines.md` — consumer registry, contract catalog, deprecation queue
 - `docs/multi-agent-handoff.md` — agent roles, manifest progression, **Enforcement across runtimes** (which runtimes enforce mechanically vs prose-only)

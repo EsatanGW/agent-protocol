@@ -1,7 +1,7 @@
 # Change Manifest Spec
 
 > **English TL;DR**
-> The methodology's **machine-readable output contract**. Every non-trivial change produces one YAML manifest that records: which surfaces are touched, which SoT patterns apply, whether breaking-change levels (L0-L4) apply, rollback mode (1/2/3), evidence artifacts, decomposition links (`depends_on` / `blocks` / `co_required` / `part_of`), phase-specific extensions (`implementation_notes`, `review_notes`, `approvals`, `handoff_narrative`), and `waivers` (time-bounded, human-approver-only). The manifest is validated by the automation contract (see `automation-contract-algorithm.md`) at three layers: structural (schema conformance), cross-reference (SoT/surface coverage, deprecation-timeline presence, human-approval requirement for deliver phase), and drift (declared-SoT-must-be-modified, surface ↔ file pattern match via bridge mapping). Canonical schema: `schemas/change-manifest.schema.yaml` (JSON Schema draft 2020-12). Templates: `templates/change-manifest.example-*.yaml`.
+> The methodology's **machine-readable output contract**. Every non-trivial change produces one YAML manifest that records: which surfaces are touched, which SoT patterns apply, whether breaking-change levels (L0-L4) apply, rollback mode (1/2/3), evidence artifacts, decomposition links (`depends_on` / `blocks` / `co_required` / `part_of`), phase-specific extensions (`implementation_notes`, `review_notes`, `approvals`, `handoff_narrative`), and `waivers` (time-bounded, human-approver-only). The manifest is validated by the automation contract (see `automation-contract-algorithm.md`) at three layers: structural (schema conformance), cross-reference (SoT/surface coverage, deprecation-timeline presence, human-approval requirement for deliver phase), and drift (declared-SoT-must-be-modified, surface ↔ file pattern match via bridge mapping). Canonical schema: `schemas/change-manifest.schema.yaml` (JSON Schema draft 2020-12). Templates: `skills/engineering-workflow/templates/manifests/change-manifest.example-*.yaml`.
 
 > **Purpose:** the Change Manifest is the methodology's **machine-readable output contract**.
 > It records — as YAML that both AI agents and CI can inspect — what surfaces this change touches, which SoTs apply, whether this is a breaking change, how it rolls back, and what the evidence is.
@@ -9,7 +9,7 @@
 > This document is the **field-level semantic specification** for that schema — it says which field corresponds to which discipline in the methodology.
 >
 > **Schema file:** `schemas/change-manifest.schema.yaml` (JSON Schema draft 2020-12)
-> **Examples:** `templates/change-manifest.example-*.yaml`
+> **Examples:** `skills/engineering-workflow/templates/manifests/change-manifest.example-*.yaml`
 
 ---
 
@@ -780,45 +780,9 @@ The schema enforces the following via `allOf + if/then`:
 
 ---
 
-## CI integration (recommended)
+## CI integration and AI usage modes
 
-Add a validation job to CI:
-
-```yaml
-# Illustrative: .github/workflows/change-manifest-validate.yaml
-- name: Validate manifest
-  run: |
-    ajv validate \
-      -s schemas/change-manifest.schema.yaml \
-      -d "$(git diff --name-only origin/main | grep change-manifest)"
-```
-
-Additional gates (things the methodology enforces beyond the schema):
-
-- `phase == signoff` → every `primary` surface must have evidence with `status: collected`.
-- `breaking_change.level in [L3, L4]` → PR requires a designated reviewer.
-- `rollback.overall_mode == 3` → a named approver must appear in `residual_risks.accepted_by`.
-
----
-
-## Modes of AI use of the manifest
-
-### Mode A: generation (AI produces the manifest)
-
-During Phase 1 / 2 (investigate / plan), AI reads the requirement → produces a **draft manifest**.
-That draft is AI's **declared understanding** of the change; humans calibrate against it faster than they would against prose.
-
-### Mode B: validation (AI checks an existing manifest)
-
-During Phase 4 / 5 (implement / review), AI compares the manifest against the real diff:
-- For the surfaces the diff actually touched, is each one recorded in the manifest?
-- Manifest claims `rollback.overall_mode: 1`, but the diff includes an irreversible migration?
-- Manifest has no `playtest`, but the diff touches experience-related UI?
-
-### Mode C: hand-off (between agents)
-
-An upstream agent (e.g. an investigate agent) produces a draft manifest.
-A downstream agent (implement agent) uses that manifest as both context and a contract constraint.
+Recipes — *how to wire the manifest into CI* and *how AI agents use the manifest in generation / validation / hand-off modes* — live in the companion [`change-manifest-spec-cookbook.md`](change-manifest-spec-cookbook.md). The spec stays normative; the cookbook holds applied material.
 
 ---
 
@@ -841,55 +805,12 @@ A downstream agent (implement agent) uses that manifest as both context and a co
 
 ---
 
-## Mission-shaped manifests
+## Mission-shaped manifests and the example tour
 
-Some changes are *exploratory* — the Implementer does not know up front which approach will satisfy the requirement, only that the requirement carries a measurable acceptance bar. A typical example: "cut /search p95 latency from 850ms to <200ms with zero ranking drift on the golden corpus." The implementation path is unknown; what is known is the contract under which any candidate fix is accepted.
+Two extended treatments live in the cookbook to keep this spec focused on field semantics:
 
-This shape sometimes goes by names like "mission" or "evaluator contract" in other systems. In agent-protocol it is **not a separate artifact category** — it is a Change Manifest whose acceptance bar happens to be numeric and whose verification rows are tagged `evidence_plan[*].tier: critical`. No new schema fields are involved.
-
-**Authoring conventions for a mission-shaped manifest:**
-
-1. **Acceptance criteria as critical evidence.** Every measurable acceptance criterion (latency, accuracy, coverage, error budget, parity check, etc.) becomes one `evidence_plan[*]` row with `tier: critical` and a numeric pass threshold stated in the row's `summary`. Per `docs/automation-contract.md` §Evidence tier and `docs/automation-contract-algorithm.md` §Rule 2.11, missing or rejected critical evidence blocks Phase 6 sign-off.
-2. **Hypotheses in `assumptions`.** The hypotheses the exploration starts from go in the `assumptions` array with explicit `confidence` and `validation_plan`. Each one is an explicit prediction about the cause of the problem, not a vague background statement.
-3. **Invalidations in `implementation_notes`.** As the Implementer profiles and iterates, hypotheses confirmed or refuted are recorded as `implementation_notes[*].type: assumption_validated` / `assumption_invalidated`. The audit trail captures *what was tried and ruled out*, not only *what shipped* — this is what distinguishes governed exploratory work from undocumented thrashing.
-4. **Residual risk for unexplored regions.** A numeric evaluator contract pins a corner of the space; the regions it does not pin are still risk. `residual_risks` enumerates them honestly rather than treating the contract as proof of complete coverage. Self-set acceptance bars are not the same as exhaustive verification — a mission-shaped manifest that lists no residual risk is a misuse signal.
-5. **Rollback discipline still applies.** Exploratory framing does not relax `rollback`; the rollback mode is judged by what the change does in production, not by how it was discovered.
-
-**What `tier` does and does not allow:**
-
-- `tier: critical` makes a single evidence row a hard ship gate. It does not make the manifest itself "mission-shaped"; a CRUD change with one regulatory critical evidence row is not a mission. The shape is determined by *exploratory framing + numeric acceptance bar* — multiple critical rows mapped to acceptance criteria, hypotheses in `assumptions`, invalidations in `implementation_notes`.
-- `tier` is not a way to express progress, importance, or urgency. Use it strictly for "missing this evidence blocks ship."
-
-**Worked example:** `templates/change-manifest.example-mission-evaluator.yaml` shows a /search-latency mission with three critical evidence rows (load-test threshold, golden-corpus parity, canary p95), three hypotheses (one validated, one invalidated), and three residual risks naming the unexplored regions.
-
-**Why this is not a separate artifact category:**
-
-Adding a parallel "mission" artifact would split the source of truth — exploratory and non-exploratory work would record different things in different places, and the audit trail would lose its single shape. The Change Manifest is rich enough to express both: the schema's `tier`, `assumptions`, `implementation_notes` types, and `residual_risks` are exactly the slots a mission needs. Use them.
-
----
-
-## Example tour
-
-- `templates/change-manifest.example-crud.yaml`
-  - Simple CRUD (new field).
-  - SoT patterns 1 + 3 + 4, breaking L0, rollback mode 1.
-  - Demonstrates the **minimum skeleton** manifest.
-
-- `templates/change-manifest.example-mobile-offline.yaml`
-  - Mobile offline-edit sync.
-  - SoT patterns 7 + 8 + 10, breaking L1, rollback mode 2.
-  - Demonstrates temporal-local, codegen, host-lifecycle, uncontrolled_interfaces, escalations.
-
-- `templates/change-manifest.example-game-gacha.yaml`
-  - Game live-ops gacha drop-rate adjustment.
-  - experience + real_world + compliance surfaces.
-  - SoT patterns 2 + 9, breaking L1, rollback mode 3.
-  - Demonstrates playtest, post_delivery, rollback_mode_3 escalation, compensation_plan.
-
-- `templates/change-manifest.example-mission-evaluator.yaml`
-  - Search-latency mission with measurable evaluator contract.
-  - SoT patterns 1 + 4, breaking L0, rollback mode 1.
-  - Demonstrates `evidence_plan[*].tier: critical` mapped to acceptance criteria, `assumptions` carrying exploratory hypotheses, `implementation_notes` recording validations and invalidations, `residual_risks` naming unexplored regions.
+- **Mission-shaped manifests** — when a change is exploratory and its acceptance bar is numeric, see [`change-manifest-spec-cookbook.md §Mission-shaped manifests`](change-manifest-spec-cookbook.md#mission-shaped-manifests). The pattern uses existing schema fields (`evidence_plan[*].tier: critical`, `assumptions`, `implementation_notes`, `residual_risks`) and is **not a separate artifact category**.
+- **Example tour** — six worked manifests under [`skills/engineering-workflow/templates/manifests/`](../skills/engineering-workflow/templates/manifests/) covering CRUD, mobile-offline, game-gacha live-ops, mission-evaluator, multi-agent handoff progression, and security-sensitive (JWT rotation). One-line summaries of each example live in [`change-manifest-spec-cookbook.md §Example tour`](change-manifest-spec-cookbook.md#example-tour).
 
 ---
 

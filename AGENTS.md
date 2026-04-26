@@ -114,7 +114,7 @@ Three modes of use:
 
 Trivial changes (single-file typo, pure comment) are exempt. When uncertain, produce one.
 
-Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.example-*.yaml`
+Spec: `docs/change-manifest-spec.md` · Examples: `skills/engineering-workflow/templates/manifests/change-manifest.example-*.yaml`
 
 ---
 
@@ -160,11 +160,11 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 - `schemas/change-manifest.schema.yaml` — JSON Schema 2020-12 (canonical YAML form, comments + anchors preserved)
 - `schemas/change-manifest.schema.json` — generated JSON mirror for Node / browser / GitHub Actions consumers; `.github/scripts/generate-schema-json.py --check` enforces parity in CI
 - `schemas/surface-map.schema.yaml` + `.json` — per-bridge surface-map artifact (same dual-format discipline)
-- `templates/change-manifest.example-crud.yaml` — simple CRUD example
-- `templates/change-manifest.example-mobile-offline.yaml` — offline-first mobile example
-- `templates/change-manifest.example-game-gacha.yaml` — live-ops game example
-- `templates/change-manifest.example-multi-agent-handoff.yaml` — Planner → Implementer → Reviewer progression of one manifest
-- `templates/change-manifest.example-security-sensitive.yaml` — JWT signing-key rotation: SoT pattern 8 (dual-representation), L1 breaking change, mode-3 compensation-only rollback, security / compliance cross-cutting escalations
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-crud.yaml` — simple CRUD example
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-mobile-offline.yaml` — offline-first mobile example
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-game-gacha.yaml` — live-ops game example
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-multi-agent-handoff.yaml` — Planner → Implementer → Reviewer progression of one manifest
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-security-sensitive.yaml` — JWT signing-key rotation: SoT pattern 8 (dual-representation), L1 breaking change, mode-3 compensation-only rollback, security / compliance cross-cutting escalations
 
 **Worked examples across domains:**
 
