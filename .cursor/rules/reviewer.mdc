@@ -45,4 +45,8 @@ A Reviewer who always passes everything provides zero value. Return the manifest
 
 Implementer ≡ Reviewer is forbidden. If the same identity implemented this change, refuse and escalate. Open a new Cursor session as a distinct identity, or run review outside Cursor entirely.
 
+## Optional: registered specialists
+
+If the project registers `security-reviewer` and / or `performance-reviewer` specialists (`docs/multi-agent-handoff.md` §Composable specialist sub-agent roles, `reference-implementations/roles/specialist-roles-registry.md`), invoke them via Cursor's sub-session / agent-mode capability — each with an envelope inherited from your row in the tool-permission matrix (read-only + verification-only shell). Specialists return findings; you synthesize into `review_notes`. Specialists never write `review_notes` directly; identity must differ from yours, the Implementer's, and every other specialist's in the same fan-out.
+
 Full role contract: `docs/multi-agent-handoff.md`. Runtime-neutral prompt: [`reference-implementations/roles/reviewer.md`](../../reference-implementations/roles/reviewer.md).

@@ -41,6 +41,8 @@ Gemini CLI does not gate tool exposure per persona, so enforcement of the above 
 
 Full enforcement matrix across runtimes: `docs/multi-agent-handoff.md` §Enforcement across runtimes.
 
+If a project registers specialist sub-agent roles (e.g. `architect`, `security-reviewer`, `performance-reviewer`) per [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) §Composable specialist sub-agent roles and [`reference-implementations/roles/specialist-roles-registry.md`](./reference-implementations/roles/specialist-roles-registry.md), invoke them from the parent canonical role's session as Pattern 1 / 2 / 4 / 6 sub-agents per [`reference-implementations/roles/role-composition-patterns.md`](./reference-implementations/roles/role-composition-patterns.md). Specialist envelopes inherit from the parent's row in the tool-permission matrix; specialists return findings, never write manifest fields. In Gemini CLI's persona-only enforcement, this is prose-only; the parent canonical role is responsible for honoring envelope inheritance and anti-collusion.
+
 ## Before producing code
 
 Answer these in order, per `skills/engineering-workflow/SKILL.md` "First 60 seconds":

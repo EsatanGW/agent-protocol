@@ -46,4 +46,8 @@ If any cannot be filled confidently, stop and escalate.
 
 The same Cursor identity / session must not also serve as the Implementer or Reviewer of this change (Lean-mode collapse is the only exception). Open a new session for the next role.
 
+## Optional: registered specialists
+
+If the project registers an `architect` specialist (`docs/multi-agent-handoff.md` §Composable specialist sub-agent roles, `reference-implementations/roles/specialist-roles-registry.md`), invoke it via Cursor's sub-session / agent-mode capability with an envelope inherited from your row in the tool-permission matrix (read-only). The specialist returns a structured draft; you synthesize into your own `sot_map` / `surfaces_touched`. Specialists never write manifest fields directly; identity must differ from yours and from the Implementer's / Reviewer's.
+
 Full role contract: `docs/multi-agent-handoff.md`. Runtime-neutral prompt: [`reference-implementations/roles/planner.md`](../../reference-implementations/roles/planner.md).

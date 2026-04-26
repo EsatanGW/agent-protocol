@@ -41,6 +41,8 @@ Windsurf does not gate tool exposure per persona, so enforcement of the above is
 
 Anti-collusion rule: the same agent identity must not play more than one role in a single change. Full contract: `docs/multi-agent-handoff.md` (see §Enforcement across runtimes).
 
+If a project registers specialist sub-agent roles (e.g. `architect`, `security-reviewer`, `performance-reviewer`) per `docs/multi-agent-handoff.md` §Composable specialist sub-agent roles and `reference-implementations/roles/specialist-roles-registry.md`, invoke them from the parent canonical role's Cascade session as Pattern 1 / 2 / 4 / 6 sub-agents. Specialists inherit the parent's envelope and never write manifest fields. In Windsurf's prose-only enforcement, the parent canonical role is responsible for honoring envelope inheritance and anti-collusion.
+
 ## Stop conditions
 
 Stop and ask when:

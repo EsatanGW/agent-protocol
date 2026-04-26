@@ -59,3 +59,13 @@ for four sketch patterns, the invariants that must hold, and the
 anti-patterns that convert composition into unratified role
 proliferation. Composition is **non-normative** — teams may use it, or
 not. The three-role contract is the normative surface.
+
+When a Pattern 1 / 2 / 4 / 5 / 6 composition recurs across many changes
+with a stable name, parent role, and output slot, register it as a
+**specialist sub-agent role** per
+[`../../docs/multi-agent-handoff.md`](../../docs/multi-agent-handoff.md)
+§Composable specialist sub-agent roles. Starter registry (with
+`architect`, `security-reviewer`, `performance-reviewer`) lives in
+[`specialist-roles-registry.md`](./specialist-roles-registry.md).
+Specialists are not new canonical roles — they remain non-canonical
+sub-agents whose findings are synthesized by the parent canonical role.
