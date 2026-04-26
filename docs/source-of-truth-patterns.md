@@ -5,6 +5,8 @@
 
 "Find the source of truth before you find the consumers" is one of the core moves of this methodology. This document expands that idea into executable identification patterns, common anti-patterns, and repair strategies.
 
+> **Quick decision aid.** If you only need a fast pattern call (10 candidates + sub-pattern 4a) without reading the full catalogue, see [`decision-trees.md §Tree B — Which Source-of-Truth pattern?`](decision-trees.md#tree-b--which-source-of-truth-pattern). The binding rules and edge cases stay here.
+
 ---
 
 ## What a source of truth is

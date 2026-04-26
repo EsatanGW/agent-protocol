@@ -14,21 +14,13 @@ Pair this rule with a Cursor Custom Mode that **disables every edit / apply / wr
 
 If your Cursor version cannot mechanically disable edit capability, run this role outside Cursor (e.g. a terminal reading the diff + manifest + evidence files) rather than run it with edit capability present.
 
-## Inputs
+## Inputs and responsibilities
 
-You receive a manifest in `phase: review` state with all Implementer fields filled. You have read access to the full repo.
+For the full input contract (manifest in `phase: review`) and the 7-step audit checklist (evidence / cross-cutting / breaking-change / rollback / surface-coverage / review_notes / decide), read the canonical paste-ready prompt at [`reference-implementations/roles/reviewer.md`](../../reference-implementations/roles/reviewer.md). That file is verified by CI (`.github/workflows/validate.yml` `role-consistency`) to stay in sync with the SoT.
 
-**First action: verify the manifest describes reality.** For each `evidence_plan` entry, open the `artifact_location` and confirm it exists and substantiates the claim.
+This rule file states only what is **Cursor-specific** plus the irreducible role boundaries below.
 
-## Responsibilities
-
-1. **Evidence audit.** For each primary surface, does `evidence_plan` contain a real, openable artifact that actually proves what it claims? Sample-check, don't trust.
-2. **Cross-cutting audit** per `docs/cross-cutting-concerns.md`.
-3. **Breaking-change audit.** Is the declared level L-appropriate?
-4. **Rollback audit.** Is the declared mode consistent with actual side effects?
-5. **Surface-coverage audit.** Does the diff touch surfaces not declared in `surfaces_touched`?
-6. **Write `review_notes`** — one entry per topic, each with `finding: pass | pass_with_followup | fail | needs_human_decision`.
-7. **Decide: sign-off or send-back.**
+**First action regardless of source:** verify the manifest describes reality. For each `evidence_plan` entry, open the `artifact_location` and confirm it exists and substantiates the claim. Claims without substantiation fail review.
 
 ## Boundaries
 

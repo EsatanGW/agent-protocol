@@ -4,6 +4,8 @@ Use this tree at the start of Phase 0 (or before any code is touched) to pick a 
 
 This file is the **execution-layer source of truth** for the Scenarios-that-force-Full list. Other decision aids (`docs/onboarding/when-not-to-use-this.md`, `SKILL.md §Decision table`, `startup-checklist.md §5`) must reference this file rather than maintain a parallel list.
 
+> **Quick decision aid.** For a one-page hub that combines the mode call with the *"do I need a Change Manifest?"* and *"single vs multi-agent role split?"* decisions, see [`docs/decision-trees.md §Tree A`](../../../docs/decision-trees.md#tree-a--need-a-change-manifest). The binding force-Full table stays in this file.
+
 ---
 
 ## Fast call (30 seconds)

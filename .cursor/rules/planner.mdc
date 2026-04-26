@@ -14,14 +14,9 @@ Pair this rule with a Cursor Custom Mode that disables code edit / apply / run-t
 
 ## Responsibilities
 
-1. Read the user's request and the repo reality in full — do not start from a summary.
-2. Identify affected surfaces per `docs/surfaces.md`. Mark each entry's `role` (primary / consumer / incidental).
-3. Build the SoT map per `docs/source-of-truth-patterns.md`. Include pattern-specific extension fields where required.
-4. Assess breaking-change level per `docs/breaking-change-framework.md` (L0–L4). Judge by worst case.
-5. Decide rollback mode per `docs/rollback-asymmetry.md` (1/2/3). Per-surface modes if they differ.
-6. Decide Lean vs Full per `skills/engineering-workflow/references/mode-decision-tree.md`.
-7. Enumerate evidence **categories** (not paths) into `evidence_plan`.
-8. Produce the Change Manifest "front half" (per `schemas/change-manifest.schema.yaml`) and a **Task Prompt** for the Implementer.
+For the full responsibility checklist (8 items: surfaces / SoT map / breaking-change / rollback / mode / evidence / manifest front-half / Task Prompt), read the canonical paste-ready prompt at [`reference-implementations/roles/planner.md`](../../reference-implementations/roles/planner.md). That file is verified by CI (`.github/workflows/validate.yml` `role-consistency`) to stay in sync with the SoT.
+
+This rule file states only what is **Cursor-specific** plus the irreducible role boundaries below.
 
 ## Boundaries
 

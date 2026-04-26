@@ -45,6 +45,36 @@ from pathlib import Path
 INLINE_LINK_RE = re.compile(r"\[(?:[^\]]*)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 REF_LINK_RE = re.compile(r"^\s*\[[^\]]+\]:\s*(\S+)", re.MULTILINE)
 
+# Strip fenced code blocks (```...``` and ~~~...~~~) and inline code
+# spans (`...`) before link extraction. Markdown docs frequently
+# contain *literal example* link syntax inside code spans (e.g.
+# the CHANGELOG entry that documents this very script using
+# ``[text](target)`` as a code example); without this strip, the
+# checker would chase those examples as real links.
+FENCED_CODE_RE = re.compile(r"^([`~]{3,})[^\n]*\n.*?^\1\s*$", re.DOTALL | re.MULTILINE)
+# Inline code spans use any run of N backticks as the delimiter, with
+# a matching closing run of the same length. Match N=1..3 (covers
+# single, double — common for examples that contain backticks — and
+# triple-as-inline). Multi-line inline code is rare; we keep the
+# pattern single-line for simplicity.
+INLINE_CODE_RE = re.compile(r"(`{1,3})(?:(?!\1).)+?\1")
+
+
+def _strip_code_spans(text: str) -> str:
+    """Remove fenced code blocks and inline code spans (replaced by
+    single spaces so line numbers are preserved for fenced blocks the
+    same row count is retained — but inline-code replacement preserves
+    column positions enough for our line-level reporting).
+    """
+    # Fenced first; replace each match with a same-line-count blank
+    # block so subsequent line-number indexing stays stable.
+    def _blank_block(match: re.Match[str]) -> str:
+        return "\n" * match.group(0).count("\n")
+
+    text = FENCED_CODE_RE.sub(_blank_block, text)
+    text = INLINE_CODE_RE.sub(" ", text)
+    return text
+
 # Skip prefixes — external schemes, anchor-only.
 SKIP_PREFIXES = (
     "http://",
@@ -96,13 +126,17 @@ def check_file(md_path: Path, repo_root: Path) -> list[tuple[int, str, str]]:
 
     Empty list = all internal links resolve.
     """
-    text = md_path.read_text(encoding="utf-8")
+    raw = md_path.read_text(encoding="utf-8")
+    text = _strip_code_spans(raw)
     base = md_path.parent
 
     targets = _extract_links(text)
 
     broken: list[tuple[int, str, str]] = []
-    # We need line numbers; do a second pass.
+    # We need line numbers; do a second pass on the code-stripped text
+    # so the line numbers correspond to lines that still contain real
+    # links (fenced blocks were replaced with blank lines preserving
+    # line counts; inline spans were replaced with spaces).
     line_index: dict[str, int] = {}
     for line_no, line in enumerate(text.splitlines(), start=1):
         for target in INLINE_LINK_RE.findall(line) + REF_LINK_RE.findall(line):
@@ -174,6 +208,11 @@ def _run_self_test() -> list[str]:
       4. Anchor-only link (`#section`) is skipped.
       5. A reference-style link with valid target passes.
       6. Path-traversal that escapes the repo root is reported.
+      7. A `[text](target)` example INSIDE inline code spans is NOT
+         followed (regression test — see CHANGELOG entry that triggered
+         the strip-code-spans fix).
+      8. A fenced code block containing example link syntax is NOT
+         followed.
     """
     failures: list[str] = []
 
@@ -203,6 +242,23 @@ def _run_self_test() -> list[str]:
         traversal = root / "docs" / "traverse.md"
         traversal.write_text("Bad: [escape](../../etc/passwd)\n")
 
+        # Case 7: link example inside inline code span
+        inline_code = root / "docs" / "inline_code.md"
+        inline_code.write_text(
+            "Documenting our syntax: ``[text](nonexistent.md)`` is the "
+            "inline form. The single-backtick `[x](missing.md)` also.\n"
+        )
+
+        # Case 8: link example inside fenced code block
+        fenced = root / "docs" / "fenced.md"
+        fenced.write_text(
+            "Example block:\n\n"
+            "```markdown\n"
+            "[example](does-not-exist.md)\n"
+            "```\n\n"
+            "End of file.\n"
+        )
+
         results = scan_repo(root)
         rels = {(r, t) for r, _, t, _ in results}
 
@@ -221,6 +277,20 @@ def _run_self_test() -> list[str]:
         # Case 6 (traverse.md): reported as outside repo or not found
         if not any(r == "docs/traverse.md" for r, _ in rels):
             failures.append("self-test 6: traversal escape should be reported")
+
+        # Case 7 (inline_code.md): no entries — link examples in inline
+        # code must NOT be chased.
+        if any(r == "docs/inline_code.md" for r, _ in rels):
+            failures.append(
+                "self-test 7: inline code-span link example should not be chased"
+            )
+
+        # Case 8 (fenced.md): no entries — fenced-code link examples
+        # must NOT be chased.
+        if any(r == "docs/fenced.md" for r, _ in rels):
+            failures.append(
+                "self-test 8: fenced code-block link example should not be chased"
+            )
 
     return failures
 
@@ -254,7 +324,7 @@ def main() -> int:
             for msg in self_test_failures:
                 print(f"  {msg}", file=sys.stderr)
             return 2
-        print("self-test: ok (6 cases)")
+        print("self-test: ok (8 cases)")
 
     if args.self_test_only:
         return 0
