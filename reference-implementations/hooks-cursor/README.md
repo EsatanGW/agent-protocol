@@ -1,6 +1,6 @@
 # Reference Runtime Hooks — Cursor adapter
 
-> **Not normative.** Thin adapter that reuses the five hook scripts from
+> **Not normative.** Thin adapter that reuses the six hook scripts from
 > [`../hooks-claude-code/hooks/`](../hooks-claude-code/hooks/) and registers
 > them against Cursor's native rule / command model. Hook logic lives in
 > exactly one place — this directory only knows how to wire it up.

@@ -1035,6 +1035,24 @@ properties:
             docs/phase-gate-discipline.md Rule 5a and is not persisted here.
             Required when pattern == 'other' so the non-standard fan-out is
             explicable at audit time.
+        supervision_log_ref:
+          type: string
+          description: |
+            Optional pointer to a supervision log capturing keep / discard /
+            stop decisions made over the lifetime of this fan-out's
+            sub-agent invocations. Format: a path or stable reference (e.g.
+            'memory/supervision-log/2026-04-26-search-p95-investigators.md').
+            Required by no validator when absent, but if declared, automation
+            contract Tier 2 verifies the path resolves. The supervision log
+            is a Tier 2 (project memory) artifact per
+            docs/ai-project-memory.md §Recommended on-disk layout; its
+            structure and write-side discipline are defined in
+            skills/engineering-workflow/references/long-running-delegation.md
+            §Supervision log (keep / discard / stop). Distinct from
+            return_location on each sub-agent: return_location is the
+            sub-agent's structured return; supervision_log_ref records the
+            canonical role's decisions about which returns were kept,
+            discarded, or stopped during a long-running delegation.
         sub_agents:
           type: array
           minItems: 2

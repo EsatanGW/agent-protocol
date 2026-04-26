@@ -36,6 +36,11 @@
             "type": "command",
             "command": "sh ./reference-implementations/hooks-claude-code/hooks/sot-drift-check.sh",
             "description": "Category C (drift): warn when a declared SoT source is not being touched"
+          },
+          {
+            "type": "command",
+            "command": "sh ./reference-implementations/hooks-claude-code/hooks/drift-doc-refresh.sh",
+            "description": "Category C (drift): warn when a declared SoT source is edited without a paired doc/spec/manifest update in the same diff"
           }
         ]
       }

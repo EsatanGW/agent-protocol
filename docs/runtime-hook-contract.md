@@ -77,6 +77,7 @@ Every runtime hook must fit into exactly one of these four categories. A hook th
 - Manifest declares an SoT file that no longer exists in the repo.
 - A surface declared `role: primary` but no files in its region were touched.
 - `last_updated` older than N minutes despite recent edits.
+- **Doc-refresh drift** — a file declared in `sot_map[*].source` was edited in the current diff, but no documentation, spec, or manifest file (`.md`, `docs/**`, `change-manifest*.yaml`) was edited alongside. SoTs are by definition documented surfaces; an edit to one without a paired doc update is either (a) a documentation drift that future readers will hit, or (b) a registration gap (the file should not have been registered as an SoT). Reference implementation: `reference-implementations/hooks-claude-code/hooks/drift-doc-refresh.sh`.
 
 **Contract-required behavior:** exit code 2 (warn) is the default; exit code 1 (block) only for cases the runtime explicitly opts into.
 

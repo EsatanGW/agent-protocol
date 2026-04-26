@@ -39,6 +39,15 @@
           "level": "warn",
           "ruleIds": ["drift.sot-file-must-move"]
         }
+      },
+      {
+        "matches": "edit|write",
+        "command": "sh ./reference-implementations/hooks-claude-code/hooks/drift-doc-refresh.sh",
+        "agentProtocol": {
+          "category": "drift",
+          "level": "warn",
+          "ruleIds": ["drift.doc-refresh-missing"]
+        }
       }
     ],
     "onComplete": [

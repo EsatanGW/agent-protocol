@@ -1,6 +1,6 @@
 # Reference Runtime Hooks — Windsurf adapter
 
-> **Not normative.** Thin adapter that reuses the five hook scripts from
+> **Not normative.** Thin adapter that reuses the six hook scripts from
 > [`../hooks-claude-code/hooks/`](../hooks-claude-code/hooks/) and registers
 > them against Windsurf's hook / rule surface.
 

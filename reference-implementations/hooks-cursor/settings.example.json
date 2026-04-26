@@ -21,12 +21,13 @@
       "name": "agent-protocol/drift",
       "trigger": "post-file-edit",
       "commands": [
-        "sh ./reference-implementations/hooks-claude-code/hooks/sot-drift-check.sh"
+        "sh ./reference-implementations/hooks-claude-code/hooks/sot-drift-check.sh",
+        "sh ./reference-implementations/hooks-claude-code/hooks/drift-doc-refresh.sh"
       ],
       "agentProtocol": {
         "category": "drift",
         "level": "warn",
-        "ruleIds": ["drift.sot-file-must-move"]
+        "ruleIds": ["drift.sot-file-must-move", "drift.doc-refresh-missing"]
       }
     },
     {
