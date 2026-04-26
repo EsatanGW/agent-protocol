@@ -1,6 +1,6 @@
 {
   "name": "agent-protocol",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "description": "Tool-agnostic engineering workflow plugin for Codex: surface-first change analysis, source-of-truth discipline, four-mode execution, and evidence-driven delivery.",
   "author": {
     "name": "agent-protocol contributors",

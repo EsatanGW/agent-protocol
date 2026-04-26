@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Plugin: Multi-agent](https://img.shields.io/badge/plugin-multi--agent-blue.svg)](./AGENTS.md)
 [![Skill: Engineering Workflow](https://img.shields.io/badge/skill-engineering--workflow-purple.svg)](./skills/engineering-workflow/SKILL.md)
-[![Version: 1.19.0](https://img.shields.io/badge/version-1.19.0-brightgreen.svg)](./CHANGELOG.md)
+[![Version: 1.20.0](https://img.shields.io/badge/version-1.20.0-brightgreen.svg)](./CHANGELOG.md)
 [![Language: English-only](https://img.shields.io/badge/language-English--only-blue.svg)](./CHANGELOG.md)
 
 A **tool-agnostic engineering workflow plugin** for AI coding agents.
@@ -199,7 +199,8 @@ agent-protocol/
 ├── reference-implementations/  # Non-normative example validators + hook bundles
 │   ├── validator-posix-shell/  # POSIX shell + yq + pluggable schema validator (minimal)
 │   ├── validator-python/       # Python 3.10+ validator (covers all rules including 2.4, 2.5, 3.2, 3.4)
-│   ├── validator-node/         # TypeScript / Node 20+ validator (yaml + ajv + glob; same rule coverage as Python)
+│   ├── community/
+│   │   └── validator-node/     # community-maintained TypeScript / Node validator (same rule coverage as Python; not officially synced)
 │   ├── roles/                  # Runtime-neutral Planner / Implementer / Reviewer role prompts
 │   ├── hooks-claude-code/      # Runtime-hook reference bundle + selftest harness
 │   ├── hooks-cursor/           # Cursor adapter
@@ -280,7 +281,7 @@ See [`AGENTS.md`](./AGENTS.md) "Recommended reading order", or browse the **[`do
 - Team / org-scale concerns (consumer registry, deprecation queue) → [`docs/team-org-disciplines.md`](./docs/team-org-disciplines.md)
 - Adoption review — is the team applying the methodology or going through the motions? → [`docs/adoption-anti-metrics.md`](./docs/adoption-anti-metrics.md) (non-normative diagnostic aids)
 - Long-lived session or cross-session work → [`docs/ai-project-memory.md`](./docs/ai-project-memory.md)
-- Writing a validator / CI gate for this methodology → [`docs/automation-contract.md`](./docs/automation-contract.md) (capability spec) + [`docs/automation-contract-algorithm.md`](./docs/automation-contract-algorithm.md) (normative algorithm) + three non-normative language references: [`validator-posix-shell/`](./reference-implementations/validator-posix-shell/) (minimal), [`validator-python/`](./reference-implementations/validator-python/), [`validator-node/`](./reference-implementations/validator-node/) — all three ship a `DEVIATIONS.md` that maps exactly which rules they close
+- Writing a validator / CI gate for this methodology → [`docs/automation-contract.md`](./docs/automation-contract.md) (capability spec) + [`docs/automation-contract-algorithm.md`](./docs/automation-contract-algorithm.md) (normative algorithm) + non-normative language references: first-class [`validator-posix-shell/`](./reference-implementations/validator-posix-shell/) (minimal, zero-dep) and [`validator-python/`](./reference-implementations/validator-python/) (full rule coverage), plus community-maintained [`community/validator-node/`](./reference-implementations/community/validator-node/) — each ships a `DEVIATIONS.md` that maps exactly which rules it closes
 - Deprecating a schema field or API surface → [`docs/change-manifest-spec.md` §"Deprecating a field"](./docs/change-manifest-spec.md) (decision table) + `$defs.deprecation` in [`schemas/change-manifest.schema.yaml`](./schemas/change-manifest.schema.yaml) (reusable deprecation marker)
 - Writing agent-runtime hooks (pre-tool-use, pre-commit, on-stop) → [Agent-runtime hooks](#agent-runtime-hooks) section below + [`docs/runtime-hook-contract.md`](./docs/runtime-hook-contract.md) + [`reference-implementations/hooks-claude-code/`](./reference-implementations/hooks-claude-code/)
 

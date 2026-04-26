@@ -6,6 +6,71 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-04-26
+
+This release applies the L1+ recommendations from the over-design audit (Phase 2 of two; Phase 1 shipped as 1.19.1). It demotes `validator-node` from first-class to community-maintained, and merges the three sibling per-surface discipline files into a single `docs/situational-disciplines.md`. Both are forced-Full per `mode-decision-tree.md §Canonical methodology content edit (L1+)`. Together these cut the implicit three-way validator-sync obligation and the three-file Tier-3 fragmentation the audit identified.
+
+### Removed
+
+- **`docs/operational-disciplines.md`** (60 lines), **`docs/implementation-disciplines.md`** (68 lines), **`docs/user-surface-disciplines.md`** (67 lines) — three sibling per-surface discipline files merged into `docs/situational-disciplines.md`. Section bodies preserved verbatim under three stable anchors (`#user-surface`, `#implementation-surface`, `#operational-surface`); cross-cutting concerns (security / performance / observability / testability / error handling / build-time risk) remain in [`docs/cross-cutting-concerns.md`](docs/cross-cutting-concerns.md) and are not duplicated. Five active consumers updated: `docs/principles.md` line 111, `docs/README.md` Tier 3 table, `docs/onboarding/orientation.md` §Per-surface disciplines, `docs/adoption-anti-metrics.md` §See also, `schemas/change-manifest.schema.yaml §handoff_narrative` description (regenerated `schemas/change-manifest.schema.json` in lockstep). Historical `ROADMAP.md` references in P2 (lines 113, 120) describe past audit work and are preserved verbatim per `CLAUDE.md §3`.
+
+### Changed
+
+- **`reference-implementations/validator-node/` → `reference-implementations/community/validator-node/`** — moved verbatim with all source, tests, fixtures, package.json, and tsconfig.json intact. The implementation is preserved for users who already depend on it; rule parity with `validator-python/` is no longer guaranteed by this repository's CI. README header rewritten to declare community-maintained status; relative paths updated for the new depth (`../validator-python/` → `../../validator-python/`; `../../docs/` → `../../../docs/`; CLI snippets `../../schemas/` → `../../../schemas/`). All five active cite-by-name consumers updated: `AGENTS.md §File role map` (now distinguishes first-class `validator-{posix-shell,python}/` from community `community/validator-node/`), `AGENTS.md §Reference implementations` bullet, `README.md §Repository layout` directory tree, `README.md §When to look here` validator pointer, `reference-implementations/re-entry-trigger/README.md §Integration with validators`, `reference-implementations/INVENTORY.md` (new §Validator classes section replaces the §Validator parity note added in 1.19.1).
+- **`reference-implementations/INVENTORY.md`** — new §Validator classes section replaces the 1.19.1 §Validator parity note. First-class references (`validator-posix-shell`, `validator-python`) and the community-maintained reference (`community/validator-node`) are now listed in separate tables with their respective trade-offs; total file count breakdown updated to reflect first-class (114) vs community-maintained (25) split.
+- **`.github/workflows/validate.yml` `validator-node-tests` job removed** — the previously-blocking `npm test` job at `reference-implementations/validator-node` is replaced with a comment block citing the demotion. Consistent with the demotion semantics: the community label means rule parity with the canonical algorithm is no longer guaranteed by this repository's CI; adopters are responsible for running the bundled `tests/` against their own manifests. No `needs:` consumer existed; removing the job has no transitive impact on other CI jobs.
+
+### Added
+
+- **`docs/situational-disciplines.md`** — the merged per-surface disciplines file. Three sections (`#user-surface`, `#implementation-surface`, `#operational-surface`) with stable anchors. Top-of-file TL;DR explains the merge structure and routes readers to the section that matches their change. Each section keeps its own "When this section applies" trigger list, observation axes, and review checklist. The activate-only-what-applies routing principle from the original three files is preserved by keeping the sections independently readable.
+
+### Migration notes
+
+- **External consumers citing the three deleted disciplines files by exact path must update** to anchored sections in `docs/situational-disciplines.md`:
+  - `docs/operational-disciplines.md` → `docs/situational-disciplines.md#operational-surface`
+  - `docs/implementation-disciplines.md` → `docs/situational-disciplines.md#implementation-surface`
+  - `docs/user-surface-disciplines.md` → `docs/situational-disciplines.md#user-surface`
+- **External consumers using `reference-implementations/validator-node/`** should either:
+  - Update their CI / scripts to `reference-implementations/community/validator-node/`; the implementation is byte-identical at the time of the move. The community label means future rule-semantics changes in `docs/automation-contract-algorithm.md` may not be reflected here, so adopters should run the bundled `tests/` against new spec versions.
+  - Migrate to `reference-implementations/validator-python/` (the first-class language-native reference). The two were declared functionally equivalent in 1.19.1; fixtures are byte-for-byte equal.
+- **No code migration required** for users of `validator-posix-shell/` or `validator-python/`; those remain unchanged.
+- **Schema description string change** (`handoff_narrative.description` in `change-manifest.schema.yaml`) only updates the doc-pointer URL within the description; no field semantics change. Existing manifests validate identically.
+
+### Why minor, not patch
+
+This release contains **L1+ canonical methodology content edits** — the three deleted disciplines files were canonical SoT files cited by name from `docs/principles.md`, `docs/README.md`, `docs/onboarding/orientation.md`, `docs/adoption-anti-metrics.md`, and the schema; the validator move changed a path that `AGENTS.md §File role map`, `README.md`, and the re-entry-trigger reference all hardcoded. Per `mode-decision-tree.md §Scenarios that force Full → Canonical methodology content edit (L1+)`, both are forced-Full triggers requiring a minor bump. Bundled per `docs/cross-change-knowledge.md`: pay the cross-change cognitive cost once per release rather than spreading two L1+ edits across two minor releases.
+
+### Why this release closes two over-design clusters
+
+**Cluster 1 — implicit three-way validator-sync obligation.** Before this release, `validator-posix-shell`, `validator-python`, and `validator-node` were all listed as first-class in `INVENTORY.md` and `AGENTS.md §File role map`. The `validator-python` and `validator-node` implementations were functionally equivalent (same rule IDs, same exit codes, byte-for-byte fixtures), which the 1.19.1 release explicitly declared. Maintaining all three in lock-step on every rule-semantics change was a real cost; the audit identified this as the largest single duplication in the repo. 1.20.0 acts on the 1.19.1 declaration by formally selecting `validator-python` as the first-class language-native reference and demoting `validator-node` to community-maintained — preserved for users who depend on it, but no longer carrying an official sync obligation.
+
+**Cluster 2 — Tier-3 fragmentation.** The three sibling per-surface discipline files were 60–68 lines each; each cross-referenced the other two as "Companion to". A reader picking the right discipline had to scan three files to find the section that applied. The merge into a single file with three stable anchors keeps the activate-only-what-applies routing principle (each section is independently consumable) while letting `Ctrl+F` find the right section in one place. Cross-references in the four active consumers were updated in this commit; CI's `internal-links` gate verifies no consumer was missed.
+
+### Tool-agnostic discipline
+
+The merged `situational-disciplines.md` introduces no new normative content — section bodies are preserved verbatim from the three predecessor files. The validator demotion introduces no new normative validator-class taxonomy beyond the "first-class vs community-maintained" distinction documented in `INVENTORY.md §Validator classes`; the `community/` directory pattern matches the standard reference-implementations classification rather than introducing a new architectural layer.
+
+## [1.19.1] - 2026-04-26
+
+This release applies the lowest-risk recommendations from an over-design audit (Phase 1 of two). It removes four stub reference files whose content already lived inline in canonical parent files, adds a routing index for `docs/examples/`, surfaces the `validator-python` ↔ `validator-node` equivalence in `INVENTORY.md`, and codifies a CHANGELOG entry style guide in `CONTRIBUTING.md`. No normative content changes; no schema changes; no glossary terms added or renamed.
+
+### Removed
+
+- **`skills/engineering-workflow/references/core-principles.md`** (10 lines) — content was a subset of `skills/engineering-workflow/SKILL.md §Core operating principles` (the SKILL.md version covers 10 principles vs the stub's 8). The "Quick refresher" pointer in SKILL.md is dropped; the surviving cross-reference in `docs/phase-gate-discipline.md` line 11 now points at `SKILL.md §Core operating principles` instead of the deleted stub.
+- **`skills/engineering-workflow/references/cross-cutting-quick-check.md`** (10 lines) — content was a subset of `SKILL.md §Cross-cutting rule`. SKILL.md absorbed the stub's "error handling" cross-cutting concern (it previously listed only Security / Performance / Observability / Testability) and the explicit prompts under each item. The two "Quick reference" pointers to the stub are removed.
+- **`skills/engineering-workflow/references/phase8-trigger-guide.md`** (11 lines) — content was a subset of `docs/post-delivery-observation.md §Phase 8 is not mandatory`. Five cross-references repointed at the canonical SoT: `docs/multi-agent-handoff.md` line 393, `docs/phase-command-vocabulary.md` line 60, `skills/engineering-workflow/references/long-running-delegation.md` lines 24 / 157 / 215. SKILL.md §Phase 8 trigger pointer is now `docs/post-delivery-observation.md` directly.
+- **`skills/engineering-workflow/phases/debugging-process.md`** (10 lines) — content was inlined into `skills/engineering-workflow/phases/phase4-implement.md` as a new `## Built-in debugging process` section between `## Built-in steps` and `## Rules`. The stub's "Supplement" pointer in SKILL.md §Phase 4 is dropped; the SKILL.md description now notes the debugging process is included in `phase4-implement.md`.
+
+### Added
+
+- **`docs/examples/README.md`** — routing index for the 16 worked examples under `docs/examples/`. Three tables route by **scenario type** (generic / bugfix / refactor / migration / mobile-offline), **domain** (game-dev / live-ops / ML / data-pipeline / firmware), and **stack** (Flutter / Android-Kotlin / iOS-Swift / React-Next.js / Ktor / Unity, each linked to its bridge under `docs/bridges/`). A trailing section cross-references the six worked-example manifests under `skills/engineering-workflow/templates/manifests/`. Closes the discoverability gap identified by the audit: previously a reader opening `docs/examples/` saw 16 sibling files with no priority signal.
+- **`reference-implementations/INVENTORY.md` §Validator parity note (1.19.1)** — explicit declaration that `validator-python/` and `validator-node/` are functionally equivalent parallel implementations (same rule-ID coverage, same exit-code contract, same default cache-file shape, fixtures byte-for-byte equal). Adopters need only one. A picker table contrasts the two by ecosystem fit (Python/ML vs JS/TS/web) and runtime cost (~400 ms vs ~200 ms). `validator-posix-shell/` is explicitly noted as covering a different niche (zero-runtime-dep portability with the documented Layer-2 / Layer-3 coverage gap).
+- **`CONTRIBUTING.md` §CHANGELOG entry style** — codifies the entry style implicit in 1.16.0 onward. Required sections (`Added` / `Changed` / `Removed` / `Fixed`) plus conditional-only sections (`Why minor / patch`, `Tool-agnostic discipline`, `Migration notes`, `Bootstrap exception`). `Why minor / patch` capped at 4 lines. Historical entries remain factual records per `CLAUDE.md §3` — the style guide applies to new entries only.
+
+### Why patch, not minor
+
+No canonical methodology change; no schema change; no glossary term added or renamed; no normative rule introduced. The four removed files were each a strict subset of canonical content living elsewhere — deletion recovers an authoring duplicate rather than changing a contract. The added files are non-normative routing / inventory / contributor-guidance material. Patch-category match: `VERSIONING.md` *"reference-implementation hardening"* + *"discoverability improvement"*. Backward-compatible for any external consumer that did not deep-link into the four deleted stubs; the `internal-links` CI gate added in 1.19.0 verifies this repo's own consumers were repointed in this commit.
+
 ## [1.19.0] - 2026-04-26
 
 This release bundles the repo audit's three milestones into a single minor: M1 (CI guardrails), M2 (navigability), and M3 (canonical-doc restructure + L1+ file relocation). The minor bump is driven by M3's L1+ changes — the canonical `docs/change-manifest-spec.md` and `docs/source-of-truth-patterns.md` were restructured (with content extracted to companion files), and the `templates/` directory was moved into `skills/engineering-workflow/templates/manifests/`. Together these change the **shape** of the canonical SoT layer that every consumer cites, even though no normative rule changed.

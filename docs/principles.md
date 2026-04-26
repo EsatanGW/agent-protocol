@@ -108,7 +108,7 @@ Therefore: Phase 2 / Phase 3 must decide the form of verification and evidence b
 
 Therefore: the minimum definition of done is surface coverage ✅ + evidence ✅ + handoff narrative ✅.
 
-> See also: `operational-disciplines.md`, Phase 6–7.
+> See also: [`situational-disciplines.md §Operational surface`](situational-disciplines.md#operational-surface), Phase 6–7.
 
 ---
 

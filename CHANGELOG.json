@@ -1,6 +1,123 @@
 {
   "releases": [
     {
+      "version": "1.20.0",
+      "date": "2026-04-26",
+      "sections": {
+        "removed": [
+          {
+            "title": "`docs/operational-disciplines.md`",
+            "body": "(60 lines), **`docs/implementation-disciplines.md`** (68 lines), **`docs/user-surface-disciplines.md`** (67 lines) — three sibling per-surface discipline files merged into `docs/situational-disciplines.md`. Section bodies preserved verbatim under three stable anchors (`#user-surface`, `#implementation-surface`, `#operational-surface`); cross-cutting concerns (security / performance / observability / testability / error handling / build-time risk) remain in [`docs/cross-cutting-concerns.md`](docs/cross-cutting-concerns.md) and are not duplicated. Five active consumers updated: `docs/principles.md` line 111, `docs/README.md` Tier 3 table, `docs/onboarding/orientation.md` §Per-surface disciplines, `docs/adoption-anti-metrics.md` §See also, `schemas/change-manifest.schema.yaml §handoff_narrative` description (regenerated `schemas/change-manifest.schema.json` in lockstep). Historical `ROADMAP.md` references in P2 (lines 113, 120) describe past audit work and are preserved verbatim per `CLAUDE.md §3`."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`reference-implementations/validator-node/` → `reference-implementations/community/validator-node/`",
+            "body": "moved verbatim with all source, tests, fixtures, package.json, and tsconfig.json intact. The implementation is preserved for users who already depend on it; rule parity with `validator-python/` is no longer guaranteed by this repository's CI. README header rewritten to declare community-maintained status; relative paths updated for the new depth (`../validator-python/` → `../../validator-python/`; `../../docs/` → `../../../docs/`; CLI snippets `../../schemas/` → `../../../schemas/`). All five active cite-by-name consumers updated: `AGENTS.md §File role map` (now distinguishes first-class `validator-{posix-shell,python}/` from community `community/validator-node/`), `AGENTS.md §Reference implementations` bullet, `README.md §Repository layout` directory tree, `README.md §When to look here` validator pointer, `reference-implementations/re-entry-trigger/README.md §Integration with validators`, `reference-implementations/INVENTORY.md` (new §Validator classes section replaces the §Validator parity note added in 1.19.1)."
+          },
+          {
+            "title": "`reference-implementations/INVENTORY.md`",
+            "body": "new §Validator classes section replaces the 1.19.1 §Validator parity note. First-class references (`validator-posix-shell`, `validator-python`) and the community-maintained reference (`community/validator-node`) are now listed in separate tables with their respective trade-offs; total file count breakdown updated to reflect first-class (114) vs community-maintained (25) split."
+          },
+          {
+            "title": "`.github/workflows/validate.yml` `validator-node-tests` job removed",
+            "body": "the previously-blocking `npm test` job at `reference-implementations/validator-node` is replaced with a comment block citing the demotion. Consistent with the demotion semantics: the community label means rule parity with the canonical algorithm is no longer guaranteed by this repository's CI; adopters are responsible for running the bundled `tests/` against their own manifests. No `needs:` consumer existed; removing the job has no transitive impact on other CI jobs."
+          }
+        ],
+        "added": [
+          {
+            "title": "`docs/situational-disciplines.md`",
+            "body": "the merged per-surface disciplines file. Three sections (`#user-surface`, `#implementation-surface`, `#operational-surface`) with stable anchors. Top-of-file TL;DR explains the merge structure and routes readers to the section that matches their change. Each section keeps its own \"When this section applies\" trigger list, observation axes, and review checklist. The activate-only-what-applies routing principle from the original three files is preserved by keeping the sections independently readable."
+          }
+        ],
+        "notes": [
+          {
+            "title": "External consumers citing the three deleted disciplines files by exact path must update",
+            "body": "to anchored sections in `docs/situational-disciplines.md`:",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "`docs/operational-disciplines.md` → `docs/situational-disciplines.md#operational-surface`",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "`docs/implementation-disciplines.md` → `docs/situational-disciplines.md#implementation-surface`",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "`docs/user-surface-disciplines.md` → `docs/situational-disciplines.md#user-surface`",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External consumers using `reference-implementations/validator-node/`",
+            "body": "should either:",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "Update their CI / scripts to `reference-implementations/community/validator-node/`; the implementation is byte-identical at the time of the move. The community label means future rule-semantics changes in `docs/automation-contract-algorithm.md` may not be reflected here, so adopters should run the bundled `tests/` against new spec versions.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": null,
+            "body": "Migrate to `reference-implementations/validator-python/` (the first-class language-native reference). The two were declared functionally equivalent in 1.19.1; fixtures are byte-for-byte equal.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "No code migration required",
+            "body": "for users of `validator-posix-shell/` or `validator-python/`; those remain unchanged.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Schema description string change",
+            "body": "(`handoff_narrative.description` in `change-manifest.schema.yaml`) only updates the doc-pointer URL within the description; no field semantics change. Existing manifests validate identically.",
+            "subsection": "migration notes"
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.19.1",
+      "date": "2026-04-26",
+      "sections": {
+        "removed": [
+          {
+            "title": "`skills/engineering-workflow/references/core-principles.md`",
+            "body": "(10 lines) — content was a subset of `skills/engineering-workflow/SKILL.md §Core operating principles` (the SKILL.md version covers 10 principles vs the stub's 8). The \"Quick refresher\" pointer in SKILL.md is dropped; the surviving cross-reference in `docs/phase-gate-discipline.md` line 11 now points at `SKILL.md §Core operating principles` instead of the deleted stub."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/cross-cutting-quick-check.md`",
+            "body": "(10 lines) — content was a subset of `SKILL.md §Cross-cutting rule`. SKILL.md absorbed the stub's \"error handling\" cross-cutting concern (it previously listed only Security / Performance / Observability / Testability) and the explicit prompts under each item. The two \"Quick reference\" pointers to the stub are removed."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/phase8-trigger-guide.md`",
+            "body": "(11 lines) — content was a subset of `docs/post-delivery-observation.md §Phase 8 is not mandatory`. Five cross-references repointed at the canonical SoT: `docs/multi-agent-handoff.md` line 393, `docs/phase-command-vocabulary.md` line 60, `skills/engineering-workflow/references/long-running-delegation.md` lines 24 / 157 / 215. SKILL.md §Phase 8 trigger pointer is now `docs/post-delivery-observation.md` directly."
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/debugging-process.md`",
+            "body": "(10 lines) — content was inlined into `skills/engineering-workflow/phases/phase4-implement.md` as a new `## Built-in debugging process` section between `## Built-in steps` and `## Rules`. The stub's \"Supplement\" pointer in SKILL.md §Phase 4 is dropped; the SKILL.md description now notes the debugging process is included in `phase4-implement.md`."
+          }
+        ],
+        "added": [
+          {
+            "title": "`docs/examples/README.md`",
+            "body": "routing index for the 16 worked examples under `docs/examples/`. Three tables route by **scenario type** (generic / bugfix / refactor / migration / mobile-offline), **domain** (game-dev / live-ops / ML / data-pipeline / firmware), and **stack** (Flutter / Android-Kotlin / iOS-Swift / React-Next.js / Ktor / Unity, each linked to its bridge under `docs/bridges/`). A trailing section cross-references the six worked-example manifests under `skills/engineering-workflow/templates/manifests/`. Closes the discoverability gap identified by the audit: previously a reader opening `docs/examples/` saw 16 sibling files with no priority signal."
+          },
+          {
+            "title": "`reference-implementations/INVENTORY.md` §Validator parity note (1.19.1)",
+            "body": "explicit declaration that `validator-python/` and `validator-node/` are functionally equivalent parallel implementations (same rule-ID coverage, same exit-code contract, same default cache-file shape, fixtures byte-for-byte equal). Adopters need only one. A picker table contrasts the two by ecosystem fit (Python/ML vs JS/TS/web) and runtime cost (~400 ms vs ~200 ms). `validator-posix-shell/` is explicitly noted as covering a different niche (zero-runtime-dep portability with the documented Layer-2 / Layer-3 coverage gap)."
+          },
+          {
+            "title": "`CONTRIBUTING.md` §CHANGELOG entry style",
+            "body": "codifies the entry style implicit in 1.16.0 onward. Required sections (`Added` / `Changed` / `Removed` / `Fixed`) plus conditional-only sections (`Why minor / patch`, `Tool-agnostic discipline`, `Migration notes`, `Bootstrap exception`). `Why minor / patch` capped at 4 lines. Historical entries remain factual records per `CLAUDE.md §3` — the style guide applies to new entries only."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.19.0",
       "date": "2026-04-26",
       "sections": {

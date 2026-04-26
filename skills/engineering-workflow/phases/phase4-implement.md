@@ -24,6 +24,21 @@ Execute the approved plan, and run appropriate verification on every affected su
 3. Complete verification.
 4. Collect evidence.
 
+## Built-in debugging process
+
+When a TC fails or unexpected behavior surfaces during implementation:
+
+1. Read failure output fully.
+2. Reproduce consistently.
+3. Check recent changes.
+4. Trace the bad value / bad state backward.
+5. Find working references.
+6. Form one hypothesis at a time.
+7. Make the smallest testable fix.
+8. Verify fix + no adjacent regressions.
+
+After three failures of the same category, stop and re-examine the approach instead of stacking more patches (see [`fix-retest-loop.md`](./fix-retest-loop.md)).
+
 ## Rules
 
 - Do not verify only the surface you're most familiar with.

@@ -1477,7 +1477,7 @@
     },
     "handoff_narrative": {
       "type": "string",
-      "description": "Free-form human-readable summary for the next operator: what shipped,\nhow to observe it, residual risks, rollback trigger. See docs/operational-disciplines.md.\n"
+      "description": "Free-form human-readable summary for the next operator: what shipped,\nhow to observe it, residual risks, rollback trigger. See docs/situational-disciplines.md#operational-surface.\n"
     },
     "knowledge_notes_touched": {
       "type": "array",
