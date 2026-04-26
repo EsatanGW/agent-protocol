@@ -203,6 +203,18 @@ Bridge-level implementations **may** name specific tools (that is precisely why 
 - **Covert bypass:** `[skip ci]` / `--no-verify` used routinely → immediately add to counter-metric monitoring (see `adoption-strategy.md`).
 - **AI self-waivers:** AI sees red, adds a waiver, merges → violates `ai-operating-contract.md` §5; must escalate to a human.
 
+### Stack-level numerical thresholds (non-normative note)
+
+Adopting numerical thresholds — coverage percentages, performance budgets, mutation-test scores, allowable error rates — is a **stack-level decision**, not a methodology-level one. The methodology layer pins *that* evidence is required (per surface, with severity) and *that* missing critical evidence blocks ship; it does not pin *what number* counts as acceptable on any given stack.
+
+If a bridge does adopt thresholds:
+
+- Declare them in the bridge's stack file (`docs/bridges/<stack>-stack-bridge.md`), not in this document. Stack files are the only place specific tools and numbers may be named.
+- Reflect them in `evidence_plan[*].acceptance` (or in the `summary` of the relevant `tier: critical` row, citing the threshold) so the manifest itself stays auditable: a reviewer should not have to read the bridge file to know what number was being measured against.
+- Tier the threshold honestly — if missing the threshold blocks ship, the row is `tier: critical`; if it would only trigger a residual-risk discussion, it is `tier: standard`. Inflating `critical` for non-blocking thresholds drains the tier of meaning (see Anti-patterns above on over-automation).
+
+A bridge that adopts thresholds without recording them in the manifest creates an out-of-band gate the next session cannot see; that is the same shape as the silent-skipping anti-pattern, just with a different surface.
+
 ---
 
 ## Relationship to other documents

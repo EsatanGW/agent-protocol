@@ -60,7 +60,7 @@ AI memory splits into three tiers, differing in origin, lifespan, and intended u
 
 - When taking over a task, **first** read the relevant historical manifests from project memory before starting work (`resumption-protocol.md`).
 - A new decision that contradicts a historical manifest must be **explicitly flagged** — not silently overwritten.
-- The format of the project-memory index (e.g. `.ai-memory/index.md` or equivalent) is chosen by the project bridge — this document only requires that it "exists."
+- The format of the project-memory index (e.g. `.ai-memory/index.md` or equivalent) is chosen by the project bridge — this document only requires that it "exists." A non-mandatory layout sketch by *role* (active manifests, retired manifests, CCKN, completion reports, escalation log, supervision log) is given in §Recommended on-disk layout (non-mandatory) below; concrete bridge examples live in [`docs/bridges/project-memory-layout-examples.md`](bridges/project-memory-layout-examples.md).
 
 ### Tier 3: Organizational memory (long term)
 
@@ -232,6 +232,46 @@ This methodology **does require**:
 4. **Memory is traceable** — every entry records "who wrote it, when, and why."
 
 Actual implementation is left to each runtime / stack bridge.
+
+---
+
+## Recommended on-disk layout (non-mandatory)
+
+This section is **non-normative**. The runtime requirements above are the binding contract; what follows is a layout sketch that several stack bridges have converged on, organized by the **role** each subdirectory plays. The directory *name* is a runtime / bridge choice — what is pinned here is the role split.
+
+A bridge that adopts a different layout is fully compliant as long as the four runtime requirements (writable, retrievable, versioned, traceable) hold.
+
+### Role-based subdirectories
+
+| Subdirectory role | What it holds | Memory tier |
+|---|---|---|
+| Active manifests | Change Manifests with `status` ∈ {`draft`, `in_progress`, `delivered`} that are still being acted on or observed (Phase 8 not yet closed). One file per `change_id`. | Tier 2 |
+| Retired manifests | Change Manifests with `status: retired` (delivered + observation closed, or superseded). Read for historical context; not active references. | Tier 2 |
+| Cross-Change Knowledge Notes (CCKN) | Topical notes per [`docs/cross-change-knowledge.md`](cross-change-knowledge.md). Referenced from active manifests; staleness model differs from manifest history. | Tier 2 (adjacent) |
+| Completion reports | Phase 7 reports per [`skills/engineering-workflow/templates/completion-report-template.md`](../skills/engineering-workflow/templates/completion-report-template.md). One per delivered manifest. | Tier 2 |
+| Escalation log | Append-only record of escalations (`change_id`, trigger, resolution, resolver, timestamp) drawn from `escalations[]` entries across all manifests. Lets the next session see "what has been escalated and how was it resolved" without scanning every manifest. | Tier 2 (index) |
+| Supervision log | Append-only record of long-running sub-agent / multi-worker delegations: `keep / discard / stop` decisions per [`skills/engineering-workflow/references/long-running-delegation.md`](../skills/engineering-workflow/references/long-running-delegation.md). Distinct from the escalation log because supervision is about *which exploratory branches were retained* rather than which decisions needed human judgment. | Tier 2 (index) |
+| Index | Top-level `index.md` (or equivalent) that points at the above subdirectories and gives a session a one-file overview of project memory. | Tier 2 (entry point) |
+
+### Why role split, not directory dictate
+
+A bridge that pins the *names* (`.foo-memory/active/`, `.foo-memory/retired/`) over-constrains downstream projects whose existing repo conventions clash with the chosen names. A bridge that pins the *roles* lets each project map roles to whatever directory structure already exists — a monorepo may collapse all six roles into one directory with naming prefixes; a polyrepo may scatter them across per-repo directories with a federated index; a Git LFS-friendly project may segregate large evidence artifacts under a separate prefix while keeping role identity through metadata.
+
+Concrete examples — including the three patterns above — are in [`docs/bridges/project-memory-layout-examples.md`](bridges/project-memory-layout-examples.md).
+
+### Retention and decay
+
+Layout choice does not relax the memory-decay discipline (see §Memory decay above). Specifically:
+
+- Retiring a manifest is a *status flip*, not a directory move. A bridge that uses a separate "retired" directory must perform the move atomically with the status flip; otherwise drift between filesystem location and `status` field becomes a SoT contradiction.
+- Escalation- and supervision-log entries are append-only. A bridge that compacts them must preserve the original entry in an archive, not silently delete.
+- The index is regenerated on demand. Bridges should not require humans to hand-edit the index — the four runtime requirements (writable, retrievable, versioned, traceable) imply the index is derivable from the manifests themselves.
+
+### What this section does not specify
+
+- A directory name. Pick one that fits your repo's conventions.
+- A storage backend. Filesystem, key-value store, vector DB, RAG, MCP server — any backend that satisfies the runtime requirements is conformant.
+- An access protocol. Whether project memory is read via shell, MCP tool calls, or HTTP API is a runtime decision; this layout sketch describes *what is stored*, not *how it is read*.
 
 ---
 
