@@ -227,7 +227,7 @@ The table above lists **installation entry points** per runtime. This map classi
 |---|---|---|
 | `AGENTS.md` (this file) | SoT — operating contract (the 8 core rules above) | Canonical; all runtimes inherit from here |
 | `docs/multi-agent-handoff.md` | SoT — role contract (Planner / Implementer / Reviewer definitions, field-ownership matrix, tool-permission matrix, anti-collusion, handoff minima) | Canonical for multi-agent discipline; `agents/`, `.cursor/rules/`, `reference-implementations/roles/` all point back here |
-| `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `glossary.md`, …) | Canonical per topic; referenced from the contracts above |
+| `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `glossary.md`, `phase-command-vocabulary.md`, …) | Canonical per topic; referenced from the contracts above |
 | `skills/engineering-workflow/SKILL.md` + `skills/**` | SoT — execution layer (modes, phases, templates, references) | Canonical for workflow execution |
 | `schemas/**` + `templates/**` | SoT — machine-readable Change Manifest contract + worked examples | Canonical structural output |
 | `CLAUDE.md` | Thin-bridge — Claude Code entry; points at `AGENTS.md` + `skills/` | Onboarding only, no new normative content |

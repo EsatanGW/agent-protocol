@@ -21,6 +21,10 @@ This repository provides a tool-agnostic engineering workflow plugin. The runtim
 
 This plugin names **capability categories** (file read, code search, shell execution, sub-agent delegation). Map each to whatever Windsurf provides at runtime.
 
+## Phase command vocabulary
+
+Runtime-neutral aliases for phase / role / specialist invocations live in `docs/phase-command-vocabulary.md`. Bridges may surface them as Cascade mode names or persona-prompt prefixes; consult that file for the alias_id → canonical-tuple mapping.
+
 ## Multi-agent role separation (Full mode)
 
 For non-trivial changes, `AGENTS.md` §7 defines three role identities with enforced tool-permission matrices:

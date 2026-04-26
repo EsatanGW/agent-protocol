@@ -26,6 +26,10 @@ This repository provides a tool-agnostic engineering workflow plugin. The runtim
 
 The skill names **capability categories** (file read, code search, shell execution, sub-agent delegation). Map each to the Cursor runtime equivalent. Do not hardcode tool names.
 
+## Phase command vocabulary
+
+Runtime-neutral aliases for phase / role / specialist invocations live in `docs/phase-command-vocabulary.md`. Cursor may surface them as Custom Mode names; consult that file for the alias_id → canonical-tuple mapping.
+
 ## Multi-agent role separation (Full mode)
 
 For non-trivial changes, `AGENTS.md` §7 defines three role identities with enforced tool-permission matrices:

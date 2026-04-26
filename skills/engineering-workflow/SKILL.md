@@ -150,6 +150,8 @@ For mode selection, go to [`references/mode-decision-tree.md`](references/mode-d
 This skill names **capability categories**, not specific tool names.
 Map each category to whatever the current agent runtime provides.
 
+Runtime bridges may also expose each phase as a named command (slash command, Custom Mode, persona prompt, prompt prefix). The runtime-neutral alias registry — `clarify`, `investigate`, `plan`, `testplan`, `implement`, `review`, `signoff`, `deliver`, `observe`, plus role-bound variants like `plan-as-architect` and `review-as-security` — lives in [`../../docs/phase-command-vocabulary.md`](../../docs/phase-command-vocabulary.md). Bridges map alias_ids to their own command surface; this skill defines the underlying phase semantics.
+
 ### Clarify
 Prioritize capabilities:
 - File read

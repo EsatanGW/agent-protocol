@@ -203,6 +203,12 @@ Some runtimes expose an **invocation handle** (identifier, address, or similar) 
 
 Canonical reference: `reference-implementations/roles/role-composition-patterns.md` §Shape of a composition → §Invocation lifecycle.
 
+### Phase command alias
+
+A runtime-neutral identifier registered in `docs/phase-command-vocabulary.md` that maps a methodology phase + canonical role + (optional) specialist + mode constraint to a single name a runtime bridge can surface. Aliases use existing names from `skills/engineering-workflow/phases/` (phase names), `docs/multi-agent-handoff.md` (canonical role names), `reference-implementations/roles/specialist-roles-registry.md` (specialist names), and `docs/glossary.md` §Execution mode (mode names) — the alias registry assembles them, never invents them.
+
+Aliases have no runtime-specific syntax (no `$verb`, no `/verb`, no `--verb`). Each runtime bridge translates an alias into its native command surface (slash command, Custom Mode, persona prompt, prompt prefix); the alias_id and its canonical tuple stay constant across bridges so user behavior is consistent. An alias whose phase / role / specialist does not exist in the source documents above is an invalid registration. Canonical reference: `docs/phase-command-vocabulary.md`.
+
 ### Specialist sub-agent role
 
 A **named, pre-registered** non-canonical sub-agent role with a stable parent canonical role, a fixed composition pattern from `reference-implementations/roles/role-composition-patterns.md` (typically Pattern 1, 2, 4, 5, or 6), an envelope inherited from the parent's row in `docs/multi-agent-handoff.md` §Tool-permission matrix, and a fixed output slot in the manifest (`parallel_groups[*]`, `review_notes[*]` synthesized by parent, `implementation_notes[*]` synthesized by parent, or a CCKN reference). Examples: `architect` under Planner, `security-reviewer` under Reviewer, `performance-reviewer` under Reviewer.
