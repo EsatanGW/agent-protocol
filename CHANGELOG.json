@@ -18,6 +18,10 @@
           {
             "title": "`reference-implementations/INVENTORY.md`",
             "body": "new §Validator classes section replaces the 1.19.1 §Validator parity note. First-class references (`validator-posix-shell`, `validator-python`) and the community-maintained reference (`community/validator-node`) are now listed in separate tables with their respective trade-offs; total file count breakdown updated to reflect first-class (114) vs community-maintained (25) split."
+          },
+          {
+            "title": "`.github/workflows/validate.yml` `validator-node-tests` job removed",
+            "body": "the previously-blocking `npm test` job at `reference-implementations/validator-node` is replaced with a comment block citing the demotion. Consistent with the demotion semantics: the community label means rule parity with the canonical algorithm is no longer guaranteed by this repository's CI; adopters are responsible for running the bundled `tests/` against their own manifests. No `needs:` consumer existed; removing the job has no transitive impact on other CI jobs."
           }
         ],
         "added": [

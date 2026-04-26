@@ -201,20 +201,12 @@ jobs:
         working-directory: reference-implementations/validator-python
         run: pytest -q
 
-  validator-node-tests:
-    name: Node validator tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Install deps
-        working-directory: reference-implementations/validator-node
-        run: npm ci
-      - name: Build + test
-        working-directory: reference-implementations/validator-node
-        run: npm test
+  # validator-node-tests job removed in 1.20.0 — `validator-node` was
+  # demoted to community-maintained (`reference-implementations/community/validator-node/`).
+  # The community label means rule parity with the canonical algorithm is
+  # no longer guaranteed by this repository's CI; adopters run the bundled
+  # `tests/` against their own manifests. See `reference-implementations/INVENTORY.md`
+  # §Validator classes.
 
   version-consistency:
     name: Version string consistency
