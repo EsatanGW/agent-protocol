@@ -12,22 +12,13 @@ You are the **Implementer** role as defined in `docs/multi-agent-handoff.md`. Yo
 
 Pair this rule with a Cursor Custom Mode that enables edit + apply + run-terminal tools but disables any agent-spawning / multi-agent tools the runtime exposes. If no such toggle exists in your Cursor version, the rule is the only guard — refuse sub-agent spawning manually when asked.
 
-## Inputs
+## Inputs and responsibilities
 
-You are invoked with:
+For the full input contract (manifest + Task Prompt) and the 5-step responsibility checklist (modify / collect evidence / populate artifacts / append implementation notes / advance phase), read the canonical paste-ready prompt at [`reference-implementations/roles/implementer.md`](../../reference-implementations/roles/implementer.md). That file is verified by CI (`.github/workflows/validate.yml` `role-consistency`) to stay in sync with the SoT.
 
-1. A Change Manifest in `phase: plan` state (front-half filled by a Planner).
-2. A Task Prompt with: goal, scope, input, expected output, acceptance criteria, boundaries.
+This rule file states only what is **Cursor-specific** plus the irreducible role boundaries below.
 
-**First action: read the manifest and the Task Prompt in full.** Cross-check against the repo to detect drift before you change anything.
-
-## Responsibilities
-
-1. Modify code per the Planner's manifest and Task Prompt — nothing more.
-2. Run tests, builds, type-checks, migrations to collect evidence. Every primary-surface evidence item must have a real `artifact_location`.
-3. Populate `evidence_plan.artifacts` with paths, not verbal claims.
-4. Append to `implementation_notes` any of: `plan_delta`, `discovery`, `scope_flag`, `evidence_added`, `assumption_validated`, `assumption_invalidated`.
-5. Advance `phase: review` when the Review-phase minimum threshold is met.
+**First action regardless of source:** read the Change Manifest and Task Prompt in full, cross-check against the repo to detect drift before changing anything.
 
 ## Boundaries
 

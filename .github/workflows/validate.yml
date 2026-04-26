@@ -100,6 +100,39 @@ jobs:
       - name: Validate implementation_clusters scope_files are pair-wise disjoint
         run: python3 .github/scripts/validate-cluster-disjointness.py
 
+  legacy-terms:
+    name: Retired-vocabulary block
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Block re-introduction of retired aliases (per docs/glossary.md §Note on legacy names)
+        run: python3 .github/scripts/check-legacy-terms.py
+
+  role-consistency:
+    name: Multi-agent role-contract consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify role invariants in SoT + 9 runtime mirrors (Claude Code / Cursor / Gemini CLI / Windsurf / Codex)
+        run: python3 .github/scripts/check-role-consistency.py
+
+  internal-links:
+    name: Markdown internal-link integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fail if any *.md has a broken relative link (offline-only check; external URLs skipped)
+        run: python3 .github/scripts/check-internal-links.py
+
   hooks-shellcheck:
     name: Hook bundle shellcheck
     runs-on: ubuntu-latest

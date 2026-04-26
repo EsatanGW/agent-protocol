@@ -41,7 +41,7 @@ Rationale for the surfaces checked (one sentence each is enough):
      If you changed it, did you update every consumer the repo references? -->
 
 - SoT file(s): `docs/…` / `schemas/…` / `skills/…`
-- Consumer updates in this PR: `docs/…`, `templates/…`, `reference-implementations/…`
+- Consumer updates in this PR: `docs/…`, `skills/engineering-workflow/templates/…`, `reference-implementations/…`
 - Known consumers NOT updated and why: 
 
 ## Evidence

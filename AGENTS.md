@@ -11,7 +11,7 @@ A **tool-agnostic engineering workflow plugin** that can be installed into any A
 
 - A **methodology** for understanding and delivering system changes (`docs/`)
 - An **execution layer** that translates the methodology into a runnable workflow with **four execution modes** (Zero-ceremony / Three-line delivery / Lean / Full), trigger conditions, phase minimums, and artifact templates (`skills/`)
-- A **Change Manifest schema** so AI output can be structurally declared, human-reviewable, and CI-verifiable (`schemas/`, `templates/`)
+- A **Change Manifest schema** so AI output can be structurally declared, human-reviewable, and CI-verifiable (`schemas/`, with worked examples under `skills/engineering-workflow/templates/manifests/`)
 
 It is **not** a stack-specific style guide. It does not assume a language, framework, cloud, or model. Capabilities are named as categories (file read, code search, shell execution, sub-agent delegation) and mapped at runtime to whatever the host agent provides.
 
@@ -114,7 +114,7 @@ Three modes of use:
 
 Trivial changes (single-file typo, pure comment) are exempt. When uncertain, produce one.
 
-Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.example-*.yaml`
+Spec: `docs/change-manifest-spec.md` · Examples: `skills/engineering-workflow/templates/manifests/change-manifest.example-*.yaml`
 
 ---
 
@@ -160,11 +160,11 @@ Spec: `docs/change-manifest-spec.md` · Examples: `templates/change-manifest.exa
 - `schemas/change-manifest.schema.yaml` — JSON Schema 2020-12 (canonical YAML form, comments + anchors preserved)
 - `schemas/change-manifest.schema.json` — generated JSON mirror for Node / browser / GitHub Actions consumers; `.github/scripts/generate-schema-json.py --check` enforces parity in CI
 - `schemas/surface-map.schema.yaml` + `.json` — per-bridge surface-map artifact (same dual-format discipline)
-- `templates/change-manifest.example-crud.yaml` — simple CRUD example
-- `templates/change-manifest.example-mobile-offline.yaml` — offline-first mobile example
-- `templates/change-manifest.example-game-gacha.yaml` — live-ops game example
-- `templates/change-manifest.example-multi-agent-handoff.yaml` — Planner → Implementer → Reviewer progression of one manifest
-- `templates/change-manifest.example-security-sensitive.yaml` — JWT signing-key rotation: SoT pattern 8 (dual-representation), L1 breaking change, mode-3 compensation-only rollback, security / compliance cross-cutting escalations
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-crud.yaml` — simple CRUD example
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-mobile-offline.yaml` — offline-first mobile example
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-game-gacha.yaml` — live-ops game example
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-multi-agent-handoff.yaml` — Planner → Implementer → Reviewer progression of one manifest
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-security-sensitive.yaml` — JWT signing-key rotation: SoT pattern 8 (dual-representation), L1 breaking change, mode-3 compensation-only rollback, security / compliance cross-cutting escalations
 
 **Worked examples across domains:**
 
@@ -229,7 +229,7 @@ The table above lists **installation entry points** per runtime. This map classi
 | `docs/multi-agent-handoff.md` | SoT — role contract (Planner / Implementer / Reviewer definitions, field-ownership matrix, tool-permission matrix, anti-collusion, handoff minima) | Canonical for multi-agent discipline; `agents/`, `.cursor/rules/`, `reference-implementations/roles/` all point back here |
 | `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `glossary.md`, `phase-command-vocabulary.md`, …) | Canonical per topic; referenced from the contracts above |
 | `skills/engineering-workflow/SKILL.md` + `skills/**` | SoT — execution layer (modes, phases, templates, references) | Canonical for workflow execution |
-| `schemas/**` + `templates/**` | SoT — machine-readable Change Manifest contract + worked examples | Canonical structural output |
+| `schemas/**` + `skills/engineering-workflow/templates/manifests/**` | SoT — machine-readable Change Manifest contract + worked examples | Canonical structural output |
 | `CLAUDE.md` | Thin-bridge — Claude Code entry; points at `AGENTS.md` + `skills/` | Onboarding only, no new normative content |
 | `GEMINI.md` | Thin-bridge — Gemini CLI entry | Same |
 | `.windsurfrules` | Thin-bridge — Windsurf entry | Same |
@@ -241,6 +241,11 @@ The table above lists **installation entry points** per runtime. This map classi
 | `reference-implementations/roles/*.md` | Reference wrappers — runtime-neutral paste-ready prompts for Gemini / Windsurf / Codex / Aider | Never introduce normative content; if the wrapper says something `docs/multi-agent-handoff.md` does not, one of them is wrong |
 | `reference-implementations/roles/specialist-roles-registry.md` | Reference wrapper — starter registry for specialist sub-agent roles (`architect`, `security-reviewer`, `performance-reviewer`) per `docs/multi-agent-handoff.md` §Composable specialist sub-agent roles | Non-normative reference; bridges may copy / extend / replace entries. Specialist contract itself lives in `docs/multi-agent-handoff.md`; this file lists which specialists exist |
 | `reference-implementations/validator-*/` | Reference wrappers — executable validators for the automation contract | Track the spec in `docs/automation-contract*.md`; `DEVIATIONS.md` is the gap record |
+| `reference-implementations/INVENTORY.md` | Non-normative classifier — flags each entry under `reference-implementations/` as `runtime-glue` (executable / runtime-specific config) or `documentation` (prose mirror, future-relocatable to `docs/`) | Reviewer / audit aid only; not cited from `docs/` |
+| `docs/README.md` | Non-normative — 4-tier index of every methodology file under `docs/` (onboarding / core contract / disciplines / references) | Discoverability layer; renames in `docs/` must update this index in the same change |
+| `docs/decision-trees.md` | Non-normative — 3 routing decisions (manifest-needed / SoT pattern / single vs multi-agent), each routing to its canonical source | Quick decision hub; binding rules stay in the canonical sources it cites |
+| `docs/change-manifest-spec-cookbook.md` | Non-normative companion to `docs/change-manifest-spec.md` — CI integration recipes, AI usage modes, mission-shaped manifests, example tour | Spec wins on contradiction; cookbook holds applied material only |
+| `docs/sot-desync-anti-patterns.md` | Non-normative diagnostic appendix to `docs/source-of-truth-patterns.md` — 6 anti-patterns + 4 repair strategies + mapping | Identification stays in the spec; diagnosis lives in the appendix |
 
 ### Where a new rule belongs
 

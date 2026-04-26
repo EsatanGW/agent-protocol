@@ -41,6 +41,19 @@ If a change affects both layers, explain why.
 - Avoid stack-first framing unless the document is explicitly about implementation disciplines
 - Avoid agent-specific or tool-specific framing in normative docs
 
+## File-naming conventions
+
+To keep cross-references stable and grep-friendly, follow these rules when creating files under `docs/` or `skills/engineering-workflow/references/`:
+
+- **Use `kebab-case`** (lowercase, hyphens between words). No spaces, underscores, or camelCase.
+- **Head noun last** — the rightmost word should be the document's primary noun (the *what*); preceding words are modifiers. Examples:
+  - `parallelization-patterns.md` (head: patterns)
+  - `phase-overlap-zones.md` (head: zones, modifier: phase-overlap)
+  - `cluster-parallelism.md` (head: parallelism, modifier: cluster)
+  - `mode-decision-tree.md` (head: tree, modifiers: mode-decision)
+- **Avoid trailing `-spec`, `-doc`, `-readme`** — the file's role is conveyed by its location and frontmatter, not its suffix. Exceptions: well-established names already in use (e.g. `change-manifest-spec.md`).
+- **Stable filenames are SoT addresses.** Renaming a file invalidates every cross-reference; treat it as a breaking change requiring a Change Manifest (see [`docs/change-manifest-spec.md`](docs/change-manifest-spec.md)). Prefer adding a new file over renaming an old one when scope shifts.
+
 ## Good changes
 
 - Add a new worked example for a common engineering scenario

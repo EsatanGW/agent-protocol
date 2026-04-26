@@ -20,9 +20,11 @@ Think of this as the runnable counterpart to the stack bridges: bridges map the 
 
 ## What does NOT belong here
 
-- Manifest examples → `templates/`
+- Manifest examples → `../skills/engineering-workflow/templates/manifests/`
 - Algorithm specification → `docs/automation-contract-algorithm.md`
 - Stack-specific mapping data → each stack bridge under `docs/bridges/`
+
+> **Looking for a structured listing of what's in this directory?** [`INVENTORY.md`](./INVENTORY.md) classifies each entry as `runtime-glue` (executable code / runtime-specific config — must live outside `docs/`) or `documentation` (prose mirror, candidate for future relocation under `docs/`). Useful when reviewing whether a new file belongs here or under `docs/`.
 
 ---
 

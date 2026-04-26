@@ -16,7 +16,8 @@ What this script checks:
     that is a disjointness violation.
 
 Scope:
-  1. Every manifest template under `templates/` with
+  1. Every manifest template under
+     `skills/engineering-workflow/templates/manifests/` with
      `implementation_clusters` filled.
   2. Every manifest under `examples/starter-repo/` (when present).
   3. An embedded self-test (synthetic fixtures in a tmpdir) — always
@@ -116,7 +117,9 @@ def _scan_manifests(repo_root: Path) -> list[tuple[Path, int, list[str]]]:
     results: list[tuple[Path, int, list[str]]] = []
     candidates: list[Path] = []
 
-    templates_dir = repo_root / "templates"
+    templates_dir = (
+        repo_root / "skills" / "engineering-workflow" / "templates" / "manifests"
+    )
     if templates_dir.is_dir():
         candidates.extend(sorted(templates_dir.glob("change-manifest.example-*.yaml")))
 

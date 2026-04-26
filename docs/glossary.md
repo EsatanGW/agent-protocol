@@ -7,6 +7,8 @@
 
 The methodology deliberately uses a stable vocabulary. Once the vocabulary is stable, the team can discuss changes in a common language instead of realigning on terms in every conversation.
 
+> **Looking for a quick decision rather than a definition?** [`decision-trees.md`](decision-trees.md) collects the three most-asked routing decisions (mode pick / SoT pattern / single vs multi-agent) on one page. Term definitions stay here.
+
 ---
 
 ## Core terms

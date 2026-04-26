@@ -5,6 +5,8 @@
 
 "Find the source of truth before you find the consumers" is one of the core moves of this methodology. This document expands that idea into executable identification patterns, common anti-patterns, and repair strategies.
 
+> **Quick decision aid.** If you only need a fast pattern call (10 candidates + sub-pattern 4a) without reading the full catalogue, see [`decision-trees.md §Tree B — Which Source-of-Truth pattern?`](decision-trees.md#tree-b--which-source-of-truth-pattern). The binding rules and edge cases stay here.
+
 ---
 
 ## What a source of truth is
@@ -551,126 +553,9 @@ If the answer is "some in-memory state disappears; users see a blank / reset / e
 
 ---
 
-## Common desync anti-patterns
+## Common desync anti-patterns and repair strategies
 
-### Anti-pattern 1: Dual-write without coordination
-
-Two systems write the same data independently, with no coordination mechanism.
-
-```
-❌ Service A writes to DB → order.status = 'shipped'
-❌ Service B writes to DB → order.status = 'processing'
-(Last-writer-wins race condition.)
-```
-
-**Repair:** designate one service as source of truth; the others update via events or API calls.
-
-### Anti-pattern 2: Consumer derives its own truth
-
-The consumer does not read the source of truth — it computes or infers its own version.
-
-```
-❌ Backend:  user.isVIP = purchaseCount > 100
-❌ Frontend: user.isVIP = totalSpent > 10000
-(Two definitions, inconsistent results.)
-```
-
-**Repair:** consolidate the VIP definition to one place (usually the backend); the frontend reads the result only.
-
-### Anti-pattern 3: Cached truth goes stale
-
-Cached data is stale, but the system keeps using it as authoritative.
-
-```text
-❌ Cache layer:       product.price = 99   (value from 3 hours ago)
-❌ Authoritative store: product.price = 129 (just updated)
-❌ User sees 99, places an order, charged 129.
-```
-
-**Repair:** explicit cache-invalidation strategy. Sensitive data like price needs short TTL, active invalidation on write, or event-driven updates — never rely on natural expiry alone.
-
-### Anti-pattern 4: Documentation drifts from implementation
-
-Docs describe old behavior; the code has moved on.
-
-```
-❌ API doc:          POST /orders returns 201
-❌ Implementation:   POST /orders returns 200 (changed six months ago)
-```
-
-**Repair:** bind documentation updates into the implementation PR checklist (see `docs/ci-cd-integration-hooks.md`).
-
-### Anti-pattern 5: Translation keys drift from the source copy
-
-i18n translation files evolve independently of the original copy.
-
-```
-❌ en.json:     "submit_button": "Send Order"
-❌ Design file: "Place Order"
-❌ fr.json:     "submit_button": "Envoyer la commande" (translated from the old "Send Order")
-```
-
-**Repair:** designate the design source as the source of truth for copy; translation files are consumers.
-
-### Anti-pattern 6: Pipeline order treated as an implementation detail (not a contract)
-
-Execution order of N stages / middleware / interceptors **is a contract** (see pattern 4a), but is often treated as "wherever the registration code happens to live."
-
-```text
-❌ Adding a new interceptor to an HTTP client chain after error-mapping.
-❌ Result: the interceptor receives raw HTTP errors, not domain errors — semantics broken.
-❌ Nobody on the PR notices; the diff is a single registration line.
-
-❌ Server-side plugin / middleware install order drifts across branches.
-❌ After merging, staging / prod behavior differs subtly.
-
-❌ Two scene-level scripts mutate state in the update tick without setting Script Execution Order.
-❌ Works on dev machines; after an unrelated reimport, ordering flips and visual bugs appear.
-```
-
-**Repair:**
-
-- Declare the expected order in **one place** (a pipeline config file, a `registerInterceptors()` function, a Script Execution Order setting).
-- Treat order changes as breaking changes; run them through `docs/breaking-change-framework.md` for blast radius.
-- Have each stage declare its relative constraints (`after: auth`, `before: compression`) so order becomes verifiable.
-- Cross-reference `docs/cross-cutting-concerns.md` (build-time risk) for the pipeline-checks item.
-
----
-
-## Standard strategies for repairing desync
-
-### Strategy 1: Single writer
-
-Only one system writes; the others read.
-
-Applicable to: most cases.
-
-### Strategy 2: Event-driven sync
-
-When the source of truth changes, it emits an event; consumers subscribe and update.
-
-Applicable to: many consumers needing near-real-time sync; microservice architectures.
-
-### Strategy 3: Dual-read / dual-write migration
-
-During a migration, old and new systems run in parallel; cutover is gradual.
-
-Applicable to: replacing the source of truth for a given piece of information.
-
-Flow:
-
-```
-Phase 1: New system starts writing; reads still go to the old system.
-Phase 2: Reads switch to the new system; old system continues writing (as backup).
-Phase 3: Old system stops writing.
-Phase 4: Old system is removed.
-```
-
-### Strategy 4: Reconciliation
-
-Periodically compare the two systems' data, surface discrepancies, and repair them.
-
-Applicable to: environments where real-time sync is not possible (e.g. cross-organization systems).
+The 10 patterns above identify *which kind* of authority a piece of information has. Once identified, the most common ways those SoTs go wrong in practice — and the standard strategies for repairing them — are catalogued in the diagnostic appendix [`sot-desync-anti-patterns.md`](sot-desync-anti-patterns.md). It covers six anti-patterns (dual-write without coordination; consumer derives its own truth; cached truth goes stale; doc drifts from implementation; i18n keys drift from source copy; pipeline order treated as detail) and four repair strategies (single writer; event-driven sync; dual-read / dual-write migration; reconciliation), plus a mapping table from anti-patterns to most-common repair.
 
 ---
 

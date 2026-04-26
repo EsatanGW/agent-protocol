@@ -23,7 +23,7 @@ Before opening: confirm you are on the latest release. See CHANGELOG.md.
 <!-- Which file / area of the repo owns the bug. Check all that apply. -->
 
 - [ ] Schema (`schemas/change-manifest.schema.yaml`)
-- [ ] Template (`templates/change-manifest.example-*.yaml`)
+- [ ] Template (`skills/engineering-workflow/templates/manifests/change-manifest.example-*.yaml`)
 - [ ] Reference validator (`reference-implementations/validator-*`)
 - [ ] Reference hook bundle (`reference-implementations/hooks-*`)
 - [ ] CI workflow or script (`.github/workflows/*`, `.github/scripts/*`)

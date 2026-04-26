@@ -15,7 +15,7 @@ This repository ships a tool-agnostic engineering workflow plugin. The runtime o
 - `docs/rollback-asymmetry.md` — rollback modes
 - `docs/cross-cutting-concerns.md` — security, performance, observability, testability, error handling
 - `schemas/change-manifest.schema.yaml` — structured AI output contract
-- `templates/change-manifest.example-*.yaml` — worked examples
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-*.yaml` — worked examples
 - `docs/phase-command-vocabulary.md` — runtime-neutral alias registry mapping phase / role / specialist / mode tuples to invocation aliases (Gemini CLI may surface these as persona-prompt prefixes; see §Bridge surfacing examples)
 
 ## Tool capability mapping

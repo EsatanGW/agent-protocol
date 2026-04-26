@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Validate every manifest example under templates/ against
+"""Validate every manifest example under
+skills/engineering-workflow/templates/manifests/ against
 schemas/change-manifest.schema.yaml.
 
 Templates are the repo's worked examples; if one drifts from the
@@ -21,7 +22,9 @@ from jsonschema import Draft202012Validator
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[2]
     schema_path = repo_root / "schemas" / "change-manifest.schema.yaml"
-    templates_dir = repo_root / "templates"
+    templates_dir = (
+        repo_root / "skills" / "engineering-workflow" / "templates" / "manifests"
+    )
 
     with schema_path.open() as fh:
         schema = yaml.safe_load(fh)

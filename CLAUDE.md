@@ -16,7 +16,7 @@ This repo is a **tool-agnostic engineering workflow plugin**, not a codebase for
 
 ### 1. Default to documentation-type edits
 
-- You may edit `docs/`, `skills/`, `templates/`, `schemas/`, and repo-level markdown.
+- You may edit `docs/`, `skills/` (including `skills/engineering-workflow/templates/`), `schemas/`, and repo-level markdown.
 - Do **not** invent unrelated code changes. This repo does not have an application runtime — almost all work is markdown, YAML, and JSON.
 
 ### 2. Do not neutralize into branded tools

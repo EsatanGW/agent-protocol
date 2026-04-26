@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Plugin: Multi-agent](https://img.shields.io/badge/plugin-multi--agent-blue.svg)](./AGENTS.md)
 [![Skill: Engineering Workflow](https://img.shields.io/badge/skill-engineering--workflow-purple.svg)](./skills/engineering-workflow/SKILL.md)
-[![Version: 1.18.2](https://img.shields.io/badge/version-1.18.2-brightgreen.svg)](./CHANGELOG.md)
+[![Version: 1.19.0](https://img.shields.io/badge/version-1.19.0-brightgreen.svg)](./CHANGELOG.md)
 [![Language: English-only](https://img.shields.io/badge/language-English--only-blue.svg)](./CHANGELOG.md)
 
 A **tool-agnostic engineering workflow plugin** for AI coding agents.
@@ -28,7 +28,7 @@ Install once; it works across Claude Code, Cursor, Gemini CLI, Windsurf, Codex, 
 3. **Methodology documentation** — [`docs/`](./docs/)
    Four canonical surfaces, 10 SoT patterns, breaking-change severity matrix, rollback modes, cross-cutting concerns, AI operating contract, security & supply-chain disciplines, change decomposition, team / org-scale disciplines, AI project memory, automation contract, multi-agent handoff, worked examples.
 
-4. **Structured AI output contract** — [`schemas/`](./schemas/) + [`templates/`](./templates/)
+4. **Structured AI output contract** — [`schemas/`](./schemas/) + [`skills/engineering-workflow/templates/manifests/`](./skills/engineering-workflow/templates/manifests/)
    Change Manifest JSON Schema (YAML canonical + JSON generated mirror for Node/browser consumers) and worked example manifests (CRUD, mobile offline, game live-ops, multi-agent handoff progression, security-sensitive JWT rotation). Schema carries a reusable `$defs.deprecation` marker so L3/L4 breaking changes can declare deprecate-then-remove timelines directly in-manifest. A generated [`CHANGELOG.json`](./CHANGELOG.json) mirrors the human-readable CHANGELOG for release-automation consumers.
 
 5. **Stack bridges (optional, opt-in)** — [`docs/bridges/`](./docs/bridges/)
@@ -118,7 +118,7 @@ cp agent-protocol/AGENTS.md <your-project>/AGENTS.md
 
 ### Custom agent (Anthropic / OpenAI / Google SDK, self-hosted)
 
-Point your system prompt at `AGENTS.md` and make `skills/` + `docs/` + `schemas/` + `templates/` available via file access. The content is already tool-agnostic.
+Point your system prompt at `AGENTS.md` and make `skills/` + `docs/` + `schemas/` available via file access. The content is already tool-agnostic; worked-example manifests live under `skills/engineering-workflow/templates/manifests/`.
 
 ---
 
@@ -154,6 +154,7 @@ agent-protocol/
 │       ├── phases/             # Phase 0 – 8 detail
 │       ├── references/         # Checklists, decision trees, phase minimums
 │       └── templates/          # Spec / plan / test / completion templates
+│           └── manifests/      # Change Manifest worked examples (CRUD / mobile-offline / game-gacha / mission-evaluator / multi-agent-handoff / security-sensitive)
 ├── docs/                       # Methodology (tool-agnostic)
 │   ├── product-engineering-operating-system.md
 │   ├── principles.md
@@ -195,12 +196,6 @@ agent-protocol/
 │   ├── change-manifest.schema.json    # generated — Node / browser consumers
 │   ├── surface-map.schema.yaml
 │   └── surface-map.schema.json
-├── templates/                  # Change Manifest examples
-│   ├── change-manifest.example-crud.yaml
-│   ├── change-manifest.example-mobile-offline.yaml
-│   ├── change-manifest.example-game-gacha.yaml
-│   ├── change-manifest.example-multi-agent-handoff.yaml
-│   └── change-manifest.example-security-sensitive.yaml
 ├── reference-implementations/  # Non-normative example validators + hook bundles
 │   ├── validator-posix-shell/  # POSIX shell + yq + pluggable schema validator (minimal)
 │   ├── validator-python/       # Python 3.10+ validator (covers all rules including 2.4, 2.5, 3.2, 3.4)
@@ -264,6 +259,7 @@ Full definitions and extensions: [`docs/surfaces.md`](./docs/surfaces.md).
 ### 30-second lookup
 
 - [`docs/operational-cheat-sheet.md`](./docs/operational-cheat-sheet.md) — per-role top 5 actions + 5-second checks + "when you see X, go to Y" navigation. Use this when you need the decision fast; use the linked docs when you need the reasoning.
+- [`docs/decision-trees.md`](./docs/decision-trees.md) — single-page hub for the three most-asked routing decisions: *Need a Change Manifest?*, *Which SoT pattern (1–10 + 4a)?*, *Single-agent or multi-agent role split?* Routes to the canonical source for each.
 
 ### Quick start (5 min)
 
@@ -273,14 +269,14 @@ Full definitions and extensions: [`docs/surfaces.md`](./docs/surfaces.md).
 
 ### Full methodology
 
-See [`AGENTS.md`](./AGENTS.md) "Recommended reading order".
+See [`AGENTS.md`](./AGENTS.md) "Recommended reading order", or browse the **[`docs/` index](./docs/README.md)** for a 4-tier classification of every methodology document (onboarding / core contract / disciplines / references).
 
 ### When your situation matches
 
-- Multiple agents cooperating on one change → [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) + [`templates/change-manifest.example-multi-agent-handoff.yaml`](./templates/change-manifest.example-multi-agent-handoff.yaml)
+- Multiple agents cooperating on one change → [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) + [`skills/engineering-workflow/templates/manifests/change-manifest.example-multi-agent-handoff.yaml`](./skills/engineering-workflow/templates/manifests/change-manifest.example-multi-agent-handoff.yaml)
 - Multi-agent roles on a non-Claude-Code runtime (Cursor / Gemini CLI / Windsurf / Codex) → [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) §Enforcement across runtimes + [`reference-implementations/roles/`](./reference-implementations/roles/)
 - Feature too large to ship as one change → [`docs/change-decomposition.md`](./docs/change-decomposition.md)
-- Security / supply-chain / PII path touched → [`docs/security-supply-chain-disciplines.md`](./docs/security-supply-chain-disciplines.md) + [`templates/change-manifest.example-security-sensitive.yaml`](./templates/change-manifest.example-security-sensitive.yaml)
+- Security / supply-chain / PII path touched → [`docs/security-supply-chain-disciplines.md`](./docs/security-supply-chain-disciplines.md) + [`skills/engineering-workflow/templates/manifests/change-manifest.example-security-sensitive.yaml`](./skills/engineering-workflow/templates/manifests/change-manifest.example-security-sensitive.yaml)
 - Team / org-scale concerns (consumer registry, deprecation queue) → [`docs/team-org-disciplines.md`](./docs/team-org-disciplines.md)
 - Adoption review — is the team applying the methodology or going through the motions? → [`docs/adoption-anti-metrics.md`](./docs/adoption-anti-metrics.md) (non-normative diagnostic aids)
 - Long-lived session or cross-session work → [`docs/ai-project-memory.md`](./docs/ai-project-memory.md)
