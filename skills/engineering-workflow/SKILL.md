@@ -34,9 +34,7 @@ It is tool-agnostic: wherever a capability is named (e.g. "file read", "code sea
 10. **Narration is not action.** When you state an intended action at a handoff or role-transition point (e.g. "calling X", "about to run Y"), the next emitted tokens must be the tool call itself — not a new sentence and not end-of-turn. See `docs/ai-operating-contract.md` §11 for the full rule; this is the specific failure mode that produced real-world "session stopped responding" crashes at role-handoff points.
 
 Quick refresher:
-- `references/core-principles.md`
 - `references/source-of-truth-quick-reference.md`
-- `references/cross-cutting-quick-check.md`
 - `references/parallelization-patterns.md` — when and how to fan out non-canonical sub-agents **within** a phase (Patterns A/B, Full mode only)
 - `references/context-pack.md` — shared-context mechanism for fan-out sub-agents
 - `references/cluster-parallelism.md` — when the Planner spawns **multiple canonical Implementers** in parallel for file-disjoint Phase 4 clusters (Pattern C, Full mode only; distinct from non-canonical sub-agent fan-out)
@@ -223,15 +221,13 @@ Quick reference:
 ## Cross-cutting rule
 
 For every non-trivial engineering change, ask whether the change has implications for:
-- Security
-- Performance
-- Observability
-- Testability
+- Security — new trust boundaries, auth, validation, or secret-handling concerns?
+- Performance — hot paths, heavy rendering, large queries, caching, or async work?
+- Observability — could someone reconstruct what happened if it fails?
+- Testability — can the behavior be reliably verified and repeated?
+- Error handling — new failure modes that propagate across surfaces (data → API → UI → user → ops)?
 
-These are not separate surfaces; they cut across all surfaces.
-
-Quick reference:
-- `references/cross-cutting-quick-check.md`
+These are not separate surfaces; they cut across all surfaces. If any answer is "yes", mention it in the plan or review output.
 
 ## Lean workflow
 
@@ -298,8 +294,7 @@ Read: `./phases/phase3-testplan.md`
 
 ### Phase 4: Implement
 Goal: implement against the approved plan and collect evidence.
-Read: `./phases/phase4-implement.md`
-Supplement: `./phases/debugging-process.md`
+Read: `./phases/phase4-implement.md` (includes the built-in debugging process used by the fix-retest loop)
 
 ### Phase 5: Review
 Goal: correctness / quality / security / UX / operations review.
@@ -326,8 +321,7 @@ If relevant, leave a follow-up note for:
 - T+72h
 - T+7d
 
-Reference:
-- `references/phase8-trigger-guide.md`
+Full criteria, observation timeline, and exit conditions: `docs/post-delivery-observation.md`.
 
 ## Phase minimums
 

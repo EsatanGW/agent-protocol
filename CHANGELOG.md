@@ -6,6 +6,27 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.19.1] - 2026-04-26
+
+This release applies the lowest-risk recommendations from an over-design audit (Phase 1 of two). It removes four stub reference files whose content already lived inline in canonical parent files, adds a routing index for `docs/examples/`, surfaces the `validator-python` ↔ `validator-node` equivalence in `INVENTORY.md`, and codifies a CHANGELOG entry style guide in `CONTRIBUTING.md`. No normative content changes; no schema changes; no glossary terms added or renamed.
+
+### Removed
+
+- **`skills/engineering-workflow/references/core-principles.md`** (10 lines) — content was a subset of `skills/engineering-workflow/SKILL.md §Core operating principles` (the SKILL.md version covers 10 principles vs the stub's 8). The "Quick refresher" pointer in SKILL.md is dropped; the surviving cross-reference in `docs/phase-gate-discipline.md` line 11 now points at `SKILL.md §Core operating principles` instead of the deleted stub.
+- **`skills/engineering-workflow/references/cross-cutting-quick-check.md`** (10 lines) — content was a subset of `SKILL.md §Cross-cutting rule`. SKILL.md absorbed the stub's "error handling" cross-cutting concern (it previously listed only Security / Performance / Observability / Testability) and the explicit prompts under each item. The two "Quick reference" pointers to the stub are removed.
+- **`skills/engineering-workflow/references/phase8-trigger-guide.md`** (11 lines) — content was a subset of `docs/post-delivery-observation.md §Phase 8 is not mandatory`. Five cross-references repointed at the canonical SoT: `docs/multi-agent-handoff.md` line 393, `docs/phase-command-vocabulary.md` line 60, `skills/engineering-workflow/references/long-running-delegation.md` lines 24 / 157 / 215. SKILL.md §Phase 8 trigger pointer is now `docs/post-delivery-observation.md` directly.
+- **`skills/engineering-workflow/phases/debugging-process.md`** (10 lines) — content was inlined into `skills/engineering-workflow/phases/phase4-implement.md` as a new `## Built-in debugging process` section between `## Built-in steps` and `## Rules`. The stub's "Supplement" pointer in SKILL.md §Phase 4 is dropped; the SKILL.md description now notes the debugging process is included in `phase4-implement.md`.
+
+### Added
+
+- **`docs/examples/README.md`** — routing index for the 16 worked examples under `docs/examples/`. Three tables route by **scenario type** (generic / bugfix / refactor / migration / mobile-offline), **domain** (game-dev / live-ops / ML / data-pipeline / firmware), and **stack** (Flutter / Android-Kotlin / iOS-Swift / React-Next.js / Ktor / Unity, each linked to its bridge under `docs/bridges/`). A trailing section cross-references the six worked-example manifests under `skills/engineering-workflow/templates/manifests/`. Closes the discoverability gap identified by the audit: previously a reader opening `docs/examples/` saw 16 sibling files with no priority signal.
+- **`reference-implementations/INVENTORY.md` §Validator parity note (1.19.1)** — explicit declaration that `validator-python/` and `validator-node/` are functionally equivalent parallel implementations (same rule-ID coverage, same exit-code contract, same default cache-file shape, fixtures byte-for-byte equal). Adopters need only one. A picker table contrasts the two by ecosystem fit (Python/ML vs JS/TS/web) and runtime cost (~400 ms vs ~200 ms). `validator-posix-shell/` is explicitly noted as covering a different niche (zero-runtime-dep portability with the documented Layer-2 / Layer-3 coverage gap).
+- **`CONTRIBUTING.md` §CHANGELOG entry style** — codifies the entry style implicit in 1.16.0 onward. Required sections (`Added` / `Changed` / `Removed` / `Fixed`) plus conditional-only sections (`Why minor / patch`, `Tool-agnostic discipline`, `Migration notes`, `Bootstrap exception`). `Why minor / patch` capped at 4 lines. Historical entries remain factual records per `CLAUDE.md §3` — the style guide applies to new entries only.
+
+### Why patch, not minor
+
+No canonical methodology change; no schema change; no glossary term added or renamed; no normative rule introduced. The four removed files were each a strict subset of canonical content living elsewhere — deletion recovers an authoring duplicate rather than changing a contract. The added files are non-normative routing / inventory / contributor-guidance material. Patch-category match: `VERSIONING.md` *"reference-implementation hardening"* + *"discoverability improvement"*. Backward-compatible for any external consumer that did not deep-link into the four deleted stubs; the `internal-links` CI gate added in 1.19.0 verifies this repo's own consumers were repointed in this commit.
+
 ## [1.19.0] - 2026-04-26
 
 This release bundles the repo audit's three milestones into a single minor: M1 (CI guardrails), M2 (navigability), and M3 (canonical-doc restructure + L1+ file relocation). The minor bump is driven by M3's L1+ changes — the canonical `docs/change-manifest-spec.md` and `docs/source-of-truth-patterns.md` were restructured (with content extracted to companion files), and the `templates/` directory was moved into `skills/engineering-workflow/templates/manifests/`. Together these change the **shape** of the canonical SoT layer that every consumer cites, even though no normative rule changed.

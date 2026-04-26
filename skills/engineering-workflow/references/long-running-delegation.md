@@ -21,7 +21,7 @@ Apply this discipline when **any** of the following hold:
 **Do not apply** to:
 
 - Short sub-agent invocations that return within one cache window — the overhead of the discipline exceeds its benefit.
-- Phase 8 observer spawns — those have their own trigger criteria and time horizon (see `phase8-trigger-guide.md` and `docs/post-delivery-observation.md`); this document's disciplines apply as specific instances, but the Phase 8 trigger guide remains the primary entry.
+- Phase 8 observer spawns — those have their own trigger criteria and time horizon (see `docs/post-delivery-observation.md`); this document's disciplines apply as specific instances, but `post-delivery-observation.md` remains the primary entry.
 - Between-phase prep — that is `phase-overlap-zones.md`'s domain.
 - Within-batch fan-out spawn timing — that is `parallelization-patterns.md §Cache-window rule`'s domain.
 
@@ -154,7 +154,7 @@ The discipline is general; three existing named scenarios are specific applicati
 
 | Scenario | How D1/D2/D3 applies |
 |---|---|
-| **Phase 8 observer** (`phase8-trigger-guide.md`, `docs/post-delivery-observation.md`) | D1: observer scope bounded to a single trigger; exceeding the horizon requires a new observer spawn, not an unbounded wait. D2: findings append to `post_delivery.production_findings[]` (canonical) after the observer returns; mid-flight working notes stay in Rule-5a working space. D3: canonical role does not idle during the horizon — returns to other work, reads the artifact at trigger time. |
+| **Phase 8 observer** (`docs/post-delivery-observation.md`) | D1: observer scope bounded to a single trigger; exceeding the horizon requires a new observer spawn, not an unbounded wait. D2: findings append to `post_delivery.production_findings[]` (canonical) after the observer returns; mid-flight working notes stay in Rule-5a working space. D3: canonical role does not idle during the horizon — returns to other work, reads the artifact at trigger time. |
 | **Pattern C cluster halt-all** (`cluster-parallelism.md §4 Discovery-loop handling`) | D1: each cluster's scope is bounded by `scope_files`; a cluster whose scope would exceed a cache window is a decomposition problem, not a halt problem. D3: when a cluster enters `blocked_discovery`, the Planner's halt-all behavior is D3 in action — it must have been reading cluster status artifacts (D2) to detect the block, and its concurrent work during in-progress clusters is exactly what D3 requires. |
 | **Reviewer Tier-1 send-back** (`docs/multi-agent-handoff.md §Conflict resolution`) | D1: Tier-1 send-back is structurally a checkpoint — the Reviewer returns a scoped finding; the Implementer's re-work is a fresh, bounded invocation (new identity per invocation lifecycle). D3: while the returning Implementer works, the Reviewer's concurrent work is preparing the second audit pass (re-reading the updated diff, pre-distilling the re-review context pack). |
 
@@ -212,7 +212,7 @@ The canonical role cannot run concurrent work during the sub-agent invocation �
 | `docs/ai-operating-contract.md §11` (narration is not action) | Symmetric: §11 closes pre-tool-call silence; D3 closes post-tool-call silence. Neither subsumes the other. |
 | `reference-implementations/roles/role-composition-patterns.md §Invocation lifecycle` | Reuse: invocation is one-shot; handles point at already-terminated invocations. D3 polling uses the D2 artifact path, not handle reuse. |
 | `cluster-parallelism.md §4 Discovery-loop handling` / `§5 Planner assembles and spawns Reviewer` | Pattern C halt-all and completion-detection are D3 instances (Planner polls status via the working-space path, reacts to `blocked_discovery` or `completed`). |
-| `phase8-trigger-guide.md` + `docs/post-delivery-observation.md` | Phase 8 observer is a D1/D2/D3 instance at the post-delivery horizon. |
+| `docs/post-delivery-observation.md` | Phase 8 observer is a D1/D2/D3 instance at the post-delivery horizon. |
 | `skills/engineering-workflow/phases/subagent-strategy.md` | Phase-file bridge pointing here from sub-agent-relevant phases. |
 
 ---

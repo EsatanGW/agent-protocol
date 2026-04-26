@@ -57,7 +57,7 @@ Aliases that violate any of these rules are not registered.
 | `review-as-performance` | review (Phase 5) | Reviewer | performance-reviewer | Full | Review with `performance-reviewer` specialist as a Pattern 6 audit sub-agent. Same envelope and synthesis rules as `review-as-security`. |
 | `signoff` | signoff (Phase 6) | Reviewer | — | Lean / Full | Open the Phase 6 / Lean-5 sign-off step. Record `approvals`, finalize `residual_risk`, advance `phase: signoff` per `phases/phase6-signoff.md`. |
 | `deliver` | deliver (Phase 7) | Implementer | — | any | Open the Phase 7 deliver step. Produce the completion report and `handoff_narrative` per `phases/phase7-deliver.md`. |
-| `observe` | observe (Phase 8) | any observer | — | Full (gated by trigger) | Open the Phase 8 observe step. Append `production_findings` over the declared `review_horizon`. Applies only under the trigger conditions in `phase8-trigger-guide.md` (Phase 8 file). |
+| `observe` | observe (Phase 8) | any observer | — | Full (gated by trigger) | Open the Phase 8 observe step. Append `production_findings` over the declared `review_horizon`. Applies only under the trigger conditions in [`post-delivery-observation.md`](post-delivery-observation.md) §Phase 8 is not mandatory. |
 
 ### Lean-mode collapse
 

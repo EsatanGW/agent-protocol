@@ -54,6 +54,28 @@ To keep cross-references stable and grep-friendly, follow these rules when creat
 - **Avoid trailing `-spec`, `-doc`, `-readme`** — the file's role is conveyed by its location and frontmatter, not its suffix. Exceptions: well-established names already in use (e.g. `change-manifest-spec.md`).
 - **Stable filenames are SoT addresses.** Renaming a file invalidates every cross-reference; treat it as a breaking change requiring a Change Manifest (see [`docs/change-manifest-spec.md`](docs/change-manifest-spec.md)). Prefer adding a new file over renaming an old one when scope shifts.
 
+## CHANGELOG entry style
+
+The CHANGELOG records what changed and why a release was classified at its given level (per [`VERSIONING.md`](VERSIONING.md)). Each entry is also LLM context for the next session. Keep entries readable end-to-end without scanning back to commit history.
+
+**Required for every release entry:**
+
+- One `### Added` / `### Changed` / `### Removed` / `### Fixed` section per category that applies; omit empty sections.
+- Bullets identify the file or surface area touched (path + brief change), not the implementation diary.
+
+**Conditional sections** (include only when load-bearing for the level decision):
+
+- `### Why minor, not patch` / `### Why patch, not minor` — required at minor / patch boundaries; **target ≤ 4 lines**, citing the `VERSIONING.md` category that matches.
+- `### Tool-agnostic discipline` — required when the release adds *new normative content* in tool-agnostic language (per [`CLAUDE.md §2`](CLAUDE.md)); skip when the release does not introduce new normative vocabulary.
+- `### Migration notes` — required when an external consumer must change behavior (renamed file, removed alias, schema bump); skip when the release is internally additive.
+- `### Bootstrap exception (disclosed)` — used only when the release retroactively governs its own commit (rare; one-time situations, not a recurring section).
+
+**Style:**
+
+- One-pass-readable: a reader who has not seen the PR should understand the change from the bullet alone. Resist re-stating the same point in three slightly different sentences.
+- Cite paths, not concepts twice — link to `docs/<file>.md §Section` rather than re-summarizing the section's content in the entry.
+- Historical entries are factual records; **do not rewrite past entries** to fit a new style guide ([`CLAUDE.md §3`](CLAUDE.md)). Apply this guide to new entries only.
+
 ## Good changes
 
 - Add a new worked example for a common engineering scenario

@@ -8,7 +8,7 @@
 
 ## Why this exists
 
-The plugin has always said "evidence before completion" (see `principles.md` and `skills/engineering-workflow/references/core-principles.md`). That rule fires at *the end* of a change. It does **not** by itself answer four questions that come up inside a multi-phase change:
+The plugin has always said "evidence before completion" (see `principles.md` and `skills/engineering-workflow/SKILL.md` §Core operating principles). That rule fires at *the end* of a change. It does **not** by itself answer four questions that come up inside a multi-phase change:
 
 1. **When is a phase allowed to end?** — Not just "when the work feels done" but when a specific, named check passes.
 2. **Where is the history of those gates recorded?** — Not in the committer's head; not in one-off scratch notes; in a durable tracking artifact.

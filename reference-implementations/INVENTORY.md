@@ -51,4 +51,24 @@ Total: 146 files. **runtime-glue:** 139 files across 9 directories. **documentat
 - **New methodology principle or normative rule** → `docs/` (canonical layer); cite from here if a runtime needs the rule mirrored as paste-ready prose.
 - **New role prompt** → here under `roles/`, but its **SoT is `docs/multi-agent-handoff.md`** (or its successor). Drift detection between SoT and the mirror is owned by a CI gate (see `docs/multi-agent-handoff.md` cross-references and the planned role-consistency check in `.github/workflows/validate.yml`).
 
+---
+
+## Validator parity note (1.19.1)
+
+`validator-python/` and `validator-node/` are **functionally equivalent parallel implementations** of the canonical algorithm in `docs/automation-contract-algorithm.md`:
+
+- Same rule-ID coverage (Layer 1 + 2 + 3 in full).
+- Same exit-code contract (`0` / `1` / `2`; harness `64`).
+- Same default cache-file shape (`.agent-protocol/monitoring-cache.json`) for rule 3.4.
+- `validator-node/tests/fixtures/` are byte-for-byte copies of `validator-python/tests/fixtures/` so the two test suites exercise identical manifests; any divergence is a bug in whichever reference is wrong (the canonical algorithm is the tiebreaker).
+
+**Adopters need only one of the two language-native validators** — pick the reference whose runtime your CI already provides:
+
+| Reference | Pick when | Trade-off |
+|-----------|-----------|-----------|
+| `validator-python/` | CI already has Python 3.10+; your team is Python/ML/data-pipeline-leaning. | Slightly slower (`~400 ms` end-to-end on a 2023-era laptop). |
+| `validator-node/` | CI already has Node 20+; your team is JS/TS/web-leaning, or you want editor integrations. | Slightly faster (`~200 ms`). |
+
+`validator-posix-shell/` covers a different niche (zero-runtime-dep portability with a documented coverage gap on rules 2.4 / 2.5 / 3.2 / 3.4) and is **not** equivalent to either language-native reference; see its `DEVIATIONS.md`.
+
 This file is intentionally non-normative; do not cite it from `docs/`. Its only consumer is reviewers asking "should this new file live here?" and audit tooling that wants a structured view of the directory.

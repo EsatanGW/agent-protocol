@@ -390,7 +390,7 @@ Minimum threshold when entering each stage:
 | review | all evidence_plan.artifacts have paths |
 | signoff | review_notes has no blocking issue |
 | deliver | handoff_narrative exists |
-| observe | applies only under Phase 8 trigger conditions (see `phase8-trigger-guide.md`) |
+| observe | applies only under Phase 8 trigger conditions (see `docs/post-delivery-observation.md` §Phase 8 is not mandatory) |
 
 Threshold not met → the downstream role **must not** take over; send back upstream.
 
