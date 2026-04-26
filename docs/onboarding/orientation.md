@@ -4,7 +4,9 @@ A single-page orientation to the methodology. Read this before diving into
 any other document in `docs/`. It gives enough structure that the rest of
 the repository reads as reinforcement rather than first exposure.
 
-> **60-second lookup.** If you just need the per-role action list and "when you see X, go to Y" navigation (not the reasoning), jump straight to [`docs/operational-cheat-sheet.md`](../operational-cheat-sheet.md). Come back here for the principles.
+> **60-second lookup.** If you just need the per-role action list and "when you see X, go to Y" navigation (not the reasoning), jump straight to [`docs/operational-cheat-sheet.md`](../operational-cheat-sheet.md). For the three most-asked routing decisions (need a manifest? / which SoT pattern? / single vs multi-agent?), see [`docs/decision-trees.md`](../decision-trees.md). Come back here for the principles.
+
+> **Browsing all of `docs/`?** [`docs/README.md`](../README.md) is the 4-tier index (onboarding / core contract / disciplines / references) — start there to know which file to read for which question.
 
 ---
 

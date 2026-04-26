@@ -40,9 +40,11 @@ import tempfile
 from pathlib import Path
 
 
-# Match `[text](target)` (inline) and `[ref]: target` (reference).
+# Match `[text](target)` (inline link), `![alt](target)` (image — also a
+# link target that should resolve), and `[ref]: target` (reference style).
 # The `target` capture stops at whitespace, `)`, or `>` (for autolinks).
-INLINE_LINK_RE = re.compile(r"\[(?:[^\]]*)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
+# The leading `!?` covers both `[text](...)` and `![alt](...)` in one pattern.
+INLINE_LINK_RE = re.compile(r"!?\[(?:[^\]]*)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 REF_LINK_RE = re.compile(r"^\s*\[[^\]]+\]:\s*(\S+)", re.MULTILINE)
 
 # Strip fenced code blocks (```...``` and ~~~...~~~) and inline code
@@ -213,6 +215,8 @@ def _run_self_test() -> list[str]:
          the strip-code-spans fix).
       8. A fenced code block containing example link syntax is NOT
          followed.
+      9. An image link `![alt](path)` IS followed (image targets must
+         resolve just like text-link targets); a broken image is reported.
     """
     failures: list[str] = []
 
@@ -259,6 +263,10 @@ def _run_self_test() -> list[str]:
             "End of file.\n"
         )
 
+        # Case 9: image link to a missing file should be reported
+        image = root / "docs" / "image.md"
+        image.write_text("Diagram: ![flow](missing-image.svg)\n")
+
         results = scan_repo(root)
         rels = {(r, t) for r, _, t, _ in results}
 
@@ -290,6 +298,12 @@ def _run_self_test() -> list[str]:
         if any(r == "docs/fenced.md" for r, _ in rels):
             failures.append(
                 "self-test 8: fenced code-block link example should not be chased"
+            )
+
+        # Case 9 (image.md): broken image MUST be reported
+        if ("docs/image.md", "missing-image.svg") not in rels:
+            failures.append(
+                "self-test 9: broken image link `![alt](missing-image.svg)` should be reported"
             )
 
     return failures
@@ -324,7 +338,7 @@ def main() -> int:
             for msg in self_test_failures:
                 print(f"  {msg}", file=sys.stderr)
             return 2
-        print("self-test: ok (8 cases)")
+        print("self-test: ok (9 cases)")
 
     if args.self_test_only:
         return 0

@@ -64,6 +64,18 @@
           {
             "title": "`.github/scripts/check-internal-links.py`",
             "body": "(M2) — strip fenced code blocks and inline code spans (1–3 backtick spans) before extracting links, so `[text](target)` syntax inside backticks is not chased as a real link. The bug was triggered by the M1 CHANGELOG entry that contained literal `[text](target)` syntax in code spans. Two regression cases added to the self-test (case 7 inline code, case 8 fenced block); now 8 cases."
+          },
+          {
+            "title": "Pre-PR audit cleanup",
+            "body": "independent audit before opening the release PR caught seven stale references to the now-deleted repo-root `templates/` directory (in `README.md` §Custom agent + directory tree, `AGENTS.md` §What you get + §File role map, `CLAUDE.md` §Default to documentation-type edits, `reference-implementations/README.md` §What does NOT belong here, `.github/PULL_REQUEST_TEMPLATE.md`); each updated to point at the new `skills/engineering-workflow/templates/manifests/` location or removed if redundant. Also added inbound discoverability links so the M2 new files are not orphaned: `docs/README.md` is now linked from `README.md` §Reading paths and `AGENTS.md` §File role map; `docs/decision-trees.md` is linked from `README.md` §30-second lookup and `docs/onboarding/orientation.md`; `reference-implementations/INVENTORY.md` is linked from `reference-implementations/README.md` and `AGENTS.md` §File role map. Confirmed via `internal-links` CI gate (160 → 163 markdown files, all resolve)."
+          },
+          {
+            "title": "`.github/scripts/check-internal-links.py` (image-link support)",
+            "body": "extended the inline-link regex to match both `[text](target)` and `![alt](target)`, so broken image-link targets (rare in this repo today, but possible in future bridge / diagram additions) are reported. Added self-test case 9 covering a broken image link; now 9 cases."
+          },
+          {
+            "title": "`.github/scripts/check-role-consistency.py` (defensive SoT-not-found)",
+            "body": "added an early existence check for `docs/multi-agent-handoff.md` before iterating invariants. Without it, a future rename of the SoT file would cause every invariant to silently fail with \"missing invariant 'X' (planner): must reference docs/multi-agent-handoff.md as SoT\", obscuring the root cause. Now reports `FAIL SoT file not found: docs/multi-agent-handoff.md` with a hint to update `SOT_PATH` and search for old path consumers."
           }
         ]
       }

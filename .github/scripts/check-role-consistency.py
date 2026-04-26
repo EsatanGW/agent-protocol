@@ -304,6 +304,20 @@ def main() -> int:
     if args.self_test_only:
         return 0
 
+    # Defensive: if the SoT file itself was renamed or moved, every
+    # downstream invariant becomes meaningless. Fail loudly with a
+    # specific message rather than reporting "missing invariant" for
+    # all 8 invariants and forcing the reader to deduce the root cause.
+    sot_path = repo_root / SOT_PATH
+    if not sot_path.exists():
+        print(
+            f"FAIL SoT file not found: {SOT_PATH}.\n"
+            f"  If it was renamed or moved, update SOT_PATH in this script "
+            f"AND every consumer (search the repo for the old path before changing).",
+            file=sys.stderr,
+        )
+        return 1
+
     failures: list[str] = []
     failures.extend(_verify_sot(repo_root))
     failures.extend(_verify_surfaces(repo_root))

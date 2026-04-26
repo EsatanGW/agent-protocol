@@ -118,7 +118,7 @@ cp agent-protocol/AGENTS.md <your-project>/AGENTS.md
 
 ### Custom agent (Anthropic / OpenAI / Google SDK, self-hosted)
 
-Point your system prompt at `AGENTS.md` and make `skills/` + `docs/` + `schemas/` + `templates/` available via file access. The content is already tool-agnostic.
+Point your system prompt at `AGENTS.md` and make `skills/` + `docs/` + `schemas/` available via file access. The content is already tool-agnostic; worked-example manifests live under `skills/engineering-workflow/templates/manifests/`.
 
 ---
 
@@ -154,6 +154,7 @@ agent-protocol/
 │       ├── phases/             # Phase 0 – 8 detail
 │       ├── references/         # Checklists, decision trees, phase minimums
 │       └── templates/          # Spec / plan / test / completion templates
+│           └── manifests/      # Change Manifest worked examples (CRUD / mobile-offline / game-gacha / mission-evaluator / multi-agent-handoff / security-sensitive)
 ├── docs/                       # Methodology (tool-agnostic)
 │   ├── product-engineering-operating-system.md
 │   ├── principles.md
@@ -195,12 +196,6 @@ agent-protocol/
 │   ├── change-manifest.schema.json    # generated — Node / browser consumers
 │   ├── surface-map.schema.yaml
 │   └── surface-map.schema.json
-├── templates/                  # Change Manifest examples
-│   ├── change-manifest.example-crud.yaml
-│   ├── change-manifest.example-mobile-offline.yaml
-│   ├── change-manifest.example-game-gacha.yaml
-│   ├── change-manifest.example-multi-agent-handoff.yaml
-│   └── change-manifest.example-security-sensitive.yaml
 ├── reference-implementations/  # Non-normative example validators + hook bundles
 │   ├── validator-posix-shell/  # POSIX shell + yq + pluggable schema validator (minimal)
 │   ├── validator-python/       # Python 3.10+ validator (covers all rules including 2.4, 2.5, 3.2, 3.4)
@@ -264,6 +259,7 @@ Full definitions and extensions: [`docs/surfaces.md`](./docs/surfaces.md).
 ### 30-second lookup
 
 - [`docs/operational-cheat-sheet.md`](./docs/operational-cheat-sheet.md) — per-role top 5 actions + 5-second checks + "when you see X, go to Y" navigation. Use this when you need the decision fast; use the linked docs when you need the reasoning.
+- [`docs/decision-trees.md`](./docs/decision-trees.md) — single-page hub for the three most-asked routing decisions: *Need a Change Manifest?*, *Which SoT pattern (1–10 + 4a)?*, *Single-agent or multi-agent role split?* Routes to the canonical source for each.
 
 ### Quick start (5 min)
 
@@ -273,7 +269,7 @@ Full definitions and extensions: [`docs/surfaces.md`](./docs/surfaces.md).
 
 ### Full methodology
 
-See [`AGENTS.md`](./AGENTS.md) "Recommended reading order".
+See [`AGENTS.md`](./AGENTS.md) "Recommended reading order", or browse the **[`docs/` index](./docs/README.md)** for a 4-tier classification of every methodology document (onboarding / core contract / disciplines / references).
 
 ### When your situation matches
 
