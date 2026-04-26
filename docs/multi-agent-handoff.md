@@ -306,6 +306,68 @@ The runtime-hook contract (`docs/runtime-hook-contract.md`) and the automation c
 
 ---
 
+## Composable specialist sub-agent roles
+
+Some teams want a **named, registry-grade specialist** that a canonical role can fan out to — for example, an "architect" sub-agent under the Planner for SoT-pattern reasoning, a "security-reviewer" sub-agent under the Reviewer for threat-modeling audits, or a "performance-reviewer" sub-agent under the Reviewer for budget audits. The mechanism for this already exists: it is the non-canonical sub-agent composition Patterns 1–6 in [`reference-implementations/roles/role-composition-patterns.md`](../reference-implementations/roles/role-composition-patterns.md). What this section adds is a **registration discipline** that turns ad-hoc Pattern 1 / 2 / 4 / 6 invocations into a named, auditable specialist with a shared envelope contract.
+
+Specialist roles are **not new canonical roles**. The three canonical roles (Planner / Implementer / Reviewer) are unchanged and remain the only roles whose manifest-field ownership is contractually defined. A specialist is a non-canonical sub-agent with a stable name and a fixed parent canonical role.
+
+### What a specialist is
+
+A specialist sub-agent role is a tuple of:
+
+| Property | What it pins | Why |
+|---|---|---|
+| Name | A short, runtime-neutral identifier (`architect`, `security-reviewer`, `performance-reviewer`). No `$`-syntax in normative content. | Makes the specialist citable from a manifest's `parallel_groups[*].sub_agents[*].identity` or from a `review_notes` entry; makes recurring use auditable. |
+| Parent canonical role | Exactly one of `Planner` / `Implementer` / `Reviewer`. | Specialists run under a canonical role's envelope; their work is synthesized by that role. A specialist with two parents is two specialists. |
+| Composition pattern | One of Patterns 1, 2, 4, 5, 6 from `role-composition-patterns.md`. (Pattern 3 — test-writer — has its own write capability and is not a typical specialist shape.) | The pattern fixes the timing (serial vs fan-out), the capability envelope, and the synthesis step. |
+| Envelope inheritance | Inherits the parent canonical role's tool-permission row from the matrix above; cannot be granted capabilities the parent lacks. | Prevents back-door capability escalation through specialist labeling. |
+| Distinct identity | Specialist identity differs from every canonical role identity in the same change (anti-collusion). For Pattern 6 fan-outs, also differs from every other specialist in the same fan-out. | The anti-collusion rule's structural guarantee depends on this. |
+| Output slot | Where the specialist's findings land in the manifest. Specialists do not write manifest fields directly; the parent canonical role synthesizes them into its own fields. Typical slots: `parallel_groups[*]` audit trail, `review_notes[*]` (under Reviewer parent), `implementation_notes[*]` (under Planner / Implementer parent), or a CCKN reference. | Pinning the slot prevents specialists from authoring drifted side-channel artifacts. |
+
+A specialist that violates any row of this table is not a specialist — it is either a hidden canonical role (if it writes manifest fields), a permission escalation (if it has capabilities its parent lacks), or self-review (if it shares identity with the role it is auditing). Each case is a contract escape, not a registration question.
+
+### Where specialists are registered
+
+Specialists must be registered **before** they are used in a change — not declared inline per-change. The registration discipline mirrors the `custom` surface escape hatch in [`docs/surfaces.md`](surfaces.md) §Composable extension surfaces: the methodology pins *what a specialist is*, and a registry file declares *which specialists exist for this project / runtime*. There are two registry layers:
+
+1. **Methodology-level starter registry** — [`reference-implementations/roles/specialist-roles-registry.md`](../reference-implementations/roles/specialist-roles-registry.md). Lists `architect`, `security-reviewer`, `performance-reviewer` as starter specialists with their parent role, pattern, envelope, and output slot. Non-normative reference; teams may copy entries into their own registry.
+2. **Bridge / project-level registry** — declared in the project's `docs/bridges/<stack>-stack-bridge.md` or in a project-local registry file. This is where new specialists join the project's vocabulary. Like the `custom` surface, registration requires the same fields the methodology table above pins.
+
+Per-change registration is forbidden for the same reason per-change `custom` surfaces are forbidden: a specialist that exists only for one change is unauditable across changes and gives no compounding value. If a specialist is needed only once, use Pattern 1 / 2 / 4 / 6 ad-hoc without registration; if it recurs, register it.
+
+### Anti-collusion specifically here
+
+The single-agent anti-collusion rule applies to specialists with a sharper edge: a specialist auditing a canonical role's output must have a different identity from that role. Specifically:
+
+- A `security-reviewer` specialist (parent: Reviewer) auditing the Implementer's diff must differ in identity from both the Implementer and the Reviewer.
+- A `architect` specialist (parent: Planner) consulted on SoT classification must differ in identity from the Planner — which is the standard Pattern 2 rule.
+- A specialist *parented under* the Reviewer who finds an issue must report it as a finding for the Reviewer to weigh; it must not be re-parented to the Implementer to "just fix it." That move would route the finding around the Reviewer's audit and trigger Anti-rationalization Rule 5 (editing through the back door) at the structural level.
+
+### What specialists do not change
+
+- **Three canonical roles only.** Adding `architect` and `security-reviewer` to a project does not create five roles. They are sub-agents under Planner / Reviewer respectively; the field-ownership matrix above is unchanged.
+- **Tool-permission matrix unchanged.** The matrix grants envelopes per canonical row; specialist envelopes inherit from their parent's row. No new row is added.
+- **Manifest schema unchanged.** Specialists land in existing slots (`parallel_groups`, `review_notes`, `implementation_notes`); no new top-level field is needed.
+- **Anti-collusion unchanged.** The rule still binds AI agents specifically (humans not subject), still binds within a change, and still applies transitively when fan-out is involved.
+
+### When specialists are appropriate (vs ad-hoc Pattern 1–6)
+
+Register a specialist when:
+
+- The shape recurs across many changes (the same `security-reviewer` audit fan-out is invoked under most Reviewer sessions).
+- The shape is non-trivial enough that authors would otherwise re-explain the envelope and output slot every time.
+- The runtime supports stable named sub-agent identities (so the registered name maps to a real spawn surface).
+
+Use ad-hoc Pattern 1 / 2 / 4 / 6 instead when:
+
+- The decomposition is one-off (a single change's SoT puzzle warrants a single research sub-agent — register only if it recurs).
+- The runtime cannot grant distinct identities — registration without identity separation collapses back into the parent role with extra indirection.
+
+A registry that grows past ~6 specialists is itself a misuse signal — specialist sprawl is the same anti-pattern as surface sprawl, and the project should consolidate before adding more.
+
+---
+
 ## Manifest progression phases
 
 A manifest moves from birth to delivery through the following stages, each with a **minimum field threshold**:

@@ -203,6 +203,20 @@ Some runtimes expose an **invocation handle** (identifier, address, or similar) 
 
 Canonical reference: `reference-implementations/roles/role-composition-patterns.md` §Shape of a composition → §Invocation lifecycle.
 
+### Phase command alias
+
+A runtime-neutral identifier registered in `docs/phase-command-vocabulary.md` that maps a methodology phase + canonical role + (optional) specialist + mode constraint to a single name a runtime bridge can surface. Aliases use existing names from `skills/engineering-workflow/phases/` (phase names), `docs/multi-agent-handoff.md` (canonical role names), `reference-implementations/roles/specialist-roles-registry.md` (specialist names), and `docs/glossary.md` §Execution mode (mode names) — the alias registry assembles them, never invents them.
+
+Aliases have no runtime-specific syntax (no `$verb`, no `/verb`, no `--verb`). Each runtime bridge translates an alias into its native command surface (slash command, Custom Mode, persona prompt, prompt prefix); the alias_id and its canonical tuple stay constant across bridges so user behavior is consistent. An alias whose phase / role / specialist does not exist in the source documents above is an invalid registration. Canonical reference: `docs/phase-command-vocabulary.md`.
+
+### Specialist sub-agent role
+
+A **named, pre-registered** non-canonical sub-agent role with a stable parent canonical role, a fixed composition pattern from `reference-implementations/roles/role-composition-patterns.md` (typically Pattern 1, 2, 4, 5, or 6), an envelope inherited from the parent's row in `docs/multi-agent-handoff.md` §Tool-permission matrix, and a fixed output slot in the manifest (`parallel_groups[*]`, `review_notes[*]` synthesized by parent, `implementation_notes[*]` synthesized by parent, or a CCKN reference). Examples: `architect` under Planner, `security-reviewer` under Reviewer, `performance-reviewer` under Reviewer.
+
+Specialists are **not new canonical roles**. The canonical three (Planner / Implementer / Reviewer) and the field-ownership matrix above remain unchanged; specialists are sub-agents whose work is synthesized by the parent canonical role. Specialists must be registered (in a methodology-level starter registry, a bridge file, or a project-local registry) before use — per-change registration is forbidden. A specialist that writes manifest fields directly, exceeds the parent's envelope, or shares identity with the role it audits is not a specialist; it is a contract escape.
+
+Canonical reference: `docs/multi-agent-handoff.md` §Composable specialist sub-agent roles. Starter registry: `reference-implementations/roles/specialist-roles-registry.md`.
+
 ### Fan-out
 
 A composition pattern in which a canonical role (Planner / Implementer / Reviewer) spawns multiple non-canonical sub-agents in parallel to cover sub-tasks whose concerns are mutually independent. Each sub-agent has a distinct identity per `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule, inherits the tool-permission envelope of the canonical role per `reference-implementations/roles/role-composition-patterns.md` §The invariant, and returns findings into a structured slot — never writes manifest fields directly.

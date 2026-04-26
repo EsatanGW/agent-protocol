@@ -74,6 +74,7 @@ The automation layer must at minimum be able to answer three questions. Each tie
 - The third parties declared in `uncontrolled_interfaces` — are they in the dependency list?
 - If the declared breaking-change level is ≥ L2, does a corresponding migration document path exist?
 - **Evidence tier discipline** — when the manifest declares a high-severity condition (breaking-change ≥ L2, rollback mode 3, or a high-risk surface touched with role=primary), at least one evidence entry in `evidence_plan` must carry `tier: critical`. The `tier` field names the severity of a single evidence item and the Reviewer's waiver authority over it. See §Evidence tier below.
+- **Supervision-log existence** — when a `parallel_groups[*]` entry declares `supervision_log_ref` (per `skills/engineering-workflow/references/long-running-delegation.md` §Supervision log), the path it points at must exist. The field is optional; the existence check fires only when declared. A declared-but-missing supervision log is a Tier 2 finding, not a Tier 1 schema violation.
 
 Implementations at this tier **may** use stack-specific tooling (e.g. a bridge can use that language's AST parser to determine whether SoT files were actually modified) — because it compares against real code.
 But the **output format** still follows tier 1's uniform format.
@@ -88,6 +89,7 @@ But the **output format** still follows tier 1's uniform format.
 - Can detect later commits to SoT files in the manifest without any subsequent manifest declaring ownership (called **dangling SoT**).
 - Can detect cycles or gaps in the `supersedes` chain.
 - Can compare a `delivered` manifest against Phase 8 observation presence (if the manifest declared it needed observation).
+- Can detect **doc-refresh drift** — files in declared SoT regions edited within a change without any corresponding documentation, spec, or manifest update in the same change. The manifest claims the SoT was modified; if the diff has no `.md` / spec / manifest sibling, the change has either updated the SoT silently (drift) or the SoT was not actually a documented surface to begin with (registration gap). This check runs as a warn-tier output by default — see `runtime-hook-contract.md` §Category C for the runtime-hook reference implementation.
 
 This is the most expensive tier; it is recommended to run it only periodically on `main`, not on every PR.
 
@@ -202,6 +204,18 @@ Bridge-level implementations **may** name specific tools (that is precisely why 
 - **False-positive fatigue:** rules too strict, too frequent misfires → do not tough it out; downgrade to L1 or remove.
 - **Covert bypass:** `[skip ci]` / `--no-verify` used routinely → immediately add to counter-metric monitoring (see `adoption-strategy.md`).
 - **AI self-waivers:** AI sees red, adds a waiver, merges → violates `ai-operating-contract.md` §5; must escalate to a human.
+
+### Stack-level numerical thresholds (non-normative note)
+
+Adopting numerical thresholds — coverage percentages, performance budgets, mutation-test scores, allowable error rates — is a **stack-level decision**, not a methodology-level one. The methodology layer pins *that* evidence is required (per surface, with severity) and *that* missing critical evidence blocks ship; it does not pin *what number* counts as acceptable on any given stack.
+
+If a bridge does adopt thresholds:
+
+- Declare them in the bridge's stack file (`docs/bridges/<stack>-stack-bridge.md`), not in this document. Stack files are the only place specific tools and numbers may be named.
+- Reflect them in `evidence_plan[*].acceptance` (or in the `summary` of the relevant `tier: critical` row, citing the threshold) so the manifest itself stays auditable: a reviewer should not have to read the bridge file to know what number was being measured against.
+- Tier the threshold honestly — if missing the threshold blocks ship, the row is `tier: critical`; if it would only trigger a residual-risk discussion, it is `tier: standard`. Inflating `critical` for non-blocking thresholds drains the tier of meaning (see Anti-patterns above on over-automation).
+
+A bridge that adopts thresholds without recording them in the manifest creates an out-of-band gate the next session cannot see; that is the same shape as the silent-skipping anti-pattern, just with a different surface.
 
 ---
 

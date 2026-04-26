@@ -99,6 +99,55 @@ Anti-patterns:
 
 ---
 
+## Supervision log (keep / discard / stop)
+
+The three disciplines above govern *how* the canonical role keeps visibility while the sub-agent runs. A separate concern — recurring across long-running delegations and especially across exploratory fan-outs — is *which sub-agent returns the canonical role decided to keep, which to discard, and which prompted an early stop*. The **supervision log** is the append-only record of those decisions.
+
+A supervision log is **not** a manifest field and **not** an evidence artifact. It is a Tier 2 (project memory) artifact per `docs/ai-project-memory.md` §Recommended on-disk layout — it lives under the supervision-log role of the project's memory layout. The Change Manifest may reference it via `parallel_groups[*].supervision_log_ref` (per `schemas/change-manifest.schema.yaml`); when the reference is declared, automation contract Tier 2 verifies the path resolves (see `docs/automation-contract.md` §Tier 2). When not declared, the log is optional.
+
+### What the log records
+
+For each long-running delegation, the canonical role appends one structured entry per supervisory decision. A minimal entry:
+
+```yaml
+- timestamp: 2026-04-26T10:30:00Z
+  group_id: phase1-surfaces        # matches parallel_groups[*].group_id
+  sub_agent: investigator-user-surface
+  decision: keep | discard | stop
+  rationale: "User-surface investigator returned a coherent
+    surface map covering 3 of 4 declared surfaces; kept the
+    map, will fan out a follow-up for the missing surface."
+  next_action: "Spawn surface investigator scoped to the missing surface."
+```
+
+Decision values:
+
+- **keep** — the sub-agent's structured return is incorporated into the canonical role's own synthesis (manifest fields, `review_notes`, `implementation_notes`).
+- **discard** — the return is not incorporated; the canonical role records *why*. Common reasons: scope drift, contradiction with another sub-agent's return that resolved against this one, evidence-quality gap.
+- **stop** — the canonical role decided to terminate (or not respawn) further sub-agents in this delegation. Common reasons: a discovery-loop trigger, scope was wrong, cost > value.
+
+A `discard` or `stop` decision **without rationale** is itself a supervision failure — the audit trail loses meaning. The Reviewer reading the log should be able to reconstruct the canonical role's reasoning without re-reading the discarded sub-agent's full return.
+
+### Why keep / discard / stop is structured
+
+Three failure modes are addressed by the structured ledger that an unstructured "what happened" log misses:
+
+1. **Selective remembering.** Without a discard record, the next session sees only the sub-agent returns that *were* kept and assumes the fan-out converged cleanly. A discarded return that contained important context-before-rejection is invisible.
+2. **Premature stop.** A canonical role under context pressure may stop a fan-out early without recording it. The log forces an explicit stop entry; absence of a stop entry on a truncated fan-out is itself a finding.
+3. **Replayed mistakes.** A future delegation under the same canonical role can grep the supervision log for prior `discard` rationales on similar sub-agent shapes — a project-memory equivalent of "we tried this before and ruled it out."
+
+### What the log is not
+
+- **Not a substitute for `parallel_groups` synthesis.** The synthesis block in `parallel_groups[*]` records the canonical role's fan-in decision (which fields were written, what the cross-cutting gap check found). The supervision log records the *intermediate* decisions — which sub-agents got kept long enough to feed synthesis, and which were dropped along the way.
+- **Not a sub-agent stdout dump.** The log entries are the canonical role's decisions, not the sub-agent's narrative output. Sub-agent stdout / structured returns belong in the D2 progress artifact and the sub-agent's `return_location`.
+- **Not a private notebook.** It is part of project memory (Tier 2) and is read by the Reviewer at audit time. A supervision log that contains hedging, "thinking aloud," or speculation drains its audit value.
+
+### Relation to anti-collusion
+
+The supervision log is read by the Reviewer (Tier 2 project memory is universal-read). A canonical role recording a `discard` decision does not become the Reviewer of the discarded sub-agent — that is still the canonical role's own synthesis judgment, and the Reviewer audits whether the rationale is honest. Anti-collusion still binds: a sub-agent identity must differ from the canonical role's; the supervision log does not relax this.
+
+---
+
 ## Relation to named scenarios
 
 The discipline is general; three existing named scenarios are specific applications:

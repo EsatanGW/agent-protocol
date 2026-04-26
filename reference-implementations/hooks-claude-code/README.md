@@ -13,6 +13,7 @@ These hooks are deliberately **shell scripts with zero runtime dependencies** (P
 | [`hooks/manifest-required.sh`](./hooks/manifest-required.sh) | A: phase-gate | `pre-commit` | `PreToolUse` + `matcher: "Bash(git commit*)"` | block (exit 1) |
 | [`hooks/evidence-artifact-exists.sh`](./hooks/evidence-artifact-exists.sh) | B: evidence | `pre-commit` | `PreToolUse` + `matcher: "Bash(git commit*)"` | block (exit 1) |
 | [`hooks/sot-drift-check.sh`](./hooks/sot-drift-check.sh) | C: drift | `post-tool-use:Edit` | `PostToolUse` + `matcher: "Edit\|Write\|MultiEdit"` | warn (exit 2) |
+| [`hooks/drift-doc-refresh.sh`](./hooks/drift-doc-refresh.sh) | C: drift | `post-tool-use:Edit` | `PostToolUse` + `matcher: "Edit\|Write\|MultiEdit"` | warn (exit 2) |
 | [`hooks/consumer-registry-check.sh`](./hooks/consumer-registry-check.sh) | C: drift (network) | `pre-tool-use:Bash("git push*")` | `PreToolUse` + `matcher: "Bash(git push*)"` | warn (exit 2) |
 | [`hooks/completion-audit.sh`](./hooks/completion-audit.sh) | D: completion-audit | `on-stop` | `Stop` (no matcher) | block (exit 1) |
 

@@ -329,6 +329,7 @@ At transition points — after a TodoWrite update, after a plan is approved, at 
 - §9 (Non-fabrication list) forbids fabricating completion. §11 extends that to **fabrication by silence**: claiming to act and then not acting is a silent fabrication of completion, even when no explicit "done" is emitted.
 - §7 (Communication style) prefers fact over self-narrative. §11 applies that preference to action transitions: the action is the fact; the narration about it can be dropped entirely.
 - `skills/engineering-workflow/references/resumption-protocol.md` Step 0 is the **symmetric rule at the other end of the session boundary**. §11 governs the outgoing session's narrate-then-act compliance; Step 0 governs the incoming session's interpretation of short human directives and the rule that `system-reminder` / MCP-state / deferred-tool notices are not user messages. Together they close both ends — neither alone prevents the full class of silent-break failures at role-handoff points.
+- `skills/engineering-workflow/references/long-running-delegation.md` §Supervision log defines the keep / discard / stop ledger that records the canonical role's decisions over the lifetime of a long-running delegation. §11's "narration is not action" rule is the *single-step* version; the supervision log is the *multi-step* version: across many sub-agent invocations, the canonical role records *which decisions were made and why* rather than letting the audit trail collapse into "things that worked, plus the final synthesis." See also §Rejected patterns below for what the supervision log explicitly does not enable.
 
 ### Risk-point inventory
 
@@ -341,6 +342,44 @@ Agents observing themselves should treat the following transitions as high-risk 
 - The transition between the outgoing session's handoff prompt and the incoming session's first action.
 
 At each of these, couple the narration (if any) with the tool call in the same turn. Do not allow a sentence describing action to stand alone.
+
+---
+
+## Rejected patterns
+
+This methodology has positive rules (what to do) and negative rules (what not to do, embedded in §1–§11 above). A small set of patterns recur from adjacent AI-assistance frameworks but are **explicitly rejected** in this contract — they appear plausible at first glance but conflict with one or more of the core rules above. Listing them here makes the rejection auditable and prevents accidental adoption when patterns drift in from other tools.
+
+### Autonomous self-terminating loops
+
+**Pattern:** an AI invocation runs an exploratory loop — generate candidate, evaluate against an internal criterion, iterate — and terminates *itself* when its self-set criterion is met. No external gate is consulted between iterations or at termination.
+
+**Why rejected:** violates the phase-gate discipline (`docs/phase-gate-discipline.md`) and the evidence-before-completion rule (§3 above). Phase boundaries are external gates by design — the canonical role does not advance phase on its own judgment of "I think I'm done." Self-termination collapses the gate into the same identity that ran the loop, which is structurally identical to self-review (`docs/multi-agent-handoff.md` §Single-agent anti-collusion rule).
+
+**What is allowed instead:** a long-running delegation per `skills/engineering-workflow/references/long-running-delegation.md` with explicit checkpoints (D1), artifact-grounded progress (D2), supervised by a canonical role that *records* keep / discard / stop decisions in a supervision log. The canonical role does not advance phase from inside the loop; it returns to a defined external gate (Phase 5 review, Phase 6 sign-off, or human escalation) to advance.
+
+### Self-supervising loops without external Reviewer
+
+**Pattern:** an AI invocation runs a loop in which the same identity both produces candidates and audits them. Sometimes framed as "the agent reviews its own output before submitting" or "the agent self-corrects between iterations."
+
+**Why rejected:** violates the anti-collusion rule (`docs/multi-agent-handoff.md` §Single-agent anti-collusion rule). Implementer ≡ Reviewer is the single most consequential forbidden combination in the methodology; routing an audit step through the same identity as the production step destroys the external-review property that makes review valuable. This is true regardless of whether the audit step is labeled "self-review," "reflection," "critic loop," or "verifier sub-step."
+
+**What is allowed instead:** delegate audit to a distinct identity per the canonical Planner / Implementer / Reviewer chain, or to a non-canonical audit sub-agent under a different identity per `reference-implementations/roles/role-composition-patterns.md` Patterns 4 and 6. A registered `security-reviewer` or `performance-reviewer` specialist (per `reference-implementations/roles/specialist-roles-registry.md`) is the named, auditable shape of this — never invoked under the Implementer's identity.
+
+### Phase-spanning autonomy with no human gate
+
+**Pattern:** an AI invocation that opens a Phase 0 clarify, runs Phase 1 investigate, plans, implements, reviews, signs off, and delivers — all autonomously, all under one identity, with no human gate at any phase boundary.
+
+**Why rejected:** combines the prior two rejected patterns and violates `docs/phase-gate-discipline.md` Rule 4 (commit-at-gate) and §5 Active escalation above. Phase 6 sign-off requires `approver_role: human` per `schemas/change-manifest.schema.yaml`; no AI may issue a sign-off approval. A workflow that produces Phase 7 deliver output without a human approval somewhere upstream has either fabricated the approval or omitted the gate.
+
+**What is allowed instead:** the methodology explicitly supports multi-step AI work, including across multiple phases, as long as canonical-role identities differ where the matrix requires (Implementer ≢ Reviewer always; Planner ≢ Implementer in Full mode), and Phase 6 sign-off has a human approver.
+
+### Implicit context expansion to "rescue" a struggling sub-agent
+
+**Pattern:** when a sub-agent's return is incomplete or contradictory, the canonical role silently widens the sub-agent's scope, re-spawns with more context, and hopes for a better return. No record of the scope change is made.
+
+**Why rejected:** violates §2 Scope control above (the Discovery Loop) and the supervision-log rule (`skills/engineering-workflow/references/long-running-delegation.md` §Supervision log). Scope changes mid-delegation are themselves decisions; not recording them collapses the audit trail into "things that worked, plus a longer prompt that nobody can reconstruct."
+
+**What is allowed instead:** record a `discard` entry in the supervision log with rationale, then either (a) re-spawn with a *narrower* scope per D1 (checkpoint-bounded delegation) or (b) escalate per §5 to redefine the change's scope before continuing.
 
 ---
 

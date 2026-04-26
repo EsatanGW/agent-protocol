@@ -16,6 +16,7 @@ This repository ships a tool-agnostic engineering workflow plugin. The runtime o
 - `docs/cross-cutting-concerns.md` — security, performance, observability, testability, error handling
 - `schemas/change-manifest.schema.yaml` — structured AI output contract
 - `templates/change-manifest.example-*.yaml` — worked examples
+- `docs/phase-command-vocabulary.md` — runtime-neutral alias registry mapping phase / role / specialist / mode tuples to invocation aliases (Gemini CLI may surface these as persona-prompt prefixes; see §Bridge surfacing examples)
 
 ## Tool capability mapping
 
@@ -40,6 +41,8 @@ Gemini CLI does not gate tool exposure per persona, so enforcement of the above 
 4. Record session / model identity in `approvals` so retroactive audit can spot Implementer ≡ Reviewer collusion.
 
 Full enforcement matrix across runtimes: `docs/multi-agent-handoff.md` §Enforcement across runtimes.
+
+If a project registers specialist sub-agent roles (e.g. `architect`, `security-reviewer`, `performance-reviewer`) per [`docs/multi-agent-handoff.md`](./docs/multi-agent-handoff.md) §Composable specialist sub-agent roles and [`reference-implementations/roles/specialist-roles-registry.md`](./reference-implementations/roles/specialist-roles-registry.md), invoke them from the parent canonical role's session as Pattern 1 / 2 / 4 / 6 sub-agents per [`reference-implementations/roles/role-composition-patterns.md`](./reference-implementations/roles/role-composition-patterns.md). Specialist envelopes inherit from the parent's row in the tool-permission matrix; specialists return findings, never write manifest fields. In Gemini CLI's persona-only enforcement, this is prose-only; the parent canonical role is responsible for honoring envelope inheritance and anti-collusion.
 
 ## Before producing code
 

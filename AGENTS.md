@@ -227,7 +227,7 @@ The table above lists **installation entry points** per runtime. This map classi
 |---|---|---|
 | `AGENTS.md` (this file) | SoT — operating contract (the 8 core rules above) | Canonical; all runtimes inherit from here |
 | `docs/multi-agent-handoff.md` | SoT — role contract (Planner / Implementer / Reviewer definitions, field-ownership matrix, tool-permission matrix, anti-collusion, handoff minima) | Canonical for multi-agent discipline; `agents/`, `.cursor/rules/`, `reference-implementations/roles/` all point back here |
-| `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `glossary.md`, …) | Canonical per topic; referenced from the contracts above |
+| `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `glossary.md`, `phase-command-vocabulary.md`, …) | Canonical per topic; referenced from the contracts above |
 | `skills/engineering-workflow/SKILL.md` + `skills/**` | SoT — execution layer (modes, phases, templates, references) | Canonical for workflow execution |
 | `schemas/**` + `templates/**` | SoT — machine-readable Change Manifest contract + worked examples | Canonical structural output |
 | `CLAUDE.md` | Thin-bridge — Claude Code entry; points at `AGENTS.md` + `skills/` | Onboarding only, no new normative content |
@@ -239,6 +239,7 @@ The table above lists **installation entry points** per runtime. This map classi
 | `.cursor/rules/{planner,implementer,reviewer}.mdc` | Runtime role-spec — Cursor Custom Mode system prompts | Must remain self-contained because Cursor does not auto-resolve Markdown path references; normative rules are mirrored **from** `docs/multi-agent-handoff.md`, never authored here |
 | `agents/{planner,implementer,reviewer}.md` | Runtime role-spec — Claude Code sub-agent definitions with mechanical `tools:` enforcement | Role behaviour must cite `docs/multi-agent-handoff.md` as the source; runtime-specific supplements (Lean-mode collapse, tool-permission rows) are allowed, new normative rules are not |
 | `reference-implementations/roles/*.md` | Reference wrappers — runtime-neutral paste-ready prompts for Gemini / Windsurf / Codex / Aider | Never introduce normative content; if the wrapper says something `docs/multi-agent-handoff.md` does not, one of them is wrong |
+| `reference-implementations/roles/specialist-roles-registry.md` | Reference wrapper — starter registry for specialist sub-agent roles (`architect`, `security-reviewer`, `performance-reviewer`) per `docs/multi-agent-handoff.md` §Composable specialist sub-agent roles | Non-normative reference; bridges may copy / extend / replace entries. Specialist contract itself lives in `docs/multi-agent-handoff.md`; this file lists which specialists exist |
 | `reference-implementations/validator-*/` | Reference wrappers — executable validators for the automation contract | Track the spec in `docs/automation-contract*.md`; `DEVIATIONS.md` is the gap record |
 
 ### Where a new rule belongs

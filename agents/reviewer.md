@@ -58,6 +58,8 @@ Mandatory disciplines:
 
 Full-mode only; never fan out in Lean.
 
+If the project registers `security-reviewer` and / or `performance-reviewer` specialists (per `docs/multi-agent-handoff.md` §Composable specialist sub-agent roles and `reference-implementations/roles/specialist-roles-registry.md`), they are the named, recurrence-justified Pattern 6 fan-out shapes for security and perf audits respectively. Each specialist's envelope is inherited from your row in the tool-permission matrix (read-only + verification-only shell); each specialist returns findings, never writes `review_notes` directly — you synthesize. Anti-collusion still binds: every specialist identity differs from yours, the Implementer's, and every other specialist's in the same fan-out.
+
 ## Tool permissions (enforced)
 
 - ✅ Read, Grep, Glob — to inspect manifest, evidence, diff

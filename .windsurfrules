@@ -21,6 +21,10 @@ This repository provides a tool-agnostic engineering workflow plugin. The runtim
 
 This plugin names **capability categories** (file read, code search, shell execution, sub-agent delegation). Map each to whatever Windsurf provides at runtime.
 
+## Phase command vocabulary
+
+Runtime-neutral aliases for phase / role / specialist invocations live in `docs/phase-command-vocabulary.md`. Bridges may surface them as Cascade mode names or persona-prompt prefixes; consult that file for the alias_id → canonical-tuple mapping.
+
 ## Multi-agent role separation (Full mode)
 
 For non-trivial changes, `AGENTS.md` §7 defines three role identities with enforced tool-permission matrices:
@@ -40,6 +44,8 @@ Windsurf does not gate tool exposure per persona, so enforcement of the above is
 4. Record session / model identity in `approvals` so retroactive audit can spot Implementer ≡ Reviewer collusion.
 
 Anti-collusion rule: the same agent identity must not play more than one role in a single change. Full contract: `docs/multi-agent-handoff.md` (see §Enforcement across runtimes).
+
+If a project registers specialist sub-agent roles (e.g. `architect`, `security-reviewer`, `performance-reviewer`) per `docs/multi-agent-handoff.md` §Composable specialist sub-agent roles and `reference-implementations/roles/specialist-roles-registry.md`, invoke them from the parent canonical role's Cascade session as Pattern 1 / 2 / 4 / 6 sub-agents. Specialists inherit the parent's envelope and never write manifest fields. In Windsurf's prose-only enforcement, the parent canonical role is responsible for honoring envelope inheritance and anti-collusion.
 
 ## Stop conditions
 

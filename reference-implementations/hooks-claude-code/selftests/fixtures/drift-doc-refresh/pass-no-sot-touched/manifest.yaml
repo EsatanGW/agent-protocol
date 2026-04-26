@@ -1,0 +1,12 @@
+change_id: CHG-DR-0002
+title: Diff touches non-SoT files only
+phase: execute
+surfaces_touched: [information]
+sot_map:
+  - pattern_id: "2-model-sot"
+    source: app/models/voucher.py
+    consumers: []
+evidence_plan: []
+rollback:
+  mode: 2
+  notes: roll back to previous migration

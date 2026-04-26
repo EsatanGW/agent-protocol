@@ -56,6 +56,16 @@
               "level": "warn",
               "ruleIds": ["drift.sot-file-must-move"]
             }
+          },
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_CONFIG_DIR}/agent-protocol-hooks/hooks/drift-doc-refresh.sh",
+            "description": "Category C (drift): warn when a declared SoT source is edited without a paired doc/spec/manifest update in the same diff",
+            "agentProtocol": {
+              "category": "drift",
+              "level": "warn",
+              "ruleIds": ["drift.doc-refresh-missing"]
+            }
           }
         ]
       }

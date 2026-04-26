@@ -1,0 +1,335 @@
+# yaml-language-server: $schema=../schemas/change-manifest.schema.yaml
+#
+# Example 6 — Mission-shaped manifest with measurable evaluator contract.
+#
+# Scenario:
+#   The `/search` endpoint p95 latency has degraded from ~200ms to ~850ms
+#   over the last quarter. The fix is exploratory — root cause is not known
+#   up front, the Implementer must profile, hypothesize, and iterate. What
+#   is fixed up front is the *evaluator contract*: the measurable conditions
+#   under which any candidate fix is accepted. The change ships only if
+#   every critical evidence row is collected and meets its threshold.
+#
+# What this example exercises:
+#   - "Mission" framing — exploratory work whose intent is captured as a
+#     fixed evaluator contract rather than as a pre-decided implementation
+#   - All measurable acceptance criteria expressed as `evidence_plan.tier:
+#     critical` rows, each citing a numeric pass threshold in `summary`
+#   - Existing `assumptions` block carries the hypotheses the exploration
+#     started from, so invalidation can be tracked via
+#     `implementation_notes[*].type: assumption_invalidated`
+#   - SoT pattern 4 (Contract-Defined — the search-result ranking contract)
+#     and pattern 1 (Schema-Defined — the perf-budget config)
+#   - Breaking change L0 — observable behavior unchanged, only latency drops
+#   - Rollback mode 1 — feature flag gates the new path
+#   - Non-zero `residual_risks` because exploratory work always leaves
+#     unexplored paths; the manifest owns them rather than hiding them
+#
+# What this example does NOT exercise:
+#   - New schema fields — every concept here is representable on the
+#     existing schema. A "mission" is a manifest whose acceptance bar is
+#     numeric and whose verification is `tier: critical` evidence; it is
+#     not a new artifact category. See docs/change-manifest-spec.md
+#     §Mission-shaped manifests for the framing rule.
+#   - Multi-agent fan-out (single Implementer; see example-multi-agent-handoff)
+#   - Real-world surface or compensation rollback (see example-game-gacha,
+#     example-security-sensitive)
+
+change_id: "2026-04-26-search-p95-mission"
+title: "Cut /search p95 latency from 850ms to <200ms with zero ranking drift"
+phase: implement
+status: in_progress
+
+authors:
+  - { name: "abel",            role: human }
+  - { name: "claude-opus-4-7", role: ai, identifier: "claude-opus-4-7" }
+
+last_updated: "2026-04-26T15:00:00Z"
+
+# ─── Surfaces ────────────────────────────────────────────────────────────
+surfaces_touched:
+  - surface: system_interface
+    role: primary
+    notes: |
+      /search endpoint behavior unchanged from a contract perspective
+      (same request shape, same response ranking on golden corpus); only
+      its latency profile changes. Listed primary because the change has
+      no point if /search is not faster.
+  - surface: information
+    role: consumer
+    notes: |
+      Postgres index strategy may change (added covering index on
+      (tenant_id, indexed_at, score)); migration is additive.
+  - surface: operational
+    role: primary
+    notes: |
+      New perf budget enforced in CI (search-p95-budget.yaml); new
+      dashboard panel "search latency by tenant tier"; runbook entry
+      for the feature flag and rollback path.
+  - surface: user
+    role: incidental
+    notes: |
+      No visible UX change; users on slow tier see faster results, no
+      copy/route/layout difference.
+
+uncontrolled_interfaces:
+  - name: "Postgres query planner (managed RDS)"
+    kind: platform_os
+    monitoring_channel: "platform-team weekly RDS-engine notes"
+
+# ─── SoT Map ────────────────────────────────────────────────────────────
+sot_map:
+
+  - info_name: "/search response ranking contract"
+    pattern: 4                                      # Contract-Defined
+    source: "docs/contracts/search-ranking-contract.md"
+    consumers:
+      - { name: "search-api service",      kind: code,          sync_lag: synchronous }
+      - { name: "mobile + web clients",    kind: code,          sync_lag: batch }
+      - { name: "analytics ranking-shift", kind: data_pipeline, sync_lag: near_real_time }
+    sync_mechanism: |
+      Golden-corpus parity test in CI compares ranked output of new path
+      against legacy path on 12,400 fixed queries; any rank-position delta
+      fails the test and blocks ship.
+    desync_risk: low
+    notes: |
+      Contract is "same query → same ranked top-100 IDs in same order on
+      the golden corpus." Any deviation requires an explicit contract
+      amendment, not silent perf optimization.
+
+  - info_name: "search perf budget"
+    pattern: 1                                      # Schema-Defined
+    source: "ci/budgets/search-p95-budget.yaml"
+    consumers:
+      - { name: "ci budget-check job",   kind: code,          sync_lag: synchronous }
+      - { name: "perf dashboard",        kind: data_pipeline, sync_lag: near_real_time }
+      - { name: "incident runbook",      kind: documentation, sync_lag: manual }
+    sync_mechanism: |
+      Single YAML file declares p50 / p95 / p99 ceilings; CI loads it,
+      compares with last 7d of production p-stats; dashboard reads same
+      file as its alert threshold; runbook references it by path.
+    desync_risk: low
+
+# ─── Cross-Cutting ──────────────────────────────────────────────────────
+cross_cutting:
+
+  security:
+    impact: low
+    pii_access_added: false
+    supply_chain_review_needed: false
+    notes: |
+      No new auth path; query-rewrite operates on already-authorized
+      requests. Tenant isolation preserved by the same row-level filter
+      the legacy path uses.
+
+  performance:
+    impact: high
+    notes: |
+      The whole point. Targets enforced as critical evidence rows below.
+    budget:
+      search_p50_latency_ms: 60
+      search_p95_latency_ms: 200
+      search_p99_latency_ms: 450
+      search_memory_peak_mb_per_request: 96
+
+  observability:
+    impact: medium
+    new_events: ["search_path_taken"]
+    new_dashboards: ["search latency by tenant tier", "search path-flag rollout"]
+    notes: |
+      `search_path_taken` event tags each request with `legacy` or
+      `optimized` so the rollout can be observed and reverted with
+      tenant granularity if a regression slips past the golden corpus.
+
+  testability:
+    impact: high
+    test_levels: [unit, contract, integration, load]
+    notes: |
+      Golden-corpus parity test (12,400 queries) is the contract gate;
+      load test reproduces production query distribution at 2x peak.
+
+  error_handling:
+    impact: low
+    classification_updated: false
+    cancellation_propagation_reviewed: true
+    notes: |
+      Long-running query path now respects request-deadline header for
+      cancellation; previously the deadline was honored only at the
+      network layer.
+
+  build_time_risk:
+    impact: low
+    codegen_touched: false
+    codegen_artifacts_committed: false
+    minification_rules_touched: false
+    asset_pipeline_touched: false
+    release_build_verified: true
+    determinism_considerations: []
+
+# ─── Breaking Change ────────────────────────────────────────────────────
+breaking_change:
+  level: L0                                         # Additive — observable behavior unchanged
+  self_assessed_vs_worst_case: matches
+  affected_consumers:
+    - { category: first_party_client, identifier: "mobile + web", notes: "No code change required; same response shape and ranking." }
+    - { category: data_downstream,    identifier: "analytics ranking-shift pipeline", notes: "New `search_path_taken` field is additive." }
+  migration_path: none
+
+# ─── Rollback ───────────────────────────────────────────────────────────
+rollback:
+  overall_mode: 1                                   # Reversible
+  per_surface_modes:
+    - { surface: system_interface, mode: 1, rationale: "Feature flag `search_path=optimized|legacy` defaulted off; rollout is per-tenant gradual." }
+    - { surface: information,      mode: 1, rationale: "New covering index can be dropped with no data loss; existing index untouched." }
+    - { surface: operational,      mode: 1, rationale: "Perf budget file is revertible; new dashboard panel is additive." }
+  kill_switch:
+    available: true
+    mechanism: "feature flag `search_path` — values {legacy, optimized}; per-tenant override list."
+    tested: true
+
+# ─── Evidence ───────────────────────────────────────────────────────────
+#
+# Each `tier: critical` row corresponds to one acceptance criterion of the
+# mission's evaluator contract. Missing or rejected critical evidence
+# blocks Phase 6 sign-off (per docs/automation-contract.md §Evidence tier
+# and docs/automation-contract-algorithm.md §Rule 2.11). The numeric pass
+# threshold lives in `summary` so the artifact can be read in isolation.
+#
+evidence_plan:
+
+  - type: load_test
+    surface: system_interface
+    status: collected
+    tier: critical                                  # Acceptance: p95 < 200ms on production query mix
+    artifact_location: "ci/reports/search-load-2026-04-26.html"
+    summary: |
+      Load test against staging at 2x production peak QPS for 30 min.
+      Pass threshold: p95 < 200ms, p99 < 450ms, memory peak < 96MB/req.
+      Observed: p95 178ms, p99 412ms, memory peak 88MB/req.
+    validated_by: "github-actions/load-test"
+    collected_at: "2026-04-26T11:30:00Z"
+
+  - type: contract_test
+    surface: system_interface
+    status: collected
+    tier: critical                                  # Acceptance: zero ranking drift on golden corpus
+    artifact_location: "ci/reports/search-golden-parity-2026-04-26.json"
+    summary: |
+      Golden corpus of 12,400 production-derived queries replayed against
+      both paths. Pass threshold: identical top-100 IDs in identical
+      order on every query. Observed: 12,400 / 12,400 exact match.
+    validated_by: "github-actions/golden-parity"
+    collected_at: "2026-04-26T12:00:00Z"
+
+  - type: metric_diff
+    surface: operational
+    status: collected
+    tier: critical                                  # Acceptance: production canary 24h shows p95 below budget
+    artifact_location: "evidence/canary/search-p95-2026-04-26.md"
+    summary: |
+      24h canary at 5% traffic on tenant-tier-1. Pass threshold: p95
+      stays below the 200ms budget every 5-minute bucket; no error-rate
+      regression. Observed: p95 max bucket 184ms; error rate flat.
+    validated_by: "sre-team@internal"
+    collected_at: "2026-04-26T14:45:00Z"
+
+  - type: query_plan
+    surface: information
+    status: collected
+    tier: standard
+    artifact_location: "evidence/query-plans/search-optimized-2026-04-26.txt"
+    summary: |
+      EXPLAIN (ANALYZE, BUFFERS) on representative queries; covering index
+      hit rate 99.4%; no sequential scans on hot path.
+    validated_by: "abel"
+    collected_at: "2026-04-26T10:15:00Z"
+
+  - type: runbook_update
+    surface: operational
+    status: collected
+    tier: standard
+    artifact_location: "docs/runbooks/search-rollout.md"
+    summary: |
+      Runbook documents flag flip, dashboard URLs, rollback path, and
+      tenant-tier rollout sequence (tier-1 → tier-2 → tier-3, 48h soak
+      between tiers).
+    validated_by: "sre-team@internal"
+    collected_at: "2026-04-26T13:30:00Z"
+
+  - type: changelog_entry
+    surface: operational
+    status: planned
+    tier: standard
+    summary: "Will be added at Phase 6 sign-off; mentions flag and rollout cadence."
+
+# ─── AI Hygiene ─────────────────────────────────────────────────────────
+#
+# A mission's `assumptions` block carries the hypotheses the exploration
+# started from. As the Implementer profiles and iterates, invalidated
+# hypotheses are recorded in `implementation_notes[*].type:
+# assumption_invalidated` (see implementation_notes below) so the audit
+# trail captures *what was tried and ruled out*, not only *what shipped*.
+#
+assumptions:
+  - statement: "Latency regression is dominated by query-planner cost, not application logic."
+    confidence: medium
+    validation_plan: "EXPLAIN ANALYZE on production-shaped queries; flame graphs of the request path."
+  - statement: "Adding a covering index on (tenant_id, indexed_at, score) reduces planner cost > 50%."
+    confidence: medium
+    validation_plan: "EXPLAIN (ANALYZE, BUFFERS) before/after on staging clone."
+  - statement: "Result-merging step in application code is not the bottleneck."
+    confidence: low
+    validation_plan: "py-spy / pprof on the merge path under load."
+
+implementation_notes:
+  - type: assumption_validated
+    description: "Query-planner-cost hypothesis confirmed — accounted for 78% of p95 budget."
+    rationale: "Flame graph on production-shaped corpus; EXPLAIN cost dropped from 4,200 to 480 with the new index."
+  - type: assumption_invalidated
+    description: "Result-merging path was not a bottleneck — pprof showed < 3% time."
+    rationale: "Investigated as a fallback in case the index change underperformed; ruled out before it was needed."
+  - type: discovery
+    description: "Found that 4 tenants disable the (tenant_id, indexed_at) compound index hint via a legacy override."
+    rationale: "Override exists for tenants whose corpus is < 1k rows. Flag-rollout sequence respects this; tier-3 rollout includes an audit step."
+  - type: scope_flag
+    description: "Discovered an opportunity to retire the legacy result-merging path entirely; deliberately deferred."
+    rationale: "Out of scope for this mission. Filed as 2026-05-XX-search-merge-retirement so the audit trail records the decision."
+
+# ─── Residual Risks ─────────────────────────────────────────────────────
+#
+# A mission with a numeric evaluator contract still leaves residual risk
+# in the regions the contract did not cover. The honest discipline is to
+# enumerate them rather than treat the contract as complete coverage.
+#
+residual_risks:
+  - description: |
+      Golden corpus is sampled from the last 90 days of production
+      queries. Long-tail queries with seasonal patterns (Q4 holiday,
+      regulatory filings) are under-represented. Risk that a seasonal
+      query shape exposes a regression the corpus did not catch.
+    severity: medium
+    mitigation: |
+      Tier-by-tier rollout with 48h soak; dashboard alerts on p95 drift
+      per tenant tier; rollback via feature flag is sub-minute.
+    accepted_by: "sre-team@internal"
+  - description: |
+      Postgres major-version upgrade is on the platform-team roadmap for
+      next quarter. The new query plan may behave differently under the
+      upgraded planner; the assumption-validated finding is current-version
+      only.
+    severity: low
+    mitigation: |
+      Covering index strategy is portable; re-run EXPLAIN ANALYZE during
+      the platform team's pre-upgrade canary window. Filed as a
+      consumer obligation against the upgrade change.
+    accepted_by: "abel"
+  - description: |
+      The mission's evaluator contract pins ranking parity but not scoring
+      stability under future re-indexing. A re-index that changes scores
+      could shift ranks even on identical queries; the corpus does not
+      detect this because it replays against a fixed snapshot.
+    severity: low
+    mitigation: |
+      Re-index events are governed by a separate contract; this manifest
+      explicitly does not warrant scoring stability across re-index.
+    accepted_by: "search-team@internal"
