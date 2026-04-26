@@ -1,0 +1,9 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Protocol</title>
+  <desc id="desc">Compact AP protocol mark.</desc>
+  <rect width="128" height="128" rx="28" fill="#0B1220"/>
+  <rect x="30" y="24" width="68" height="80" rx="10" fill="#ECFDF5"/>
+  <path d="M30 34C30 28.477 34.477 24 40 24H88C93.523 24 98 28.477 98 34V46H30V34Z" fill="#14B8A6"/>
+  <path d="M43 89L53 51H63L73 89H64L62 81H53L51 89H43ZM55 73H60L58 61L55 73Z" fill="#0B1220"/>
+  <path d="M76 89V51H88C96 51 102 57 102 65C102 74 96 80 88 80H84V89H76ZM84 72H87C91 72 94 69 94 65C94 61 91 58 87 58H84V72Z" fill="#0B1220"/>
+</svg>

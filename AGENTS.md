@@ -211,7 +211,8 @@ Each runtime has its own entry point, but all of them end up pointing at `skills
 | **Cursor** | `.cursor/rules/*.mdc` bridge | Rules auto-load when repo is opened |
 | **Gemini CLI** | `GEMINI.md` at repo root | Loaded at session start |
 | **Windsurf** | `.windsurfrules` at repo root | Loaded at session start |
-| **Codex / Aider / OpenCode / others** | `AGENTS.md` (this file) | Agents.md convention is automatic for supporting runtimes |
+| **Codex** | `.codex-plugin/plugin.json` + `.agents/plugins/marketplace.json` | Install as a local Codex plugin; see `docs/codex-install.md`. `AGENTS.md` remains the fallback entry point |
+| **Aider / OpenCode / others** | `AGENTS.md` (this file) | Agents.md convention is automatic for supporting runtimes |
 | **Custom agent (API SDK)** | Point your system prompt at `AGENTS.md` | Plus any `docs/` or `skills/` files you want in context |
 
 See `README.md` for installation details per runtime.
@@ -232,6 +233,8 @@ The table above lists **installation entry points** per runtime. This map classi
 | `CLAUDE.md` | Thin-bridge — Claude Code entry; points at `AGENTS.md` + `skills/` | Onboarding only, no new normative content |
 | `GEMINI.md` | Thin-bridge — Gemini CLI entry | Same |
 | `.windsurfrules` | Thin-bridge — Windsurf entry | Same |
+| `.codex-plugin/plugin.json` | Thin-bridge — Codex plugin manifest | Metadata and UI entry only; execution rules remain in `AGENTS.md` + `skills/` |
+| `.agents/plugins/marketplace.json` | Thin-bridge — Codex local marketplace entry | Points Codex at the repository root plugin; no new normative content |
 | `.cursor/rules/engineering-workflow.mdc` | Thin-bridge with `alwaysApply: true` — Cursor repo-level onboarding | Condensed summary only; every bullet must defer to a `docs/` source |
 | `.cursor/rules/{planner,implementer,reviewer}.mdc` | Runtime role-spec — Cursor Custom Mode system prompts | Must remain self-contained because Cursor does not auto-resolve Markdown path references; normative rules are mirrored **from** `docs/multi-agent-handoff.md`, never authored here |
 | `agents/{planner,implementer,reviewer}.md` | Runtime role-spec — Claude Code sub-agent definitions with mechanical `tools:` enforcement | Role behaviour must cite `docs/multi-agent-handoff.md` as the source; runtime-specific supplements (Lean-mode collapse, tool-permission rows) are allowed, new normative rules are not |

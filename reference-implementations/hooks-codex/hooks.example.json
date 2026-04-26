@@ -1,0 +1,55 @@
+{
+  "_comment": "Opt-in Codex plugin hook example. Do not copy this to the repository root as hooks.json unless you intentionally want these hooks to run from the plugin. Commands assume the plugin root is the current working directory; use absolute paths if your Codex install spawns hooks elsewhere.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ./reference-implementations/hooks-claude-code/hooks/manifest-required.sh",
+            "description": "Category A (phase-gate): block non-trivial git commit if no Change Manifest is staged"
+          },
+          {
+            "type": "command",
+            "command": "sh ./reference-implementations/hooks-claude-code/hooks/evidence-artifact-exists.sh",
+            "description": "Category B (evidence): block git commit when evidence_plan paths do not resolve"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git push*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ./reference-implementations/hooks-claude-code/hooks/consumer-registry-check.sh",
+            "description": "Category C (drift, network): warn when declared consumer registries are unreachable"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ./reference-implementations/hooks-claude-code/hooks/sot-drift-check.sh",
+            "description": "Category C (drift): warn when a declared SoT source is not being touched"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ./reference-implementations/hooks-claude-code/hooks/completion-audit.sh",
+            "description": "Category D (completion-audit): block end-of-turn when manifest says done dishonestly"
+          }
+        ]
+      }
+    ]
+  }
+}

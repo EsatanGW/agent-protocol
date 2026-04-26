@@ -92,7 +92,23 @@ Gemini loads it at session start.
 cp agent-protocol/.windsurfrules <your-project>/.windsurfrules
 ```
 
-### Codex / Aider / OpenCode / any agents.md-aware agent
+### Codex
+
+Agent Protocol ships as a Codex plugin at the repository root. The Codex manifest lives at `.codex-plugin/plugin.json`, and the local marketplace entry lives at `.agents/plugins/marketplace.json`.
+
+For a user-wide install, clone the repo and add it to your local Codex marketplace:
+
+```bash
+git clone https://github.com/EsatanGW/agent-protocol.git ~/agent-protocol
+mkdir -p ~/plugins ~/.agents/plugins
+ln -sfn ~/agent-protocol ~/plugins/agent-protocol
+```
+
+Then add an `agent-protocol` entry to `~/.agents/plugins/marketplace.json` with `source.path` set to `./plugins/agent-protocol`. Restart Codex so it reloads the local marketplace.
+
+See [`docs/codex-install.md`](./docs/codex-install.md) for user-wide, workspace-scoped, and hook opt-in installation details.
+
+### Aider / OpenCode / any agents.md-aware agent
 
 Place `AGENTS.md` at your project root. These agents follow the [agents.md](https://agents.md/) convention and will read it automatically.
 
@@ -116,9 +132,16 @@ agent-protocol/
 ├── .windsurfrules              # Windsurf bridge
 ├── .cursor/rules/              # Cursor bridge
 │   └── engineering-workflow.mdc
+├── .agents/plugins/            # Codex local marketplace entry
+│   └── marketplace.json
+├── .codex-plugin/              # Codex plugin manifest
+│   └── plugin.json
 ├── .claude-plugin/             # Claude Code plugin manifest only
 │   ├── plugin.json
 │   └── marketplace.json
+├── assets/                     # Codex plugin icons
+│   ├── agent-protocol.svg
+│   └── agent-protocol-small.svg
 ├── agents/                     # Role-bound sub-agents (Planner / Implementer / Reviewer)
 │   ├── planner.md
 │   ├── implementer.md
@@ -147,6 +170,7 @@ agent-protocol/
 │   ├── multi-agent-handoff.md
 │   ├── automation-contract.md
 │   ├── automation-contract-algorithm.md
+│   ├── codex-install.md
 │   ├── phase-gate-discipline.md  # Per-phase gate + ROADMAP contract
 │   ├── adoption-strategy.md
 │   ├── glossary.md

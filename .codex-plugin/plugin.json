@@ -1,0 +1,47 @@
+{
+  "name": "agent-protocol",
+  "version": "1.18.2",
+  "description": "Tool-agnostic engineering workflow plugin for Codex: surface-first change analysis, source-of-truth discipline, four-mode execution, and evidence-driven delivery.",
+  "author": {
+    "name": "agent-protocol contributors",
+    "url": "https://github.com/EsatanGW/agent-protocol"
+  },
+  "homepage": "https://github.com/EsatanGW/agent-protocol",
+  "repository": "https://github.com/EsatanGW/agent-protocol",
+  "license": "MIT",
+  "keywords": [
+    "engineering-workflow",
+    "system-change",
+    "change-management",
+    "source-of-truth",
+    "evidence-driven",
+    "multi-agent",
+    "tool-agnostic",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agent Protocol",
+    "shortDescription": "Evidence-driven engineering workflow for Codex",
+    "longDescription": "Use Agent Protocol to guide Codex through source-of-truth discovery, surface-first impact analysis, Lean or Full delivery modes, Change Manifest handoffs, and verification-backed completion reports.",
+    "developerName": "agent-protocol contributors",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/EsatanGW/agent-protocol",
+    "privacyPolicyURL": "https://github.com/EsatanGW/agent-protocol/blob/main/LICENSE",
+    "termsOfServiceURL": "https://github.com/EsatanGW/agent-protocol/blob/main/LICENSE",
+    "defaultPrompt": [
+      "Use Agent Protocol to plan this engineering change.",
+      "Run a surface-first investigation before coding.",
+      "Prepare a Change Manifest for this rollout."
+    ],
+    "brandColor": "#0F766E",
+    "composerIcon": "./assets/agent-protocol-small.svg",
+    "logo": "./assets/agent-protocol.svg",
+    "screenshots": []
+  }
+}

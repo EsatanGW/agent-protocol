@@ -11,6 +11,7 @@
 | File | Purpose |
 |------|---------|
 | `settings.example.json` | Merge into your Codex hook config |
+| `hooks.example.json` | Opt-in Codex plugin-style hook example; not loaded by default |
 | `adapter/parse-event.sh` | Codex event → `AP_*` env vars |
 | `DEVIATIONS.md` | Codex-specific quirks vs. the contract |
 
@@ -21,12 +22,21 @@ out to `../hooks-claude-code/hooks/<name>.sh`.
 
 ## How to install
 
+These hooks are opt-in. The repository's `.codex-plugin/plugin.json`
+intentionally does **not** point at a root `hooks.json`, because the
+reference hooks may block `git commit` or warn on `git push` until a
+project has adopted Change Manifest and evidence artifacts.
+
 1. Locate the settings file your Codex install reads on startup.
 2. Merge `settings.example.json` into it. Adjust key names to the
    Codex version's schema — keep the commands and their ordering.
 3. Confirm the relative path resolves from the working directory Codex
    uses when spawning hook commands; prefer absolute paths for
    installs outside the repo root.
+
+If your Codex install supports plugin-local hook files, copy
+`hooks.example.json` to the hook path your install expects only after
+you intentionally choose to enable the checks.
 
 ---
 

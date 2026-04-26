@@ -1,0 +1,13 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Protocol</title>
+  <desc id="desc">Layered protocol mark with AP initials.</desc>
+  <rect width="512" height="512" rx="104" fill="#0B1220"/>
+  <path d="M128 144C128 126.327 142.327 112 160 112H352C369.673 112 384 126.327 384 144V368C384 385.673 369.673 400 352 400H160C142.327 400 128 385.673 128 368V144Z" fill="#0F766E"/>
+  <path d="M160 144H352V368H160V144Z" fill="#ECFDF5"/>
+  <path d="M184 180H328" stroke="#0B1220" stroke-width="24" stroke-linecap="round"/>
+  <path d="M184 236H296" stroke="#0F766E" stroke-width="24" stroke-linecap="round"/>
+  <path d="M184 292H328" stroke="#0B1220" stroke-width="24" stroke-linecap="round"/>
+  <path d="M160 112H352C369.673 112 384 126.327 384 144V176H128V144C128 126.327 142.327 112 160 112Z" fill="#14B8A6"/>
+  <path d="M205 349L240 211H272L307 349H277L271 321H240L234 349H205ZM245 296H266L256 248L245 296Z" fill="#0B1220"/>
+  <path d="M319 349V211H360C388 211 408 230 408 258C408 286 388 306 360 306H348V349H319ZM348 281H359C371 281 379 272 379 258C379 245 371 236 359 236H348V281Z" fill="#0B1220"/>
+</svg>
