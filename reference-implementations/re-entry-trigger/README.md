@@ -6,18 +6,19 @@ A small, pure-function reference implementation of the `docs/phase-gate-discipli
 
 ---
 
-## Decision table (from Rule 6)
+## Decision table (from Rule 6, 1.23.0 form)
 
-| Variation type | Re-entry phase | Fields rewritten |
+Rule 6 organizes seven source variations `(a)`–`(g)` into four destination phases. This module returns five phase-enum values (Phase 4 splits into append vs evidence sub-variants). The mapping from source variations to enum values:
+
+| Re-entry phase enum | Source variations covered | Fields rewritten |
 |---|---|---|
-| A new surface is being touched | Phase 0 Clarify | `surfaces_touched`, `evidence_plan` |
-| SoT pattern was mis-classified | Phase 1 Investigate | `sot_map`, `consumers` |
-| Breaking-change level rises | Phase 1 Investigate | `breaking_change`, `rollback` (and `breaking_change.migration_plan` at L2+) |
-| Rollback mode rises | Phase 2 Plan | `rollback` (and `post_delivery`, `rollback.compensation_plan` at Mode 3) |
-| Implementation strategy changes only | Phase 4 Implement (append) | `implementation_notes`, `scope_deltas` |
-| Evidence insufficient per Reviewer | Phase 4 Implement (evidence) | `evidence_plan.artifacts` |
+| `0_clarify` | (a) a new surface is being touched | `surfaces_touched`, `evidence_plan` |
+| `1_investigate` | (c) SoT pattern mis-classified; (d) breaking-change level rises | (c) `sot_map`, `consumers`. (d) `breaking_change`, `rollback` (and `breaking_change.migration_plan` at L2+) |
+| `2_plan` | (e) rollback mode rises | `rollback` (and `post_delivery`, `rollback.compensation_plan` at Mode 3) |
+| `4_implement_append` | (f) implementation strategy changes only | `implementation_notes`, `scope_deltas` |
+| `4_implement_evidence` | (g) evidence insufficient per Reviewer | `evidence_plan.artifacts` |
 
-The "spec updated mid-change by user" row from Rule 6 is **not detected here** — it requires an external signal (spec-file change from `git diff`) that is not derivable from two manifest dicts alone. Runtimes that want that detection can add it as a wrapper layer; see "Integration with validators" below.
+Source variation **(b) "spec updated mid-change by user"** → Phase 0 Clarify is **not detected here** — it requires an external signal (spec-file change from `git diff`) that is not derivable from two manifest dicts alone. Runtimes that want that detection can add it as a wrapper layer; see "Integration with validators" below.
 
 ---
 

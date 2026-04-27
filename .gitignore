@@ -21,3 +21,6 @@ __pycache__/
 # OS / temp
 Thumbs.db
 *.log
+
+# Phase-gate Rule 5a working space (session-scoped artifacts; never canonical, never committed)
+working/

@@ -4,13 +4,13 @@ Tracks where this reference differs from `docs/phase-gate-discipline.md` Rule 6.
 
 ## Implemented
 
-- Six of seven rows of the Rule 6 decision table:
-  - New surface touched → Phase 0 Clarify
-  - SoT pattern re-classified → Phase 1 Investigate
-  - Breaking-change level rises → Phase 1 Investigate (with migration_plan at L2+)
-  - Rollback mode rises → Phase 2 Plan (with compensation_plan + post_delivery at Mode 3)
-  - Implementation strategy changes only → Phase 4 Implement (append-only)
-  - Evidence rejected by Reviewer → Phase 4 Implement (evidence replacement)
+- Six of the seven Rule 6 source variations (1.23.0 doc form: organized as four destination phases — Phase 0 / Phase 1 / Phase 2 / Phase 4 with Phase 4 split into two sub-variants. Source variations preserved verbatim in the doc as `(a)`–`(g)`; this implementation covers (a), (c), (d), (e), (f), (g) — the same coverage as before the 1.23.0 compression):
+  - (a) New surface touched → Phase 0 Clarify (`0_clarify`)
+  - (c) SoT pattern re-classified → Phase 1 Investigate (`1_investigate`)
+  - (d) Breaking-change level rises → Phase 1 Investigate (`1_investigate`; with migration_plan at L2+)
+  - (e) Rollback mode rises → Phase 2 Plan (`2_plan`; with compensation_plan + post_delivery at Mode 3)
+  - (f) Implementation strategy changes only → Phase 4 Implement append-only (`4_implement_append`)
+  - (g) Evidence rejected by Reviewer → Phase 4 Implement evidence replacement (`4_implement_evidence`)
 - Pure-function API taking two manifest dicts; no network, no filesystem,
   no git. Runtime-neutral per the automation contract.
 - CLI wrapper loading the two manifests from YAML files and emitting
@@ -23,7 +23,7 @@ Tracks where this reference differs from `docs/phase-gate-discipline.md` Rule 6.
 
 | Row / feature | Reason |
 |----------------|--------|
-| "Spec updated mid-change by user" → Phase 0 Clarify | Requires an external signal (a spec file in the repo changed; this is not derivable from the two manifest dicts alone). Callers can detect this via `git diff --name-only` against spec file globs, then synthesize a suggestion. |
+| (b) "Spec updated mid-change by user" → Phase 0 Clarify | Requires an external signal (a spec file in the repo changed; this is not derivable from the two manifest dicts alone). Callers can detect this via `git diff --name-only` against spec file globs, then synthesize a suggestion. |
 | Git-base-ref auto-loading | Pure-function discipline — users assemble the `old` and `new` dicts themselves. A wrapper layer that calls `git show <ref>:<path>` is a separate concern and can live in validators or hooks. |
 | PR-comment posting | Out of scope — the module emits suggestions; posting is a CI platform concern. |
 | Severity assignment | Every suggestion is returned uniformly; Rule 6 does not itself specify severity. A validator that wraps this module chooses the severity (advisory for most, blocking when a team policy requires). |
@@ -36,4 +36,6 @@ Tracks where this reference differs from `docs/phase-gate-discipline.md` Rule 6.
 
 ## Methodology version targeted
 
-1.8.x — matches the introduction of Rule 6 (phase re-entry protocol) in `docs/phase-gate-discipline.md`.
+1.23.0 — Rule 6 decision table re-organized from seven source variations into four destination-phase rows (Phase 0 / 1 / 2 / 4-with-two-sub-variants). The table form changed; the source variations are preserved as `(a)`–`(g)` sub-cells. This implementation's API is unchanged (same five phase enum values returned: `0_clarify` / `1_investigate` / `2_plan` / `4_implement_append` / `4_implement_evidence`), so consumers do not need to re-pin a different module version.
+
+Originally introduced in 1.8.0 as the seven-row form.
