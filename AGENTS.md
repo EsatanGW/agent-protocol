@@ -270,7 +270,7 @@ The table above lists **installation entry points** per runtime. This map classi
 | `docs/README.md` | Non-normative — 4-tier index of every methodology file under `docs/` (onboarding / core contract / disciplines / references) | Discoverability layer; renames in `docs/` must update this index in the same change |
 | `docs/decision-trees.md` | Non-normative — 3 routing decisions (manifest-needed / SoT pattern / single vs multi-agent), each routing to its canonical source | Quick decision hub; binding rules stay in the canonical sources it cites |
 | `docs/change-manifest-spec-cookbook.md` | Non-normative companion to `docs/change-manifest-spec.md` — CI integration recipes, AI usage modes, mission-shaped manifests, example tour | Spec wins on contradiction; cookbook holds applied material only |
-| `docs/sot-desync-anti-patterns.md` | Non-normative diagnostic appendix to `docs/source-of-truth-patterns.md` — 6 anti-patterns + 4 repair strategies + mapping | Identification stays in the spec; diagnosis lives in the appendix |
+| `docs/sot-desync-anti-patterns.md` | Non-normative diagnostic appendix to `docs/source-of-truth-patterns.md` — 7 anti-patterns + 4 repair strategies + mapping | Identification stays in the spec; diagnosis lives in the appendix |
 
 ### Where a new rule belongs
 

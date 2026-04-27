@@ -6,6 +6,15 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **`docs/sot-desync-anti-patterns.md` §Anti-pattern 6 — Fan-out consumer registry drift** (new entry; previous Anti-pattern 6 "Pipeline order treated as detail" renumbered to Anti-pattern 7). Codifies the failure mode encountered during the v1.21.0 release: a single fact (here, the version string) declared in N files (plugin.json + marketplace.json + README badge + CHANGELOG.md + CHANGELOG.json), where the change author updated one and forgot the rest. The repair pattern names the check-script enumeration as the *de facto* registry, prescribes pre-push (not pre-merge) verification, and recommends demoting N-1 declarations to generated artifacts where possible. Header count updated from "6 desync anti-patterns" to "7"; mapping table extended; cross-reference in `docs/source-of-truth-patterns.md` and `AGENTS.md §File role map` updated in the same change.
+- **`VERSIONING.md` §Release pre-push checklist** (new sub-section). Two-command checklist (`check-version-consistency.sh` + `generate-changelog-json.py --check`) that catches fan-out consumer-registry drift before the release commit is pushed. Names the destructive-recovery cost (force-push of a published tag) as the specific failure this checklist exists to prevent. Cross-references the new `sot-desync-anti-patterns.md §Anti-pattern 6` for the underlying failure-mode pattern.
+
+### Why L0 (Lean-eligible additive)
+
+Purely additive — one new anti-pattern entry (with mechanical renumber of the next entry, single-point cross-reference updates), one new sub-section in VERSIONING.md. No existing normative claim changed; no SoT file restructured. Encodes the lesson from the v1.21.0 release-pipeline incident (force-push of `v1.21.0` tag from `aadec97` to `23af434` after CI surfaced version-consistency drift) so the same failure mode is caught at edit time, not at CI time.
+
 ## [1.21.0] - 2026-04-27
 
 This release adds two new universal AI-agent disciplines — **Agent persona discipline** (§9) and **Output craft discipline** (§10) — to `AGENTS.md §Core operating contract`, expanding the operating contract from 8 rules to 10. Forced-Full per `mode-decision-tree.md §Canonical methodology content edit (L1+)` (adding new normative rules to the SoT operating contract).

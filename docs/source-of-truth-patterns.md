@@ -555,7 +555,7 @@ If the answer is "some in-memory state disappears; users see a blank / reset / e
 
 ## Common desync anti-patterns and repair strategies
 
-The 10 patterns above identify *which kind* of authority a piece of information has. Once identified, the most common ways those SoTs go wrong in practice — and the standard strategies for repairing them — are catalogued in the diagnostic appendix [`sot-desync-anti-patterns.md`](sot-desync-anti-patterns.md). It covers six anti-patterns (dual-write without coordination; consumer derives its own truth; cached truth goes stale; doc drifts from implementation; i18n keys drift from source copy; pipeline order treated as detail) and four repair strategies (single writer; event-driven sync; dual-read / dual-write migration; reconciliation), plus a mapping table from anti-patterns to most-common repair.
+The 10 patterns above identify *which kind* of authority a piece of information has. Once identified, the most common ways those SoTs go wrong in practice — and the standard strategies for repairing them — are catalogued in the diagnostic appendix [`sot-desync-anti-patterns.md`](sot-desync-anti-patterns.md). It covers seven anti-patterns (dual-write without coordination; consumer derives its own truth; cached truth goes stale; doc drifts from implementation; i18n keys drift from source copy; fan-out consumer registry drift; pipeline order treated as detail) and four repair strategies (single writer; event-driven sync; dual-read / dual-write migration; reconciliation), plus a mapping table from anti-patterns to most-common repair.
 
 ---
 

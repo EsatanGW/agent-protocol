@@ -1,6 +1,6 @@
 # SoT Desync Anti-Patterns and Repair Strategies
 
-> **Companion to [`source-of-truth-patterns.md`](source-of-truth-patterns.md).** That file catalogues the **10 SoT identification patterns** (which kind of authority your information has). This file catalogues the **6 desync anti-patterns** (how SoTs go wrong in practice) and the **4 standard repair strategies** for fixing them.
+> **Companion to [`source-of-truth-patterns.md`](source-of-truth-patterns.md).** That file catalogues the **10 SoT identification patterns** (which kind of authority your information has). This file catalogues the **7 desync anti-patterns** (how SoTs go wrong in practice) and the **4 standard repair strategies** for fixing them.
 >
 > The split is by purpose: identification vs diagnosis. Reach for this file once you have identified the SoT pattern and need to assess desync risk or design a repair.
 
@@ -67,7 +67,31 @@ i18n translation files evolve independently of the original copy.
 
 **Repair:** designate the design source as the source of truth for copy; translation files are consumers.
 
-### Anti-pattern 6: Pipeline order treated as an implementation detail (not a contract)
+### Anti-pattern 6: Fan-out consumer registry drift (one fact, N declarations, N-1 forgotten)
+
+A single fact (typically a version string, a feature-flag name, an enum value, a build identifier) is independently declared in N files because each runtime / package format / index needs its own copy. Updating one is easy; updating all N synchronously requires a registry the human eye does not naturally maintain.
+
+```text
+❌ Release commit bumps CHANGELOG.md from 1.20.0 to 1.21.0.
+❌ plugin.json .version still 1.20.0
+❌ marketplace.json .metadata.version still 1.20.0
+❌ README.md badge still 1.20.0
+❌ CHANGELOG.json (generated) not regenerated, still 1.20.0
+❌ Three of five consumers carry the old version; CI version-consistency check fails.
+```
+
+The failure mode pattern: the change author reasons about *one* canonical declaration and treats the others as "trivially derived" — but the derivation is human-mechanical, not automated. Each forgotten declaration is a silent consumer; the failure surfaces only at CI / runtime / first user report, never at edit time.
+
+**Repair:**
+
+- **Centralize via a check script that lists all N declarations** — the script's enumeration *is* the registry. (This repo's [`.github/scripts/check-version-consistency.sh`](../.github/scripts/check-version-consistency.sh) is the worked example: it names plugin.json / marketplace.json / README badge / CHANGELOG.md / CHANGELOG.json as the five declarations of the version string and fails if any disagree.)
+- **Run the check pre-push, not pre-merge** — once the change is pushed, fixing fan-out drift requires either a follow-up commit or a force-push of the tag. Pre-push catches it cheaply; pre-merge has already paid the visibility cost.
+- **Where possible, demote N-1 of the declarations to generated artifacts** — e.g. CHANGELOG.json is regenerated from CHANGELOG.md by a script. The fewer hand-edited declarations, the smaller the surface.
+- **Treat the check script's exit code as the SoT for "does this fact agree across consumers"** — not any single declaration. The CHANGELOG.md author's mental model "I bumped the version" is not the same as the system's "all five agree."
+
+This is structurally Anti-pattern 2 (consumer derives its own truth) at the tooling layer: each consumer file independently *declares* a version that should be derivable from one canonical source. The registry pattern is the hybrid — accept that N files exist, but make their agreement mechanically checkable.
+
+### Anti-pattern 7: Pipeline order treated as an implementation detail (not a contract)
 
 Execution order of N stages / middleware / interceptors **is a contract** (see [`source-of-truth-patterns.md` §Sub-pattern 4a: Pipeline-Order Contract](source-of-truth-patterns.md#sub-pattern-4a-pipeline-order-contract-order-is-also-a-contract)), but is often treated as "wherever the registration code happens to live."
 
@@ -138,7 +162,8 @@ Applicable to: environments where real-time sync is not possible (e.g. cross-org
 | #3 Cached truth goes stale | Strategy 2 (event-driven sync) — invalidate on write |
 | #4 Doc drifts from implementation | Strategy 1 (single writer) — designate impl as SoT, codegen / templated docs |
 | #5 i18n keys drift from source copy | Strategy 1 (single writer) — design source is canonical, translations are consumers |
-| #6 Pipeline order treated as detail | Strategy 1 (single writer for the order declaration) + relative-constraint declaration |
+| #6 Fan-out consumer registry drift | Strategy 1 (single writer / generated artifact) + Strategy 4 (reconciliation via check-script registry) |
+| #7 Pipeline order treated as detail | Strategy 1 (single writer for the order declaration) + relative-constraint declaration |
 
 Strategy 3 (dual-read / dual-write migration) is the meta-strategy used to *transition between* the other strategies — for example, replacing the SoT for a piece of information without a flag-day cutover. Strategy 4 (reconciliation) is the fallback when real-time sync is impossible.
 
