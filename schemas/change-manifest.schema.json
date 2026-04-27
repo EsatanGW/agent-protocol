@@ -268,7 +268,7 @@
     "sot_map": {
       "type": "array",
       "minItems": 1,
-      "description": "One entry per informational asset this change reads/writes/depends on.\nPatterns are defined in docs/source-of-truth-patterns.md:\n  1  Schema-Defined\n  2  Config-Defined\n  3  Enum/Status-Defined\n  4  Contract-Defined     (4a pipeline-order sub-type)\n  5  UI-Defined\n  6  Transition-Defined\n  7  Temporal-Local\n  8  Dual-Representation\n  9  Resolved/Variant\n  10 Host-Lifecycle\n",
+      "description": "One entry per informational asset this change reads/writes/depends on.\nPatterns are defined in docs/source-of-truth-patterns.md:\n  1  Schema-Defined\n  2  Config-Defined\n  3  Enum/Status-Defined\n  4  Contract-Defined     (4a pipeline-order sub-type)\n  5  UI-Defined\n  6  Transition-Defined\n  7  Temporal-Local\n  8  Dual-Representation\n  9  Resolved/Variant\n  10 Host-Lifecycle\n\nDispatch-class binding rule (1.29.0): when info_name ends with\nscaffold_provider, locale_dispatcher, country_*_resolver,\nvariant_dispatcher, or country_*_provider (lowercase snake_case),\npattern must be 9. Set dispatch_binding_opt_out: true with a non-empty\nopt_out_rationale to document exceptions. See\ndocs/source-of-truth-patterns.md \u00a7Pattern 9 Dispatch-class binding rule.\n",
       "items": {
         "type": "object",
         "required": [
@@ -539,6 +539,14 @@
                 "description": "Where the order is canonically declared (not scattered)."
               }
             }
+          },
+          "dispatch_binding_opt_out": {
+            "type": "boolean",
+            "description": "Set true when info_name matches the dispatch/variant naming heuristic\nbut this entry is NOT a dispatch/variant resolver (e.g. test scaffold,\nmock provider). Must be accompanied by a non-empty opt_out_rationale.\nSee docs/source-of-truth-patterns.md \u00a7Pattern 9 Dispatch-class binding rule.\n"
+          },
+          "opt_out_rationale": {
+            "type": "string",
+            "description": "Non-empty explanation of why this info_name matches the dispatch/variant\nnaming heuristic but does not require pattern 9. Required when\ndispatch_binding_opt_out is true; schema rejects an empty string.\n"
           }
         },
         "allOf": [
@@ -623,6 +631,60 @@
             "then": {
               "required": [
                 "pipeline_order"
+              ]
+            }
+          },
+          {
+            "if": {
+              "allOf": [
+                {
+                  "properties": {
+                    "info_name": {
+                      "pattern": "(scaffold_provider|locale_dispatcher|country_[^_].*_resolver|variant_dispatcher|country_[^_].*_provider)$"
+                    }
+                  }
+                },
+                {
+                  "not": {
+                    "properties": {
+                      "dispatch_binding_opt_out": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "dispatch_binding_opt_out"
+                    ]
+                  }
+                }
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "const": 9
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "dispatch_binding_opt_out": {
+                  "const": true
+                }
+              },
+              "required": [
+                "dispatch_binding_opt_out"
+              ]
+            },
+            "then": {
+              "properties": {
+                "opt_out_rationale": {
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "opt_out_rationale"
               ]
             }
           }

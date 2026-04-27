@@ -1,0 +1,42 @@
+# Fixture case 3 (pass): info_name matches heuristic, pattern:9 + variant_resolution → no error.
+change_id: "2026-04-27-dispatch-case3"
+title: "dispatch binding case3 match pattern9 pass"
+phase: plan
+status: proposed
+last_updated: "2026-04-27T00:00:00Z"
+authors:
+  - { name: "tester", role: human, identifier: "t@t.com" }
+surfaces_touched:
+  - { surface: information, role: primary }
+sot_map:
+  - info_name: "country_scaffold_provider"
+    pattern: 9
+    source: "lib/provider/country_scaffold_provider.dart"
+    consumers: [{ name: "app", kind: code }]
+    desync_risk: low
+    variant_resolution:
+      candidates:
+        - "VietnamScaffold (Constant.vi)"
+        - "ChinaScaffold (Constant.cn)"
+        - "PhilippinesScaffold (Constant.ph)"
+      resolution_rule: "switch(AppConfigDefine.getCountryType.countryTheme)"
+cross_cutting:
+  security: { impact: none }
+  performance: { impact: none }
+  observability: { impact: none }
+  testability: { impact: none }
+  error_handling: { impact: none }
+  build_time_risk:
+    impact: none
+    codegen_touched: false
+    codegen_artifacts_committed: false
+    release_build_verified: false
+breaking_change:
+  level: L0
+  self_assessed_vs_worst_case: matches
+rollback:
+  overall_mode: 1
+  per_surface_modes:
+    - { surface: information, mode: 1 }
+evidence_plan:
+  - { type: contract_test, surface: information, status: planned, summary: "x" }

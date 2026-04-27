@@ -29,4 +29,14 @@ Tracks where this POSIX-shell reference differs from `docs/automation-contract-a
 
 ## Methodology version targeted
 
-1.26.x. Rule 2.12 (manifest size within ceiling) added in 1.26.0 alongside the canonical algorithm spec; uses `wc -l` on the manifest path, no schema or yq dependency. Severity ladder: blocking >2000 lines, advisory 1500-2000.
+1.29.x. Rule 2.12 (manifest size within ceiling) added in 1.26.0 alongside
+the canonical algorithm spec; uses `wc -l` on the manifest path, no schema
+or yq dependency. Severity ladder: blocking >2000 lines, advisory 1500-2000.
+
+Dispatch-class binding rule added in 1.29.0: enforced at Layer 1 via the
+JSON Schema conditional in `schemas/change-manifest.schema.yaml`. The POSIX
+validator delegates Layer 1 schema validation to `$SCHEMA_VALIDATOR` (e.g.
+`check-jsonschema`), so the new conditional fires automatically when the
+schema is updated — no additional validate.sh code is required.
+The pure-schema path was confirmed by the AS-2 feasibility spike (lowercase
+regex accepted by `check-jsonschema` 0.37.x with no `(?i)` flag).

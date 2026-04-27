@@ -240,6 +240,13 @@ properties:
         8  Dual-Representation
         9  Resolved/Variant
         10 Host-Lifecycle
+
+      Dispatch-class binding rule (1.29.0): when info_name ends with
+      scaffold_provider, locale_dispatcher, country_*_resolver,
+      variant_dispatcher, or country_*_provider (lowercase snake_case),
+      pattern must be 9. Set dispatch_binding_opt_out: true with a non-empty
+      opt_out_rationale to document exceptions. See
+      docs/source-of-truth-patterns.md §Pattern 9 Dispatch-class binding rule.
     items:
       type: object
       required: [info_name, pattern, source, consumers, desync_risk]
@@ -373,6 +380,22 @@ properties:
               type: string
               description: "Where the order is canonically declared (not scattered)."
 
+        # ── Dispatch-class binding opt-out (1.29.0) ────────────────────────
+        dispatch_binding_opt_out:
+          type: boolean
+          description: |
+            Set true when info_name matches the dispatch/variant naming heuristic
+            but this entry is NOT a dispatch/variant resolver (e.g. test scaffold,
+            mock provider). Must be accompanied by a non-empty opt_out_rationale.
+            See docs/source-of-truth-patterns.md §Pattern 9 Dispatch-class binding rule.
+
+        opt_out_rationale:
+          type: string
+          description: |
+            Non-empty explanation of why this info_name matches the dispatch/variant
+            naming heuristic but does not require pattern 9. Required when
+            dispatch_binding_opt_out is true; schema rejects an empty string.
+
       # Conditional requirements by pattern
       allOf:
         - if: { properties: { pattern: { const: 6 } } }
@@ -387,6 +410,41 @@ properties:
           then: { required: [host_lifecycle] }
         - if: { properties: { pattern: { const: "4a" } } }
           then: { required: [pipeline_order] }
+
+        # ── Dispatch-class binding rule (1.29.0) ───────────────────────────
+        # When info_name suffix matches the dispatch/variant class naming
+        # heuristic AND dispatch_binding_opt_out is not set to true,
+        # pattern must be 9.
+        # (?i) is intentionally absent: the regex is lowercase-only because
+        # dispatch class names follow snake_case convention and (?i) is rejected
+        # by check-jsonschema's strict ECMAScript regex validation.
+        # Opt-out: set dispatch_binding_opt_out: true with a non-empty
+        # opt_out_rationale; the not-block below excludes opt-out entries.
+        - if:
+            allOf:
+              - properties:
+                  info_name:
+                    pattern: "(scaffold_provider|locale_dispatcher|country_[^_].*_resolver|variant_dispatcher|country_[^_].*_provider)$"
+              - not:
+                  properties:
+                    dispatch_binding_opt_out:
+                      const: true
+                  required: [dispatch_binding_opt_out]
+          then:
+            properties:
+              pattern:
+                const: 9
+        # When dispatch_binding_opt_out is true, opt_out_rationale must be non-empty.
+        - if:
+            properties:
+              dispatch_binding_opt_out:
+                const: true
+            required: [dispatch_binding_opt_out]
+          then:
+            properties:
+              opt_out_rationale:
+                minLength: 1
+            required: [opt_out_rationale]
 
   # ─── Cross-Cutting (6 dimensions from docs/cross-cutting-concerns.md) ──
 

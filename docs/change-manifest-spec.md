@@ -188,6 +188,19 @@ Some patterns have additional required structures (the schema enforces these via
 > These extension fields are not decoration — they express the concrete discipline the methodology imposes on the pattern.
 > For example, pattern 8 requires `ci_sync_check: true`, which directly maps to "codegen artifacts must be committed and verified in CI."
 
+### Dispatch-class binding rule (1.29.0)
+
+When a `sot_map` entry's `info_name` ends with one of the dispatch/variant naming suffixes — `scaffold_provider`, `locale_dispatcher`, `country_*_resolver`, `variant_dispatcher`, `country_*_provider` (lowercase, snake_case, suffix-anchored) — the schema requires `pattern: 9`. This binding prevents the misclassification documented in cckn-008 §Issue #1, where a country scaffold provider was classified as Pattern 2 (Config-Defined) and the `variant_resolution.candidates` enforcement never activated.
+
+Two optional fields on the `sot_map[*]` item support the escape valve:
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `dispatch_binding_opt_out` | `boolean` | Set `true` to exempt this entry from the binding rule. |
+| `opt_out_rationale`        | `string`  | Non-empty explanation required when `dispatch_binding_opt_out: true`. |
+
+The schema rejects an empty `opt_out_rationale` string (rule fires advisory on the rationale in addition to binding failure). See `docs/source-of-truth-patterns.md §Pattern 9 Dispatch-class binding rule` for the full normative text.
+
 ### Judging `desync_risk`
 
 - `low` — CI check + synchronous sync (schema gen, contract test).
@@ -779,6 +792,8 @@ The schema enforces the following via `allOf + if/then`:
 | `waivers[*].approver_role` | Const `human` (schema forbids AI approval) |
 | `waivers[*].expires_at`   | Required and must be a future date |
 | `depends_on[*].change_id` ⇔ `blocks[*].change_id` | Bidirectional mirror (checked in `automation-contract-algorithm.md` §2.5) |
+| `sot_map[*].info_name` matches dispatch/variant suffix heuristic AND `dispatch_binding_opt_out` is not `true` | `pattern: 9` required (1.29.0 dispatch-class binding rule; see §Dispatch-class binding rule above) |
+| `dispatch_binding_opt_out: true` | `opt_out_rationale` required and must be non-empty |
 
 ---
 

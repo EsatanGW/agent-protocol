@@ -8,6 +8,72 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.29.0] - 2026-04-27
+
+α′ remediation of cckn-008 — **Pattern 9 dispatch-class binding rule** + **Discovery-loop 6th trigger row**. Upstream evidence source: `cckn-008-integration-completeness-blind-spots.md` (consumer-side CCKN, `completeness: skeleton`, 1 Stage reproduced). Forced-Full per `mode-decision-tree.md §Scenarios that force Full → Canonical methodology content edit (L1+)` — both shipped items add new normative rules to canonical SoT files. Five of the seven hardening proposals from cckn-008 are explicitly deferred (see `Out of scope` section below).
+
+The two structural fixes ship because they are schema- and Phase-1-startup-enforceable without requiring the cckn-008 CCKN to reach `completeness: full`. The five deferred items are review-dependent or require broader evidence before they can be encoded as canonical rules.
+
+### Added
+
+- **`docs/source-of-truth-patterns.md` §Pattern 9 — Dispatch-class binding rule** (**L1**, ~25 lines) — binding paragraph documenting: (a) the naming heuristic (lowercase suffix allowlist: `scaffold_provider`, `locale_dispatcher`, `country_*_resolver`, `variant_dispatcher`, `country_*_provider`); (b) the opt-out flag (`dispatch_binding_opt_out: true` + non-empty `opt_out_rationale`) for false-positive name matches; (c) the cckn-008 RC-1 dispatcher-gap rationale; (d) cross-link to schema enforcement in `schemas/change-manifest.schema.yaml`.
+
+- **`skills/engineering-workflow/references/discovery-loop.md` canonical 6th trigger row** (**L1**) — detection of: sealed-as-stub entry-point bodies (`SizedBox.shrink`, empty `Scaffold`, `return null` widget tree) that survive past the Stage supposed to assemble them; AND incomplete dispatcher `switch` case enumerations relative to the `variant_resolution.candidates` set. Row includes inline cap-and-timeout strategy per R-PERF-1: (a) scan scope cap — only surface-map declared paths; (b) 30-second wall-clock timeout with advisory-only timeout message; (c) pattern cap — specific markers only, not arbitrary code analysis. Evidence base: cckn-008 §Detection protocol D-1 / D-2.
+
+- **`schemas/change-manifest.schema.yaml` — dispatch-class binding conditional + opt-out properties** — two new `allOf` entries under `sot_map[*]`: (1) `if/then` conditional requiring `pattern: 9` when `info_name` matches the dispatch/variant suffix heuristic and `dispatch_binding_opt_out` is not `true`; (2) `if/then` requiring `opt_out_rationale: minLength 1` when `dispatch_binding_opt_out: true`. Two new optional properties on `sot_map[*]` items: `dispatch_binding_opt_out: boolean` and `opt_out_rationale: string`. Updated `sot_map` description block to reference the new binding. Regex is lowercase-only (no `(?i)`) — confirmed by AS-2 spike that `(?i)` is rejected by `check-jsonschema` 0.37.x's strict ECMAScript regex validation.
+
+- **`schemas/change-manifest.schema.json`** — regenerated mirror from the updated YAML SoT via `.github/scripts/generate-schema-json.py`. Parity check (`--check` mode) exits 0.
+
+- **`reference-implementations/validator-python/tests/test_rules.py`** — 6 new pytest cases for the dispatch-binding rule (exercising the JSON Schema conditional via `layer1._run_jsonschema`): (1) no-match pass; (2) match+pattern:2 blocks; (3) match+pattern:9 pass; (4) opt-out+rationale pass; (5) opt-out+empty-rationale blocks; (6) false-positive boundary (`locale_dispatcher_test_helper` — suffix does not match; silent). Test count rises from 24 to 30. Layer 2 gets no new `_rule_2_13()` function — the rule is pure-schema (AS-2 spike outcome).
+
+- **`reference-implementations/validator-posix-shell/selftests/fixtures/dispatch-binding/`** — 6 parallel fixture YAML files (`case1-no-match-pass.yaml` through `case6-false-positive-boundary-pass.yaml`). All 6 validated against `check-jsonschema` with the updated `schemas/change-manifest.schema.json`. Passes/fails align with Python test expectations. No new `validate.sh` code — Layer 1 schema delegation to `$SCHEMA_VALIDATOR` fires the new conditional automatically.
+
+- **`docs/change-manifest-spec.md` §sot_map — Dispatch-class binding rule** — new sub-section after the pattern-specific extension fields table documenting the binding rule, the two opt-out fields, and a pointer to `docs/source-of-truth-patterns.md §Pattern 9 Dispatch-class binding rule`.
+
+- **`docs/change-manifest-spec.md` §Top-level schema-conditional rules table** — two new rows: `sot_map[*].info_name matches dispatch/variant suffix AND dispatch_binding_opt_out != true → pattern: 9 required` and `dispatch_binding_opt_out: true → opt_out_rationale required non-empty`.
+
+- **`docs/cross-change-knowledge.md` §Migration notes** — new section with canonical recipe for consumer projects that maintain mirror-CCKNs on `skills/engineering-workflow/references/discovery-loop.md`: refresh `updated` date, update `methodology_version` to `1.29.0`, re-anchor any consumer-internal row numbering.
+
+### Changed
+
+- **`reference-implementations/validator-python/DEVIATIONS.md`** — implemented list extended with dispatch-class binding rule note (pure-schema, no Layer 2 function); methodology-version footer updated from `1.26.x` to `1.29.x`.
+
+- **`reference-implementations/validator-posix-shell/DEVIATIONS.md`** — methodology-version footer updated from `1.26.x` to `1.29.x` with note on the pure-schema dispatch-binding rule and AS-2 spike outcome.
+
+- **`schemas/change-manifest.schema.yaml` sot_map description block** — updated to reference the new dispatch-class binding rule and opt-out fields.
+
+### Why minor, not patch
+
+Both changes add new normative rules to canonical SoT files (`docs/source-of-truth-patterns.md` gains a binding paragraph under Pattern 9; `skills/engineering-workflow/references/discovery-loop.md` gains a 6th trigger row). Both are `L1+` canonical methodology content edits — forced-Full per `mode-decision-tree.md §Scenarios that force Full`. The schema conditional is a new constraint that can fail existing manifests with dispatcher-named `info_name` entries declared as non-Pattern-9. No existing normative rule is removed or reversed.
+
+### Migration notes
+
+- **Existing manifests with dispatcher-named `info_name` and `pattern != 9`** — these will fail Layer 1 validation under 1.29.0+. Migration recipe (choose one): (a) change `pattern` to `9` and add a `variant_resolution` block listing the dispatch candidates and the resolution rule; OR (b) set `dispatch_binding_opt_out: true` with a non-empty `opt_out_rationale` explaining why the name matches the heuristic but the entry is not a variant resolver. Option (a) is preferred — it activates the `variant_resolution.candidates` enforcement that catches dispatcher gaps at review time.
+
+- **Opt-out mechanism** — `dispatch_binding_opt_out: true` is the gray rollout valve. Projects with entries whose `info_name` accidentally matches the suffix allowlist (test scaffolding, mock factories, utility helpers) should opt out with a rationale. The rationale requirement prevents silent opt-outs from accumulating without audit trail.
+
+- **Consumer-side mirror-CCKNs of `discovery-loop.md`** — any consumer project that maintains a mirror-CCKN against `skills/engineering-workflow/references/discovery-loop.md` (e.g. `cckn-005-discovery-loop-7-triggers.md` in `flutter-lottery-app`) will receive a stale signal at next push under the 1.27.0 `cckn-canonical-sync-check` hook. Refresh the mirror-CCKN: update `updated` date, set `methodology_version: "1.29.0"`, and re-anchor any internally-numbered trigger lists to account for the new canonical 6th row. The canonical list does not use explicit row numbers — only the trigger text is the contract surface. See `docs/cross-change-knowledge.md §Migration notes`.
+
+- **`validator-node` (community-maintained)** — per the 1.20.0 demotion, `validator-node` is community-maintained and has no parity gate in this repo's CI. The dispatch-binding rule is a JSON Schema conditional (one `if/then` block) — the port effort is bounded. The rule's schema-violation finding includes `pattern: 9 was expected` in its detail so consumers running a stale `validator-node` can identify the rule from the underlying schema error even without an explicit rule-name emission.
+
+### Tool-agnostic discipline
+
+Pattern 9 and the dispatch-class naming heuristic are language-neutral constructs. The suffix allowlist (`scaffold_provider`, `locale_dispatcher`, etc.) reflects naming conventions observed in multi-tenant mobile app dispatch classes; the principle — binding variant-dispatch class names to Pattern 9 so `variant_resolution.candidates` enforcement activates — is applicable to any stack that uses named provider/dispatcher/resolver classes. No vendor / model / framework names introduced. The Discovery-loop new trigger is likewise stack-neutral: `SizedBox.shrink` is cited as an example of a sealed-as-stub body marker, not as the only such marker.
+
+### Out of scope (deferred)
+
+The following five hardening proposals from cckn-008 are deferred until cckn-008 transitions from `completeness: skeleton` to `completeness: full` (requires ≥ 1 additional Stage or country migration to reproduce the same blind spots):
+
+- **D-1.** `stage-manifest.yaml` schema: `forward_references` / `inherits_responsibility_from` / `protection_targets` as schema fields — DEFERRED: review-dependent; no schema-level enforcement possible for "this file's stub will be replaced by Stage X." Committing 3 new manifest top-level fields on a 1-Stage sample violates the methodology's evidence-driven discipline.
+
+- **D-2.** Umbrella manifest `file_ownership_map` field — DEFERRED: agent-protocol has no formal "Umbrella" concept beyond `docs/strategic-artifacts.md`'s Initiative-level pointer; introducing umbrella-level file ownership requires defining "umbrella" first, which is a separate canonical-content edit out of α′ scope.
+
+- **D-3.** AC-COUNTRY mandatory evidence (H-stage AC must include ≥1 country-flag evidence) — DEFERRED: bound to PH migration's specific country-flag pattern; not yet generalisable to multi-tenant or non-country-axis variants without a 2nd Stage / 2nd country sample. Pattern 9 binding (this release) addresses the upstream cause of the same class of gap at the SoT-pattern level.
+
+- **D-4.** Reviewer §3 7th dimension "Integration Visibility" — DEFERRED: Reviewer's read-only contract (per `docs/multi-agent-handoff.md`) is load-bearing; adding a 7th cross-cutting dimension is a Reviewer contract edit that needs broader review than 1-Stage evidence supports. cckn-007's 11-PASS series shows the current 6-dimension contract is internally consistent — adding a 7th risks unintended interactions.
+
+- **D-5.** `risks.md` R-INT-1 / R-INT-2 / R-INT-3 standing risks — DEFERRED: agent-protocol's `risks.md` doesn't exist; consumer projects maintain risk catalogs locally. Three named integration-risk categories would need a canonical `risks.md` template first. Out of α′ scope.
+
 ## [1.28.0] - 2026-04-27
 
 Cluster F-4 of the 1.8.0-SDD-import follow-up audit. Re-assessment of the 1.18.0 long-running-delegation D1/D2/D3 disciplines after 1.26.0 (Rule 2.12 manifest size) and 1.27.0 (CCKN sync) shipped. Two findings:

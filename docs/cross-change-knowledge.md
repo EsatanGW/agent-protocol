@@ -274,6 +274,22 @@ Both query and write sides are opportunistic across all modes — neither is unc
 
 ---
 
+## Migration notes
+
+### Canonical discovery-loop.md edits and mirror-CCKNs (1.29.0)
+
+When `skills/engineering-workflow/references/discovery-loop.md` is edited to add a trigger row (as in 1.29.0, which added the 6th canonical trigger row for sealed-as-stub entry-point body detection + incomplete dispatcher case enumeration), all consumer-project mirror-CCKNs that declare `mirrors_canonical.path: skills/engineering-workflow/references/discovery-loop.md` receive an automatic stale signal at next push under the 1.27.0 hook.
+
+**Recommended migration for consumer projects with a mirror-CCKN on discovery-loop.md:**
+
+1. Refresh the mirror-CCKN's `updated` date to match the date of the 1.29.0 release.
+2. Update `mirrors_canonical[*].methodology_version` to `"1.29.0"`.
+3. If the consumer mirror internally renumbers the trigger list (e.g. a consumer CCKN that calls the same triggers numbered 1–7 in a different scheme), re-anchor the numbering to account for the new canonical 6th row. The canonical list does not use explicit row numbers — only the trigger text is the contract surface — so consumer mirrors that enumerate by number must re-sync their numbering.
+
+This is consistent with the cckn-005-style mirror stale signal introduced in 1.27.0: the hook's warning at push time is the primary notification channel; the migration recipe above is the remediation.
+
+---
+
 ## See also
 
 - [`docs/ai-project-memory.md`](ai-project-memory.md) — the three-tier temporal memory model (session / project / organizational); CCKN sits adjacent to Tier 2

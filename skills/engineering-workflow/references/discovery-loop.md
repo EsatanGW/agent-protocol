@@ -14,6 +14,7 @@ This document defines the standard procedure for "scope expansion discovered dur
 | Phase 5 review exposes a planning gap | Reviewer points out the rollback strategy is missing. |
 | Phase 5 review exposes a security / performance risk | Cross-cutting checklist surfaces an unconsidered rate-limit requirement. |
 | Phase 6 sign-off evidence is insufficient | Cannot prove correct behavior on one of the surfaces. |
+| Phase 1 startup detects a sealed-as-stub entry-point body or an incomplete dispatcher case enumeration | A screen-level widget's `build()` returns `SizedBox.shrink()` / empty `Scaffold` / `return null` widget tree after the Stage that was supposed to assemble it has signed off; OR a variant/country dispatcher's `switch` is missing one or more candidate cases relative to the declared `variant_resolution.candidates` set. **Scope cap:** scan only paths declared in the consumer project's surface-map (not the full tree). **Time cap:** 30-second wall-clock per scan; on timeout emit `discovery-loop scan timed out — manual review required` and continue rather than block. **Pattern cap:** look only for the specific markers (`SizedBox.shrink`, empty `Scaffold`, `return null` widget tree, `switch` without a case for every candidate) — not arbitrary code analysis. Evidence base: cckn-008 §Detection protocol D-1 / D-2; Pattern 9 dispatch-class binding rule (1.29.0). |
 
 ---
 

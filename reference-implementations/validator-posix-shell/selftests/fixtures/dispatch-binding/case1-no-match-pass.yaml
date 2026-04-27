@@ -1,0 +1,37 @@
+# Fixture case 1 (pass): info_name does not match dispatch heuristic.
+# pattern:2 is allowed; no schema error expected.
+change_id: "2026-04-27-dispatch-case1"
+title: "dispatch binding case1 no match"
+phase: plan
+status: proposed
+last_updated: "2026-04-27T00:00:00Z"
+authors:
+  - { name: "tester", role: human, identifier: "t@t.com" }
+surfaces_touched:
+  - { surface: information, role: primary }
+sot_map:
+  - info_name: "lib/foo.dart"
+    pattern: 2
+    source: "lib/foo.dart"
+    consumers: [{ name: "app", kind: code }]
+    desync_risk: low
+cross_cutting:
+  security: { impact: none }
+  performance: { impact: none }
+  observability: { impact: none }
+  testability: { impact: none }
+  error_handling: { impact: none }
+  build_time_risk:
+    impact: none
+    codegen_touched: false
+    codegen_artifacts_committed: false
+    release_build_verified: false
+breaking_change:
+  level: L0
+  self_assessed_vs_worst_case: matches
+rollback:
+  overall_mode: 1
+  per_surface_modes:
+    - { surface: information, mode: 1 }
+evidence_plan:
+  - { type: contract_test, surface: information, status: planned, summary: "x" }

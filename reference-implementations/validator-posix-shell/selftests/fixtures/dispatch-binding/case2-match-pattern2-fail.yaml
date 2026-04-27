@@ -1,0 +1,36 @@
+# Fixture case 2 (fail): info_name matches heuristic, pattern:2 → schema error expected.
+change_id: "2026-04-27-dispatch-case2"
+title: "dispatch binding case2 match pattern2 fail"
+phase: plan
+status: proposed
+last_updated: "2026-04-27T00:00:00Z"
+authors:
+  - { name: "tester", role: human, identifier: "t@t.com" }
+surfaces_touched:
+  - { surface: information, role: primary }
+sot_map:
+  - info_name: "country_scaffold_provider"
+    pattern: 2
+    source: "lib/provider/country_scaffold_provider.dart"
+    consumers: [{ name: "app", kind: code }]
+    desync_risk: low
+cross_cutting:
+  security: { impact: none }
+  performance: { impact: none }
+  observability: { impact: none }
+  testability: { impact: none }
+  error_handling: { impact: none }
+  build_time_risk:
+    impact: none
+    codegen_touched: false
+    codegen_artifacts_committed: false
+    release_build_verified: false
+breaking_change:
+  level: L0
+  self_assessed_vs_worst_case: matches
+rollback:
+  overall_mode: 1
+  per_surface_modes:
+    - { surface: information, mode: 1 }
+evidence_plan:
+  - { type: contract_test, surface: information, status: planned, summary: "x" }

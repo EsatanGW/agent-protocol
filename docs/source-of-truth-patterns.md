@@ -445,6 +445,16 @@ If the answer is "the rule is hidden inside the platform runtime (Android resour
    - Base-change PR descriptions must list "known variants / overrides that depend on this field."
    - Tooling: preview the variant chain, diff variant deltas.
 
+#### Dispatch-class binding rule (1.29.0)
+
+When a sot_map entry's `info_name` matches the dispatch/variant class naming heuristic — specifically, a suffix matching `scaffold_provider`, `locale_dispatcher`, `country_*_resolver`, `variant_dispatcher`, or `country_*_provider` (lowercase snake_case; anchored suffix) — the entry **must** declare `pattern: 9`. This is a one-directional rule: the naming heuristic triggers the requirement; declaring `pattern: 9` directly (without a matching name) is always allowed.
+
+**Rationale (cckn-008 RC-1):** The root cause documented in cckn-008 §Issue #1 is that a country scaffold provider class (A.3 in the consumer project) was classified as Pattern 2 (Config-Defined) rather than Pattern 9 (Resolved/Variant). Because Pattern 9 was not selected, the `variant_resolution.candidates` enforcement never activated, and the dispatcher switch case gap went undetected across 11 Stages. The binding rule mechanically prevents this misclassification for the naming class most likely to be dispatchers.
+
+**Opt-out:** If an `info_name` matches the heuristic but is **not** a dispatch/variant resolver (e.g. a test scaffold helper or a mock provider factory), set `dispatch_binding_opt_out: true` with a non-empty `opt_out_rationale` string on that sot_map entry. The schema accepts the opt-out and skips the pattern requirement. A meaningful rationale is required — an empty string is rejected.
+
+**Schema enforcement:** The binding rule is mechanically enforced at Layer 1 by a JSON Schema `if/then` conditional under `sot_map[*].allOf` (introduced in 1.29.0). The regex is lowercase-only (anchored suffix) because dispatch class names in standard toolchains follow snake_case. See `schemas/change-manifest.schema.yaml` § sot_map allOf for the exact conditional.
+
 ### Pattern 10: Host-Lifecycle Truth
 
 The authority of the source of truth is **bound to a lifecycle unilaterally controlled by a platform or host**. The host can be killed, suspended, unloaded, or cold-started without warning — the authority evaporates or must be reconstructed.

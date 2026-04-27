@@ -15,6 +15,15 @@ Tracks where this Python reference differs from
   the 1.26 rule (2.12 manifest size within ceiling — `wc -l` proxy for
   the ~25,000-token AI-runtime read ceiling, blocking >2000 / advisory
   1500-2000).
+- Dispatch-class binding rule (1.29.0): enforced at Layer 1 via the JSON
+  Schema conditional in `schemas/change-manifest.schema.yaml` (the
+  `if/then` under `sot_map[*].allOf` requiring `pattern: 9` when
+  `info_name` matches the dispatch/variant class naming heuristic).
+  No separate `_rule_2_13()` Layer 2 function is needed — the rule is
+  expressible purely in JSON Schema (pure-schema path confirmed by AS-2
+  spike: lowercase regex accepted by both `jsonschema` 4.26.x and
+  `check-jsonschema` 0.37.x). Six pytest fixture cases exercise the
+  schema conditional directly via `layer1._run_jsonschema`.
 - Layer 3: rules 3.1, 3.2, 3.3, 3.5. Rule 3.4 ships a default local-
   cache implementation (reads `.agent-protocol/monitoring-cache.json`;
   never writes, never touches the network).
@@ -44,6 +53,8 @@ Tracks where this Python reference differs from
 
 ## Methodology version targeted
 
-1.26.x. Rule 2.12 (manifest size within ceiling) added in 1.26.0; the
-POSIX reference implements the same rule. Matches POSIX on every shared
-rule by design and is exercised against the same fixtures where feasible.
+1.29.x. Rule 2.12 (manifest size within ceiling) added in 1.26.0; the
+POSIX reference implements the same rule. Dispatch-class binding rule
+added in 1.29.0 as a pure JSON Schema conditional (no Layer 2 function).
+Matches POSIX on every shared rule by design and is exercised against the
+same fixtures where feasible.
