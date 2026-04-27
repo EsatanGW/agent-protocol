@@ -48,7 +48,12 @@ warns=""
 for cckn in "$CCKN_DIR"/*.md; do
   [ -f "$cckn" ] || continue
 
+  # When the .md file has no frontmatter at all (e.g. a README.md beside the
+  # CCKN files), yq with --front-matter=extract returns empty, not "0". Treat
+  # empty as "no mirrors declared" so the loop skips the file silently rather
+  # than mis-report it as "declares mirrors_canonical but has no updated date".
   mirror_count=$(yq --front-matter=extract '.mirrors_canonical | length // 0' "$cckn" 2>/dev/null || echo 0)
+  [ -z "$mirror_count" ] && mirror_count=0
   [ "$mirror_count" = "0" ] && continue
 
   cckn_updated=$(yq --front-matter=extract '.updated' "$cckn" 2>/dev/null || echo "")
