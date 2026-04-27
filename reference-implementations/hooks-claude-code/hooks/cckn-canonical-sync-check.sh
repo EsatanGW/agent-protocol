@@ -81,9 +81,12 @@ for cckn in "$CCKN_DIR"/*.md; do
         # Compare ISO 8601 dates lexicographically — works for full timestamps
         # and for date-only strings (CCKN uses YYYY-MM-DD; git log gives full
         # timestamp, so we truncate the git output to date-only for fair
-        # comparison).
+        # comparison). POSIX sh has no defined `>` operator on strings
+        # (shellcheck SC3012); emulate via `sort` so the check stays
+        # `-s sh` clean across the runtime-hook bundle.
         sot_date=$(echo "$sot_last_commit" | cut -c1-10)
-        if [ "$sot_date" \> "$cckn_updated" ]; then
+        newest=$(printf '%s\n%s\n' "$cckn_updated" "$sot_date" | sort | tail -n 1)
+        if [ "$newest" = "$sot_date" ] && [ "$sot_date" != "$cckn_updated" ]; then
           where=""
           [ -n "$sot_section" ] && [ "$sot_section" != "null" ] && where=" $sot_section"
           warns="${warns}[agent-protocol/drift.cckn-mirrors-canonical-stale] $cckn mirrors $sot_path$where — SoT last touched $sot_date, CCKN updated $cckn_updated

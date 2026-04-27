@@ -8,6 +8,29 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.30.1] - 2026-04-28
+
+Patch release fixing two CI failures surfaced after the 1.30.0 release. No new normative content; no schema changes; no methodology rule additions. Both fixes match `VERSIONING.md` patch category — "fixes" — with the same shape as 1.29.1 (post-release drift cleanup).
+
+### Fixed
+
+- **`CHANGELOG.json` regenerated from `CHANGELOG.md`** — the 1.30.0 release shipped a hand-written `CHANGELOG.json` whose serialization differed from `.github/scripts/generate-changelog-json.py` output (different escaping of EM-dash bullet titles, missing-or-extra subsection grouping, slightly different whitespace). The CI `changelog-drift` job (`generate-changelog-json.py --check`) failed because the generator's regenerated output did not match the committed file. Resolved by running the generator and committing its output verbatim. `CHANGELOG.md` remains the single source of truth; the JSON is a derived artefact and must equal the generator's output.
+
+- **`reference-implementations/hooks-claude-code/hooks/cckn-canonical-sync-check.sh:86` — SC3012** — the lexicographical date comparison `[ "$sot_date" \> "$cckn_updated" ]` is undefined in POSIX sh (shellcheck SC3012); the hook bundle is linted under `shellcheck -s sh`. The line was introduced in commit `4dca798` (1.29.1 era) and survived because the macOS `hooks-shellcheck` job did not fail visibly until the 1.30.0 release CI run. Replaced with a POSIX-safe `sort | tail -n 1` comparison: pipe both dates through `sort`, take the larger lexicographically, treat strict-greater as "newer". Same semantic intent, no extension dialect dependency. The five `cckn-canonical-sync-check` selftest cases (`pass-no-cckn-dir`, `pass-no-frontmatter`, `pass-no-mirror-declaration`, `warn-stale-mirror`, `warn-version-mismatch`) all still pass — `warn-stale-mirror` exercises this exact comparison path.
+
+### Why patch, not minor
+
+Both fixes converge to existing intent without introducing new normative content. The `CHANGELOG.json` regeneration restores the contract (`CHANGELOG.md` is canonical; JSON is generated) that the 1.30.0 hand-written JSON inadvertently broke. The SC3012 fix removes a lint warning that was always going to fire under POSIX sh — the original `\>` was non-standard from the start. No methodology rule changes, no schema changes, no public surface changes. Matches `VERSIONING.md` patch category and follows the 1.29.1 precedent (CI hardening + drift fix in a patch release).
+
+### Migration notes
+
+- **Consumers that read `CHANGELOG.json` directly** — the field shapes are unchanged; the regenerated file differs only in serialization (whitespace, ordering of subsection entries inside a release). Schema-aware parsers see no semantic change.
+- **Consumers that have customized `cckn-canonical-sync-check.sh` locally** — the line 86 change is contained within the existing drift-signal-1 block; if your fork replaced the comparison entirely, the patch does not apply automatically.
+
+### Out of scope (deferred)
+
+- **`shellcheck -s sh` audit of remaining hook bundle** — this patch fixes the one SC3012 site that CI surfaced. A broader pass to confirm no other POSIX-violation lurks (in either the Claude Code, Cursor, Codex, Gemini, or Windsurf hook adapters) is tracked for a future audit; the existing CI job will catch any regression on every push regardless.
+
 ## [1.30.0] - 2026-04-28
 
 Methodology alignment release adding fifteen disciplines that close the gap between agent-protocol and the *harness engineering* framing OpenAI published in 2026-02 ([https://openai.com/index/harness-engineering/](https://openai.com/index/harness-engineering/)). The release covers the twelve dimensions named in the awesome-harness-engineering taxonomy (agent loop, planning, context delivery & compaction, tool design, skills/MCP, permissions, memory, orchestration, verification & CI, observability, DX, HITL) — six previously absent or thin in this repository now have explicit normative homes; the others gain reference-level expansion and cross-citation. Every change is **tool-agnostic** per `CLAUDE.md §2`; the schema is unchanged.
