@@ -1,6 +1,93 @@
 {
   "releases": [
     {
+      "version": "1.26.0",
+      "date": "2026-04-27",
+      "sections": {
+        "added": [
+          {
+            "title": "`docs/automation-contract-algorithm.md` Layer 2 — Rule 2.12 (manifest.size_within_ceiling)",
+            "body": "(**L1**) — pseudocode rule appended to the Layer 2 block. Counts lines in the manifest file as the tokenizer-agnostic proxy for the ~25,000-token AI-runtime single-file read ceiling (typical 12–13 tokens per line of YAML manifest content). Severity ladder: blocking when `manifest_lines > 2000` (matches the prose ceiling); advisory when `1500 < manifest_lines ≤ 2000`. Below 1,500 the rule is silent. The rule's `detail` payload directs the user to compact in place (move verbose narrative into structured note fields) or split via `part_of`, and explicitly prohibits `grep` / offset-read workarounds — these are precisely what the prose ceiling exists to prevent."
+          },
+          {
+            "title": "`docs/automation-contract.md` §Manifest size ceiling — Rule 2.12",
+            "body": "narrative companion documenting the severity ladder, the rationale for the 1,500-line advisory threshold (gives Phase 5 / 6 / 7 a downstream-content runway), what Rule 2.12 catches that Rules 2.1–2.11 don't (size, not content correctness), and what Rule 2.12 deliberately does not prescribe (which fields to compact — that is editorial judgment, not algorithm)."
+          },
+          {
+            "title": "`reference-implementations/validator-python/src/agent_protocol_validate/layer2.py` `_rule_2_12()`",
+            "body": "Python implementation reading the manifest path passed via the new optional `manifest_path` parameter to `layer2.check()`. Counts lines via `sum(1 for _ in path.open())` (no encoding-aware reading needed; line counting is byte-pattern-level). Returns `[]` on `OSError` (graceful degradation if the path is unreadable; the orchestrator already validated the path before calling the layer). Severity strings (`blocking`, `advisory`) match the existing contract."
+          },
+          {
+            "title": "`reference-implementations/validator-python/tests/test_rules.py`",
+            "body": "six new tests for Rule 2.12: silent-within-budget (1,000 lines), silent-at-advisory-boundary (1,500 lines), advisory-fires-above-1500 (1,700 lines), advisory-at-blocking-boundary (2,000 lines — the rule fires advisory at exactly 2,000 since the blocking threshold is `> 2000` strict), blocking-fires-above-2000 (2,100 lines), and missing-path-returns-empty (defensive). Test count rises from 18 to 24 (+33%, all new tests pass on the same `pytest -q` run)."
+          },
+          {
+            "title": "`reference-implementations/validator-posix-shell/validate.sh` Rule 2.12 block",
+            "body": "POSIX implementation using `wc -l < \"$MANIFEST\"` and an `if`/`elif` ladder against the two thresholds. No yq dependency, no schema dependency, no network — Rule 2.12 is the lightest-dependency Layer 2 rule. Behaviour matches the Python implementation byte-for-byte on the boundary cases."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`reference-implementations/validator-python/src/agent_protocol_validate/__main__.py`",
+            "body": "`layer2.check()` call updated to pass `manifest_path=args.manifest`. Pre-existing call sites in tests pass `manifest_path` via `**kw` for the cases that exercise Rule 2.12; tests that don't exercise it omit the kwarg (the rule degrades to silent when `manifest_path is None`)."
+          },
+          {
+            "title": "`reference-implementations/validator-python/src/agent_protocol_validate/layer2.py`",
+            "body": "`check()` signature gains `manifest_path: Path | None = None` as a keyword-only optional parameter. Rule 2.12 is invoked only when `manifest_path is not None`, so callers that don't pass it (e.g. unit tests for other rules) see no regression."
+          },
+          {
+            "title": "`reference-implementations/validator-posix-shell/DEVIATIONS.md`",
+            "body": "implemented-rules list extended from `2.1, 2.2, 2.3, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11` to `… 2.11, 2.12`. Methodology-version-targeted footer updated from `2.1.x` to `1.26.x` with a note on Rule 2.12's `wc -l` implementation (no yq / schema dependency)."
+          },
+          {
+            "title": "`reference-implementations/validator-python/DEVIATIONS.md`",
+            "body": "implemented-rules description extended to include 2.12 with the line-count proxy explanation. Methodology-version-targeted footer updated from `2.1.x` to `1.26.x`."
+          },
+          {
+            "title": "`docs/change-manifest-spec.md` §Manifest size ceiling",
+            "body": "opening paragraph augmented with a \"Mechanical enforcement (1.26.0)\" note pointing at Rule 2.12 in the algorithm spec and the severity-ladder explanation in the automation contract. The remediation list (compact in place / split via `part_of` / no grep-or-offset workaround) is unchanged because those remedies were already correct; the change is from prose-only enforcement to validator-enforced."
+          }
+        ],
+        "notes": [
+          {
+            "title": "External consumers running the validators against existing manifests",
+            "body": "manifests > 2,000 lines now fail Layer 2. Remediations in order of preference: (1) compact in place by moving verbose narrative into `implementation_notes[]` / `review_notes[]` / `handoff_narrative` / `escalations[]`; (2) split via `part_of` (umbrella-and-children pattern). Both remediations are documented in `docs/change-manifest-spec.md §Manifest size ceiling`. Force-bypass via the `waivers` array is available per the existing waiver protocol but is not the recommended path — the ceiling exists because manifests above it stop working as state snapshots, not because of arbitrary policy.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External consumers in the 1,500–2,000 band",
+            "body": "the advisory finding is non-blocking. Treat it as a runway warning: downstream phases will add to the manifest, so a 1,500-line manifest at Phase 4 likely becomes a 1,800-line manifest by Phase 7. Plan compaction or a split now.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External consumers calling `layer2.check()` directly in Python",
+            "body": "the new `manifest_path` kwarg is optional. Existing call sites that don't pass it will simply skip Rule 2.12. Adding the kwarg is the recommended path for full Layer-2 coverage.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External consumers using `validator-posix-shell`",
+            "body": "no API change; Rule 2.12 is invoked automatically with no new arguments. The existing positional argument shape (`validate.sh <manifest> <repo_root> <schema> [base_ref]`) is unchanged.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Schema-level per-section caps",
+            "body": "on `evidence_plan` / `acceptance_criteria` / `review_notes` / `implementation_notes` / `sot_map`. Rule 2.12's total-size ceiling catches the symptom regardless of which section is bloated; per-section caps would give earlier signal on which section to trim. Deferred because the canonical schema's `additionalProperties: false` already constrains the namespace; per-section soft caps are a polish layer over Rule 2.12, not a substitute.",
+            "subsection": "out of scope (deferred)"
+          },
+          {
+            "title": "CCKN ↔ SoT bidirectional sync mechanism",
+            "body": ". Some teams' workflow CCKNs mirror canonical SoT content (e.g. a `cckn-005-discovery-loop-7-triggers.md` mirroring Rule 6's decision table); editing the canonical SoT does not auto-validate the mirroring CCKN. Needs a CI lint or registry mechanism. Deferred because the bidirectional mirror is a project-local pattern, not yet a canonical methodology surface — the audit recommends observing whether the pattern recurs across projects before normalising it.",
+            "subsection": "out of scope (deferred)"
+          },
+          {
+            "title": "Long-running delegation upstream rethink",
+            "body": ". 1.18.0's D1 / D2 / D3 disciplines are workarounds for Planner context-limit hangs that occur because manifests grow past the read ceiling. Rule 2.12 in this release attacks the upstream cause (oversized manifests) rather than the downstream symptom (cache-window overrun during long-running Planner work). After 1.26.0 ships and is exercised on a real workload, the audit should re-assess whether D1 / D2 / D3 still need their full normative weight, or whether the upstream fix lets them be downgraded to advisory.",
+            "subsection": "out of scope (deferred)"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.25.0",
       "date": "2026-04-27",
       "sections": {

@@ -179,6 +179,30 @@ function check_layer_2(manifest, repo_root):
                 detail: "high-severity conditions require ≥1 evidence with tier=critical"
             })
 
+    # 2.12 Manifest size within ceiling.
+    #      Mechanical enforcement of the prose ceiling at
+    #      docs/change-manifest-spec.md §State-snapshot discipline §Manifest
+    #      size ceiling. A manifest above the ceiling stops working as a state
+    #      snapshot — incoming sessions cannot open it in one read, and
+    #      grep / offset-read fallbacks defeat the "one file answers what
+    #      comes next" guarantee. Severity ladder uses lines as the
+    #      tokenizer-agnostic proxy for the ~25,000-token single-file read
+    #      ceiling common to AI runtimes (typical 12–13 tokens per line of
+    #      YAML manifest content).
+    manifest_lines = count_lines(manifest_path)
+    if manifest_lines > 2000:
+        errors.append({
+            rule: "manifest.size_within_ceiling",
+            severity: "blocking",
+            detail: "manifest is " + manifest_lines + " lines; ceiling is 2000 (≈25,000 tokens). Compact in place (move verbose narrative into structured note fields) or split via part_of per docs/change-manifest-spec.md §Manifest size ceiling. grep / offset-read workarounds are explicitly prohibited."
+        })
+    elif manifest_lines > 1500:
+        errors.append({
+            rule: "manifest.size_within_ceiling",
+            severity: "advisory",
+            detail: "manifest is " + manifest_lines + " lines; approaching ceiling at 2000. Consider compacting structured note fields or splitting via part_of before the next session boundary."
+        })
+
     return errors
 ```
 

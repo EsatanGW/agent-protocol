@@ -69,7 +69,7 @@ def main(argv: list[str] | None = None) -> int:
 
     report = Report()
     report.extend(layer1.check(manifest, schema=schema))
-    report.extend(layer2.check(manifest, repo_root=repo_root, siblings=siblings))
+    report.extend(layer2.check(manifest, repo_root=repo_root, siblings=siblings, manifest_path=args.manifest))
     report.extend(
         layer3.check(
             manifest,

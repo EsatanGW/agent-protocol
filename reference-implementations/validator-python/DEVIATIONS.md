@@ -8,10 +8,13 @@ Tracks where this Python reference differs from
 - Layer 1: all rules (1.1 – 1.4). JSON Schema validation runs when a
   schema file is supplied via `--schema`; other Layer-1 rules run
   unconditionally.
-- Layer 2: all rules (2.1 – 2.11), including the two rules the POSIX
+- Layer 2: all rules (2.1 – 2.12), including the two rules the POSIX
   reference defers (2.4 graph acyclicity via DFS, 2.5 `depends_on` ↔
-  `blocks` bidirectional mirror via sibling-manifest scan) and the
-  1.8 rule (2.11 evidence tier floor under high-severity conditions).
+  `blocks` bidirectional mirror via sibling-manifest scan), the 1.8
+  rule (2.11 evidence tier floor under high-severity conditions), and
+  the 1.26 rule (2.12 manifest size within ceiling — `wc -l` proxy for
+  the ~25,000-token AI-runtime read ceiling, blocking >2000 / advisory
+  1500-2000).
 - Layer 3: rules 3.1, 3.2, 3.3, 3.5. Rule 3.4 ships a default local-
   cache implementation (reads `.agent-protocol/monitoring-cache.json`;
   never writes, never touches the network).
@@ -41,6 +44,6 @@ Tracks where this Python reference differs from
 
 ## Methodology version targeted
 
-2.1.x. Matches the POSIX reference's targeted version; the two agree on
-every shared rule by design and are exercised against the same fixtures
-where feasible.
+1.26.x. Rule 2.12 (manifest size within ceiling) added in 1.26.0; the
+POSIX reference implements the same rule. Matches POSIX on every shared
+rule by design and is exercised against the same fixtures where feasible.

@@ -120,6 +120,28 @@ Violation of Rule 2.11 is **blocking**. The severity reflects that the same cond
 
 ---
 
+## Manifest size ceiling — Rule 2.12
+
+The Manifest is a state snapshot whose value depends on it being readable in one pass — a manifest above the AI-runtime single-file read ceiling stops working as a snapshot. Rule 2.12 mechanically enforces the prose ceiling defined in `docs/change-manifest-spec.md` §State-snapshot discipline §Manifest size ceiling.
+
+**Ceiling.** ~25,000 tokens, measured tokenizer-agnostically as **2,000 lines of YAML manifest content** (typical 12–13 tokens / line).
+
+**Severity ladder.**
+
+| Threshold | Severity | Action |
+|---|---|---|
+| > 2,000 lines | **blocking** | manifest does not validate; compact in place (move verbose narrative into `implementation_notes[]` / `review_notes[]` / `handoff_narrative` / `escalations[]`) or split via `part_of` per `docs/change-manifest-spec.md` §Manifest size ceiling. `grep` / offset-read workarounds are explicitly prohibited as compensation for an oversized manifest. |
+| 1,500 – 2,000 lines | **advisory** | early warning; compact or split before the next session boundary, or the next addition will cross into blocking. |
+| ≤ 1,500 lines | none | within budget. |
+
+**Why advisory at 1,500 (not 2,000).** Manifests at 1,500 lines typically grow another 500 lines through downstream phases (`review_notes`, `approvals`, `followup` sections). An advisory at 1,500 gives the Planner / Implementer a runway to compact before Phase 5 / 6 push the manifest into blocking territory. The 1,500-line threshold matches the median size of the seven canonical templates' worst-case plus three downstream phases.
+
+**What Rule 2.12 catches that the others don't.** Rules 2.1–2.11 verify *content correctness* — they do not measure *size*. A manifest with all required fields and high-severity tier-critical evidence still hangs an incoming session if it crosses the read ceiling. Rule 2.12 is the size-enforcement counterpart of the content rules.
+
+**What Rule 2.12 does not do.** Rule 2.12 does not prescribe *which fields to compact* — that is the Planner / Implementer's editorial judgment. The ceiling is an outer envelope; the structured fields (`implementation_notes[]` / `review_notes[]` / `handoff_narrative` / `escalations[]`) are where verbose content belongs at lower token cost than free-form prose.
+
+---
+
 ## Waiver protocol
 
 **An L2/L3 automation layer without a waiver mechanism will be bypassed.**

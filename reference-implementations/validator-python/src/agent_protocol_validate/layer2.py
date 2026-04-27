@@ -1,9 +1,13 @@
-"""Layer 2 — cross-reference consistency. Rules 2.1 – 2.11.
+"""Layer 2 — cross-reference consistency. Rules 2.1 – 2.12.
 
 2.4 (decomposition acyclicity) and 2.5 (depends_on / blocks mirror) are the
 two rules flagged as gaps in the POSIX reference; both are implemented here.
 2.11 (evidence tier floor under high-severity conditions) was added in the
 1.8 schema revision and is enforced identically across all three validators.
+2.12 (manifest size within ceiling) was added in 1.26.0 to mechanically enforce
+the prose ceiling at docs/change-manifest-spec.md §State-snapshot discipline
+§Manifest size ceiling. Counts lines in the manifest file as the
+tokenizer-agnostic proxy for the ~25,000-token AI-runtime read ceiling.
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ def check(
     *,
     repo_root: Path,
     siblings: dict[str, dict[str, Any]] | None = None,
+    manifest_path: Path | None = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
     siblings = siblings or {}
@@ -34,6 +39,8 @@ def check(
     findings.extend(_rule_2_9(manifest))
     findings.extend(_rule_2_10(manifest))
     findings.extend(_rule_2_11(manifest))
+    if manifest_path is not None:
+        findings.extend(_rule_2_12(manifest_path))
 
     return findings
 
@@ -343,3 +350,55 @@ def _rule_2_11(manifest: dict[str, Any]) -> list[Finding]:
             ),
         )
     ]
+
+
+_CEILING_BLOCKING_LINES = 2000
+_CEILING_ADVISORY_LINES = 1500
+
+
+def _rule_2_12(manifest_path: Path) -> list[Finding]:
+    """Manifest size within ceiling. Mechanical enforcement of the prose
+    ceiling at docs/change-manifest-spec.md §State-snapshot discipline
+    §Manifest size ceiling. Lines are the tokenizer-agnostic proxy for the
+    ~25,000-token AI-runtime read ceiling (typical 12-13 tokens per line of
+    YAML manifest content).
+
+    Severity ladder:
+      > 2000 lines → blocking
+      1500–2000   → advisory
+      ≤ 1500      → none
+    """
+    try:
+        line_count = sum(1 for _ in manifest_path.open("r", encoding="utf-8"))
+    except OSError:
+        return []
+
+    if line_count > _CEILING_BLOCKING_LINES:
+        return [
+            Finding(
+                rule_id="manifest.size_within_ceiling",
+                severity="blocking",
+                detail=(
+                    f"manifest is {line_count} lines; ceiling is "
+                    f"{_CEILING_BLOCKING_LINES} (≈25,000 tokens). Compact in "
+                    "place (move verbose narrative into structured note "
+                    "fields) or split via part_of per "
+                    "docs/change-manifest-spec.md §Manifest size ceiling. "
+                    "grep / offset-read workarounds are explicitly prohibited."
+                ),
+            )
+        ]
+    if line_count > _CEILING_ADVISORY_LINES:
+        return [
+            Finding(
+                rule_id="manifest.size_within_ceiling",
+                severity="advisory",
+                detail=(
+                    f"manifest is {line_count} lines; approaching ceiling at "
+                    f"{_CEILING_BLOCKING_LINES}. Consider compacting "
+                    "structured note fields or splitting via part_of before "
+                    "the next session boundary."
+                ),
+            )
+        ]
+    return []

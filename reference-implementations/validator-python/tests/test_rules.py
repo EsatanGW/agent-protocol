@@ -225,3 +225,58 @@ def test_rule_2_11_silent_when_high_risk_surface_is_not_primary():
     )
     findings = layer2._rule_2_11(manifest)
     assert findings == []
+
+
+def _write_manifest_lines(tmp_path: Path, line_count: int) -> Path:
+    """Create a synthetic manifest file of the requested line count for
+    Rule 2.12 size-ceiling tests. Content is irrelevant for the rule (it
+    measures lines, not parses YAML); a header + N filler lines suffice.
+    """
+    p = tmp_path / "fake-manifest.yaml"
+    body = "change_id: 'fake'\n"
+    body += "\n".join(f"# filler line {i}" for i in range(line_count - 1))
+    body += "\n"
+    p.write_text(body, encoding="utf-8")
+    return p
+
+
+def test_rule_2_12_silent_within_budget(tmp_path: Path):
+    p = _write_manifest_lines(tmp_path, 1000)
+    findings = layer2._rule_2_12(p)
+    assert findings == []
+
+
+def test_rule_2_12_silent_at_advisory_boundary(tmp_path: Path):
+    p = _write_manifest_lines(tmp_path, 1500)
+    findings = layer2._rule_2_12(p)
+    assert findings == []
+
+
+def test_rule_2_12_advisory_fires_above_1500(tmp_path: Path):
+    p = _write_manifest_lines(tmp_path, 1700)
+    findings = layer2._rule_2_12(p)
+    assert len(findings) == 1
+    assert findings[0].rule_id == "manifest.size_within_ceiling"
+    assert findings[0].severity == "advisory"
+    assert "1700" in findings[0].detail
+
+
+def test_rule_2_12_advisory_at_blocking_boundary(tmp_path: Path):
+    p = _write_manifest_lines(tmp_path, 2000)
+    findings = layer2._rule_2_12(p)
+    assert len(findings) == 1
+    assert findings[0].severity == "advisory"
+
+
+def test_rule_2_12_blocking_fires_above_2000(tmp_path: Path):
+    p = _write_manifest_lines(tmp_path, 2100)
+    findings = layer2._rule_2_12(p)
+    assert len(findings) == 1
+    assert findings[0].rule_id == "manifest.size_within_ceiling"
+    assert findings[0].severity == "blocking"
+    assert "2100" in findings[0].detail
+
+
+def test_rule_2_12_missing_path_returns_empty():
+    findings = layer2._rule_2_12(Path("/nonexistent/path/manifest.yaml"))
+    assert findings == []

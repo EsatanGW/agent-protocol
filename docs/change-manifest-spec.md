@@ -78,6 +78,8 @@ A handoff prompt that contains more than a short pointer block (identity header 
 
 Some AI runtimes refuse to open a file above a single-file read ceiling (typical: ~25,000 tokens or ~2,000 lines) without an explicit offset or line-range argument. A manifest that crosses that ceiling **stops working as a state snapshot**: the incoming session cannot open it in one read, and any fallback to `grep` or offset reads defeats the "one file answers what comes next" guarantee above.
 
+**Mechanical enforcement (1.26.0).** The ceiling is enforced by **Rule 2.12** (`docs/automation-contract-algorithm.md` Layer 2): blocking severity at >2,000 lines, advisory severity at 1,500–2,000 lines. The advisory threshold gives Phases 5 / 6 / 7 a runway before downstream content (`review_notes`, `approvals`, `followup` sections) pushes the manifest into the blocking band. Severity ladder + rationale: `docs/automation-contract.md §Manifest size ceiling — Rule 2.12`.
+
 When a manifest approaches the ceiling, the remedies — in order of preference:
 
 1. **Compact in place.** Move verbose narrative into the phase-specific structured note fields (`implementation_notes[]`, `review_notes[]`, `handoff_narrative`, `escalations[]`) and trim redundant prose. Structured fields carry information at lower token cost than free-form prose, and the resumption protocol already knows where to look for them.

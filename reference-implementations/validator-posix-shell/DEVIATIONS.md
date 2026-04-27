@@ -5,7 +5,7 @@ Tracks where this POSIX-shell reference differs from `docs/automation-contract-a
 ## Implemented
 
 - Layer 1: all rules (1.1 – 1.4). JSON Schema validation is delegated to an external validator binary; all other Layer-1 rules are implemented directly.
-- Layer 2: rules 2.1, 2.2, 2.3, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11.
+- Layer 2: rules 2.1, 2.2, 2.3, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11, 2.12.
 - Layer 3: rules 3.1, 3.3, 3.5.
 - Waiver filtering: full.
 - Exit code mapping: full.
@@ -29,4 +29,4 @@ Tracks where this POSIX-shell reference differs from `docs/automation-contract-a
 
 ## Methodology version targeted
 
-2.1.x.
+1.26.x. Rule 2.12 (manifest size within ceiling) added in 1.26.0 alongside the canonical algorithm spec; uses `wc -l` on the manifest path, no schema or yq dependency. Severity ladder: blocking >2000 lines, advisory 1500-2000.

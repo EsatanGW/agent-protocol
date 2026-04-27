@@ -196,6 +196,26 @@ if [ "$high_severity" = "1" ]; then
     fi
 fi
 
+# 2.12 Manifest size within ceiling.
+#      Added in 1.26.0 to mechanically enforce the prose ceiling at
+#      docs/change-manifest-spec.md §State-snapshot discipline §Manifest
+#      size ceiling. Lines are the tokenizer-agnostic proxy for the
+#      ~25,000-token AI-runtime read ceiling.
+#      Severity ladder:
+#        > 2000 lines  → blocking
+#        1500-2000     → advisory
+#        ≤ 1500        → none
+manifest_lines=$(wc -l < "$MANIFEST" 2>/dev/null | tr -d ' ')
+if [ -n "$manifest_lines" ]; then
+    if [ "$manifest_lines" -gt 2000 ]; then
+        emit blocking "manifest.size_within_ceiling" \
+            "manifest is $manifest_lines lines; ceiling is 2000 (~25,000 tokens). Compact in place or split via part_of per docs/change-manifest-spec.md §Manifest size ceiling. grep / offset-read workarounds are explicitly prohibited."
+    elif [ "$manifest_lines" -gt 1500 ]; then
+        emit advisory "manifest.size_within_ceiling" \
+            "manifest is $manifest_lines lines; approaching ceiling at 2000. Consider compacting structured note fields or splitting via part_of before the next session boundary."
+    fi
+fi
+
 # ─── Layer 3: drift detection (optional, requires base ref) ───────────────
 
 if [ -n "$BASE_REF" ] && command -v git >/dev/null 2>&1; then

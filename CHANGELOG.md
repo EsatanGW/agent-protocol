@@ -8,6 +8,59 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.26.0] - 2026-04-27
+
+Cluster F-1 of the 1.8.0-SDD-import follow-up audit. **Rule 2.12 — manifest size within ceiling** is added to the canonical Layer 2 algorithm and implemented identically in `validator-python` and `validator-posix-shell`. Mechanically enforces the prose ceiling that has lived in `docs/change-manifest-spec.md §State-snapshot discipline §Manifest size ceiling` since 1.10.0 but had no validator-side enforcement until now.
+
+User-facing impact: a manifest above 2,000 lines now fails Layer 2 validation (blocking) instead of silently growing past the AI-runtime single-file read ceiling and causing Planner context-limit hangs at later session boundaries. An advisory threshold at 1,500 lines provides early warning so Phases 5 / 6 / 7 have runway before downstream content (`review_notes`, `approvals`, `followup` sections) pushes the manifest into the blocking band. Real-workload smoke test confirmed: `flutter-lottery-app/docs/migration/manifests/2026-04-21-ph-bet-migration-umbrella.yaml` (2,013 lines) now triggers blocking; the same project's `2026-04-30-ph-bet-stage-F.3.yaml` (1,767 lines) triggers advisory.
+
+### Added
+
+- **`docs/automation-contract-algorithm.md` Layer 2 — Rule 2.12 (manifest.size_within_ceiling)** (**L1**) — pseudocode rule appended to the Layer 2 block. Counts lines in the manifest file as the tokenizer-agnostic proxy for the ~25,000-token AI-runtime single-file read ceiling (typical 12–13 tokens per line of YAML manifest content). Severity ladder: blocking when `manifest_lines > 2000` (matches the prose ceiling); advisory when `1500 < manifest_lines ≤ 2000`. Below 1,500 the rule is silent. The rule's `detail` payload directs the user to compact in place (move verbose narrative into structured note fields) or split via `part_of`, and explicitly prohibits `grep` / offset-read workarounds — these are precisely what the prose ceiling exists to prevent.
+
+- **`docs/automation-contract.md` §Manifest size ceiling — Rule 2.12** — narrative companion documenting the severity ladder, the rationale for the 1,500-line advisory threshold (gives Phase 5 / 6 / 7 a downstream-content runway), what Rule 2.12 catches that Rules 2.1–2.11 don't (size, not content correctness), and what Rule 2.12 deliberately does not prescribe (which fields to compact — that is editorial judgment, not algorithm).
+
+- **`reference-implementations/validator-python/src/agent_protocol_validate/layer2.py` `_rule_2_12()`** — Python implementation reading the manifest path passed via the new optional `manifest_path` parameter to `layer2.check()`. Counts lines via `sum(1 for _ in path.open())` (no encoding-aware reading needed; line counting is byte-pattern-level). Returns `[]` on `OSError` (graceful degradation if the path is unreadable; the orchestrator already validated the path before calling the layer). Severity strings (`blocking`, `advisory`) match the existing contract.
+
+- **`reference-implementations/validator-python/tests/test_rules.py`** — six new tests for Rule 2.12: silent-within-budget (1,000 lines), silent-at-advisory-boundary (1,500 lines), advisory-fires-above-1500 (1,700 lines), advisory-at-blocking-boundary (2,000 lines — the rule fires advisory at exactly 2,000 since the blocking threshold is `> 2000` strict), blocking-fires-above-2000 (2,100 lines), and missing-path-returns-empty (defensive). Test count rises from 18 to 24 (+33%, all new tests pass on the same `pytest -q` run).
+
+- **`reference-implementations/validator-posix-shell/validate.sh` Rule 2.12 block** — POSIX implementation using `wc -l < "$MANIFEST"` and an `if`/`elif` ladder against the two thresholds. No yq dependency, no schema dependency, no network — Rule 2.12 is the lightest-dependency Layer 2 rule. Behaviour matches the Python implementation byte-for-byte on the boundary cases.
+
+### Changed
+
+- **`reference-implementations/validator-python/src/agent_protocol_validate/__main__.py`** — `layer2.check()` call updated to pass `manifest_path=args.manifest`. Pre-existing call sites in tests pass `manifest_path` via `**kw` for the cases that exercise Rule 2.12; tests that don't exercise it omit the kwarg (the rule degrades to silent when `manifest_path is None`).
+
+- **`reference-implementations/validator-python/src/agent_protocol_validate/layer2.py`** — `check()` signature gains `manifest_path: Path | None = None` as a keyword-only optional parameter. Rule 2.12 is invoked only when `manifest_path is not None`, so callers that don't pass it (e.g. unit tests for other rules) see no regression.
+
+- **`reference-implementations/validator-posix-shell/DEVIATIONS.md`** — implemented-rules list extended from `2.1, 2.2, 2.3, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11` to `… 2.11, 2.12`. Methodology-version-targeted footer updated from `2.1.x` to `1.26.x` with a note on Rule 2.12's `wc -l` implementation (no yq / schema dependency).
+
+- **`reference-implementations/validator-python/DEVIATIONS.md`** — implemented-rules description extended to include 2.12 with the line-count proxy explanation. Methodology-version-targeted footer updated from `2.1.x` to `1.26.x`.
+
+- **`docs/change-manifest-spec.md` §Manifest size ceiling** — opening paragraph augmented with a "Mechanical enforcement (1.26.0)" note pointing at Rule 2.12 in the algorithm spec and the severity-ladder explanation in the automation contract. The remediation list (compact in place / split via `part_of` / no grep-or-offset workaround) is unchanged because those remedies were already correct; the change is from prose-only enforcement to validator-enforced.
+
+### Why minor, not patch
+
+Rule 2.12 is a new normative Layer 2 rule that can fail builds (severity: blocking) on existing manifests above the 2,000-line ceiling. That is a forced-Full canonical methodology content edit per `mode-decision-tree.md §Scenarios that force Full → Canonical methodology content edit (L1+)`. Existing manifests that happen to be below 1,500 lines see no behavioural change; manifests in the 1,500–2,000 band gain an advisory finding (exit code 1, not 2) that is informative but non-blocking; manifests above 2,000 will fail validation until they are compacted or split.
+
+### Migration notes
+
+- **External consumers running the validators against existing manifests** — manifests > 2,000 lines now fail Layer 2. Remediations in order of preference: (1) compact in place by moving verbose narrative into `implementation_notes[]` / `review_notes[]` / `handoff_narrative` / `escalations[]`; (2) split via `part_of` (umbrella-and-children pattern). Both remediations are documented in `docs/change-manifest-spec.md §Manifest size ceiling`. Force-bypass via the `waivers` array is available per the existing waiver protocol but is not the recommended path — the ceiling exists because manifests above it stop working as state snapshots, not because of arbitrary policy.
+- **External consumers in the 1,500–2,000 band** — the advisory finding is non-blocking. Treat it as a runway warning: downstream phases will add to the manifest, so a 1,500-line manifest at Phase 4 likely becomes a 1,800-line manifest by Phase 7. Plan compaction or a split now.
+- **External consumers calling `layer2.check()` directly in Python** — the new `manifest_path` kwarg is optional. Existing call sites that don't pass it will simply skip Rule 2.12. Adding the kwarg is the recommended path for full Layer-2 coverage.
+- **External consumers using `validator-posix-shell`** — no API change; Rule 2.12 is invoked automatically with no new arguments. The existing positional argument shape (`validate.sh <manifest> <repo_root> <schema> [base_ref]`) is unchanged.
+
+### Tool-agnostic discipline
+
+Line count is the tokenizer-agnostic proxy for the token ceiling. No specific tokenizer (BPE, WordPiece, SentencePiece, vendor-specific) is named in the rule's normative text. The 12–13 tokens-per-line conversion factor used in the rationale is empirical (typical YAML manifest content under common tokenizers); it is descriptive, not normative — the line-count thresholds are the binding constants. No vendor / model / framework names introduced. No schema changes (Rule 2.12 is a Layer 2 cross-reference rule, not a schema constraint). No glossary terms added; the existing glossary entries for `State snapshot` and `Manifest size ceiling` are unchanged in semantics.
+
+### Out of scope (deferred)
+
+Cluster F has four items per the 1.8.0 SDD audit's Q5 resolution; this release ships the most concrete one (manifest-size mechanical enforcement). Three remain:
+
+- **Schema-level per-section caps** on `evidence_plan` / `acceptance_criteria` / `review_notes` / `implementation_notes` / `sot_map`. Rule 2.12's total-size ceiling catches the symptom regardless of which section is bloated; per-section caps would give earlier signal on which section to trim. Deferred because the canonical schema's `additionalProperties: false` already constrains the namespace; per-section soft caps are a polish layer over Rule 2.12, not a substitute.
+- **CCKN ↔ SoT bidirectional sync mechanism**. Some teams' workflow CCKNs mirror canonical SoT content (e.g. a `cckn-005-discovery-loop-7-triggers.md` mirroring Rule 6's decision table); editing the canonical SoT does not auto-validate the mirroring CCKN. Needs a CI lint or registry mechanism. Deferred because the bidirectional mirror is a project-local pattern, not yet a canonical methodology surface — the audit recommends observing whether the pattern recurs across projects before normalising it.
+- **Long-running delegation upstream rethink**. 1.18.0's D1 / D2 / D3 disciplines are workarounds for Planner context-limit hangs that occur because manifests grow past the read ceiling. Rule 2.12 in this release attacks the upstream cause (oversized manifests) rather than the downstream symptom (cache-window overrun during long-running Planner work). After 1.26.0 ships and is exercised on a real workload, the audit should re-assess whether D1 / D2 / D3 still need their full normative weight, or whether the upstream fix lets them be downgraded to advisory.
+
 ## [1.25.0] - 2026-04-27
 
 Cluster C of the 1.8.0-SDD-import reverse audit (`working/2026-04-27-1-8-0-sdd-audit.md`). One normative change: **R9 CCKN query-timing demoted from mandatory to opportunistic**. The 1.14.0 mandate ("query at Phase 1 Investigate startup as step 0; one grep, one pass, before investigation proper begins") is replaced with conditional consultation ("if the change's surfaces / libraries / external APIs overlap topics catalogued in the CCKN directory, read the matching CCKNs before tracing the main flow; otherwise no-op"). Forced-Full per `CLAUDE.md §5` (changes a normative claim in a canonical SoT file).
