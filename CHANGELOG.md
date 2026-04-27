@@ -6,7 +6,13 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
-_(No entries yet — next change adds them here.)_
+### Fixed
+
+- **`AGENTS.md §6` Phase-gate discipline summary aligned with SoT** — the body said "Five rules apply" and listed rules 1–5, while the same paragraph's footnote referenced "the six rules" (per `docs/phase-gate-discipline.md §Ceremony scaling — how the six rules apply per execution mode`). Rule 6 (Phase re-entry protocol) and sub-rule 5a (working-space production discipline) were missing entirely from the consumer summary. The body now reads "Six rules apply" with one-line summaries of sub-rule 5a (under Rule 5) and Rule 6, both citing `docs/phase-gate-discipline.md §Rule N` as the canonical source. The closing "Ceremony scaling" sentence is updated from "These five rules" to "These six rules" to match. No changes to the SoT itself; this is consumer alignment per `CLAUDE.md §5` (cross-cutting term update obligation).
+
+### Changed
+
+- **`docs/glossary.md §Ceremony` — disambiguated structural vs anti-pattern senses** — the term *ceremony* appears in two semantically distinct ways across the methodology: the **structural sense** names the amount of procedure a mode prescribes (`AGENTS.md §6` "ceremony scaling", "Full mode ceremony", "abbreviated ceremony"; `docs/phase-gate-discipline.md §Ceremony scaling`; `§Execution mode` "rising ceremony"); the **anti-pattern sense** names empty ritual that escapes the mode's intent (`AGENTS.md` line 171 "ceremonial adoption"; `§Minimum sufficient evidence` "form of ceremony"). The glossary entry previously defined only the anti-pattern sense, leaving readers landing here from a structural-sense citation with no anchor. The entry now lists both senses with a one-line distinguishing example ("a Full-mode change correctly producing every required gate artifact is not ceremonial; a Lean-mode change generating a ROADMAP row that no consumer reads is"), so both classes of citations resolve correctly.
 
 ## [1.30.1] - 2026-04-28
 
