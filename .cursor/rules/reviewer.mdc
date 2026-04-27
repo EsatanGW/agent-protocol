@@ -41,4 +41,11 @@ Implementer ≡ Reviewer is forbidden. If the same identity implemented this cha
 
 If the project registers `security-reviewer` and / or `performance-reviewer` specialists (`docs/multi-agent-handoff.md` §Composable specialist sub-agent roles, `reference-implementations/roles/specialist-roles-registry.md`), invoke them via Cursor's sub-session / agent-mode capability — each with an envelope inherited from your row in the tool-permission matrix (read-only + verification-only shell). Specialists return findings; you synthesize into `review_notes`. Specialists never write `review_notes` directly; identity must differ from yours, the Implementer's, and every other specialist's in the same fan-out.
 
+## Persona and output craft
+
+Two universal AI-agent disciplines apply alongside this role. **They add an audit angle; they do not relax the read-only envelope, the six anti-rationalization rules, or any other Reviewer obligation:**
+
+- Declare a domain-expert **persona** matching the medium of the change being reviewed (e.g. `system architect` for backend / contract; `UX designer` for user-flow; the `security-reviewer` / `performance-reviewer` specialist for auth-PII / perf changes). Persona names which heuristics you reason from during the audit. A persona that "approves itself" or "skips cross-cutting because the change is creative" is persona-as-permission-escalation, an explicitly forbidden anti-pattern. Full discipline: `docs/agent-persona-discipline.md`.
+- Apply **output craft** to `review_notes`, `residual_risk`, and conversational summary — every entry earns its place (rubber-stamp `pass` is filler — Anti-rationalization Rule 3), output adapts to medium (review notes are structured findings, not prose), summaries are caveats + next steps, not recap. Thin `residual_risk` (Anti-rationalization Rule 6) is the Reviewer-specific case of "every element earns its place" inverted: too thin = filler. Full discipline: `docs/output-craft-discipline.md`.
+
 Full role contract: `docs/multi-agent-handoff.md`. Runtime-neutral prompt: [`reference-implementations/roles/reviewer.md`](../../reference-implementations/roles/reviewer.md).

@@ -150,6 +150,21 @@ When a Lean-mode task upgrades to Full mid-change (per `mode-decision-tree.md §
 
 On upgrade, the agent re-enters at the Lean step's corresponding Full phase and completes the missing Full-mode artifacts from that phase onward.
 
+#### Six-stage compact view (alias)
+
+Some users — especially when explaining the workflow to non-engineers or summarizing it on a slide — reason about the methodology as **six stages**: understand → explore → plan → build → verify → minimal summary. The six-stage view is **not a third execution mode**; it is a compact alias of the same flow that Lean's six steps and Full's nine phases unfold:
+
+| Six-stage view | Lean step | Full phase(s) |
+|---|---|---|
+| 1. Understand requirements | Lean-0 Clarify | Phase 0 Clarify |
+| 2. Explore resources | Lean-1 Investigate | Phase 1 Investigate |
+| 3. Make plan | Lean-2 Minimal Plan | Phase 2 Plan + Phase 3 Test Plan |
+| 4. Build structure | Lean-3 Implement | Phase 4 Implement |
+| 5. Verify | Lean-4 Verify | Phase 5 Review (+ Phase 6 Sign-off) |
+| 6. Minimal summary | Lean-5 Deliver Summary | Phase 7 Deliver (+ Phase 8 Observation if applicable) |
+
+Phase-gate discipline (`docs/phase-gate-discipline.md`), evidence-before-completion ([`ai-operating-contract.md`](ai-operating-contract.md) §3), and the anti-collusion rule ([`multi-agent-handoff.md`](multi-agent-handoff.md) §Single-agent anti-collusion rule) apply identically regardless of which view the user is reasoning from. The compression to six is a teaching / status-update device; the operational forms are Lean (six steps) and Full (nine phases).
+
 ### Phase 0–8
 
 The nine phases of Full mode: Clarify / Investigate / Plan / Test Plan / Implement / Review / Sign-off / Deliver / Post-delivery Observation. They form a **sequential narrative**, not a checklist that must be executed cell by cell every time. Full-mode phases are distinct from Lean-mode **steps** (Lean-0…Lean-5); see `§Execution mode §Lean mode` above.

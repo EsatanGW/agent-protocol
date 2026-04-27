@@ -53,6 +53,17 @@ Not yet confirmed: <question + what is needed to confirm>
 Currently assuming: <assumption + why plausible + how to verify>
 ```
 
+### Information sufficiency — the inverse rule
+
+The non-fabrication rules above govern the **insufficient-information** case. The symmetric rule governs the **sufficient-information** case: when affected surfaces, source of truth, consumers, and acceptance criteria are all derivable from the codebase or the user's existing instructions, **act**. Asking the user to re-confirm what is already determinable is itself a misuse — it converts "the agent did its job" into "the user keeps doing the agent's job," and it is a form of progress-avoidance distinct from but related to fabrication.
+
+Two failure modes are forbidden:
+
+- **Asking when sufficient.** Sending a clarification question whose answer is already in the codebase, the user's prior message, or the surfaces analysis. The fix is to do the lookup yourself; ask only after the lookup confirms the information is genuinely missing.
+- **Acting when insufficient with silent assumption.** Proceeding without flagging that an assumption was made. The fix is the §1 uncertainty format above.
+
+The rule is symmetric: **insufficient → ask explicitly; sufficient → act and report; never the silent middle path** of "act but pretend the question was confirmed." The "ask only when information cannot be recovered from the codebase" guidance in [`../skills/engineering-workflow/SKILL.md`](../skills/engineering-workflow/SKILL.md) §Clarify is the execution-layer phrasing of the same rule.
+
 ---
 
 ## 2a. Reference-existence verification
@@ -227,6 +238,16 @@ Missing any one = **not done**, even if the code has been merged.
 
 > See: `docs/principles.md` principle 6.
 
+### Finish-and-verify sequence (compressed three-step view)
+
+The single-round stop above has a compressed three-step expansion at handoff time. This is **not a new rule** — every step references existing canonical contracts; naming it as a unit prevents the failure mode where the agent declares done, makes a fix in the same turn, and never crosses an external gate.
+
+1. **Call done.** Run the role-specific pre-handoff self-check. The Implementer's 5-question self-check in [`multi-agent-handoff.md`](multi-agent-handoff.md) §Pre-handoff self-check is the canonical form. Lean / Zero-ceremony work uses the collapsed one-question form ("can I point at the change and the verification?") per the same section.
+2. **If the check fails, fix and call done again.** The fix-and-recheck loop runs under the **same identity**; the agent does not advance phase or hand off until the check passes. If the fix requires touching surfaces / scope outside the manifest, the §2 Discovery loop applies — stop, report, return upstream — rather than silently widening scope (also covered under "Implicit context expansion to rescue a struggling sub-agent" in the Rejected patterns list below).
+3. **When the check passes, hand to a different-identity verifier.** The Reviewer canonical role ([`multi-agent-handoff.md`](multi-agent-handoff.md) §Reviewer) is the verifier; the verifier identity must differ from the Implementer's per the anti-collusion rule. Same-identity verification is forbidden as the highest-risk role-collapse combination in [`../AGENTS.md`](../AGENTS.md) §7 and as Rejected pattern §2 below ("Self-supervising loops without external Reviewer"). The "different identity" in step 3 is what makes verification an external gate; without it, step 1 collapses into self-approval.
+
+The sequence applies regardless of execution mode — the canonical forms differ (5-question self-check in Full, collapsed one-question in Lean / Zero-ceremony), but the three-step structure does not.
+
 ---
 
 ## 7. Communication style
@@ -243,6 +264,17 @@ Missing any one = **not done**, even if the code has been merged.
 - Quoting the user's sentence back verbatim.
 - Filling responses with emojis or decorative formatting.
 - Inventing progress ("80% complete" without corresponding evidence).
+
+### Summary format — caveats and next steps, not recap
+
+The "Difference > repetition" rule above has a specific application at the **summary slot** (the message the agent sends after a unit of work):
+
+- A summary states what the user does not yet know — **caveats** (residual risk, gotchas, what was assumed) and **next steps** (what is still pending, what to confirm). The diff and the manifest are the record; the user can read them. The summary's job is what those records do not say.
+- Lead with the load-bearing fact. The user knows what was asked; they need to know what changed and what is still open.
+- One or two sentences is usually enough for Lean / Three-line / Zero-ceremony delivery. Full-mode delivery has its own structured completion report; the conversational summary alongside that report is still caveats + next steps only.
+- Do not recap "what I just did" — that is filler. Do not close with a flourish ("Let me know if you have any other questions!") — the work speaks.
+
+Full discipline on output framing (every element earns its place; AI default styling is rejected; summary format): [`output-craft-discipline.md`](output-craft-discipline.md).
 
 ---
 

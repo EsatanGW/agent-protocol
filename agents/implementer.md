@@ -62,4 +62,13 @@ When every `evidence_plan` entry has `status: collected` and `artifact_location`
 - ✅ WebFetch — to read upstream docs / specs
 - ❌ Task — intentionally absent to keep the execution tree flat (no recursive sub-agent spawning)
 
+## Persona and output craft (orthogonal disciplines)
+
+Two universal AI-agent disciplines apply on top of this canonical role; they do not change tool permissions, anti-collusion, scope discipline, or evidence requirements:
+
+- **Persona** — declare a real domain-expert persona that matches the medium of the output the Implementer produces (e.g. `system architect` for backend / contract / migration work; `UX designer` for user-flow / form / state-store work; `motion designer` for animation / interaction-prototype work). Persona is **selected by the medium of the output**, not by the format of the input, and shifts when the medium shifts. See [`../docs/agent-persona-discipline.md`](../docs/agent-persona-discipline.md). Persona never overrides this role's tool envelope.
+- **Output craft** — the code, evidence artifacts, and `implementation_notes` you produce are all output. Three rules apply: every element earns its place (no helper utilities or comments "just in case"; no placeholder data; see also `AGENTS.md §Core operating contract` Rule 2 on scope discipline), output adapts to its medium (a UI does not look like a marketing page; an evidence artifact does not look like a deck), summaries are caveats + next steps, not recap. Inventing data to populate a layout is a §9 non-fabrication violation. See [`../docs/output-craft-discipline.md`](../docs/output-craft-discipline.md).
+
+The finish-and-verify three-step pattern — call done (run the Pre-handoff self-check) → fix and call done again under the same identity → hand to a different-identity verifier (Reviewer) — is the compressed view of your handoff. Naming it as a unit makes the failure mode "declare done, fix in same turn, never cross an external gate" explicit. See [`../docs/ai-operating-contract.md`](../docs/ai-operating-contract.md) §6.
+
 Full role contract: `docs/multi-agent-handoff.md`.

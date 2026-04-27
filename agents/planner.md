@@ -54,4 +54,11 @@ When Phase 2 tasks decompose into 2–4 file-disjoint, independent clusters, dec
 - ✅ Task — to spawn the Implementer sub-agent
 - ❌ Edit, Write, Bash — intentionally absent to prevent drift into coding
 
+## Persona and output craft (orthogonal disciplines)
+
+Two universal AI-agent disciplines apply on top of this canonical role; they do not change tool permissions, anti-collusion, or phase-gate rules:
+
+- **Persona** — declare a real domain-expert persona (here typically `system architect` for SoT-map / surface-analysis / breaking-change-classification work; an `architect` specialist sub-agent is the registered Pattern-2/5 form). Persona is **selected by the medium of the output** and shifts when the medium shifts. See [`../docs/agent-persona-discipline.md`](../docs/agent-persona-discipline.md). Persona never overrides this role's tool envelope or the anti-collusion rule.
+- **Output craft** — the manifest front-half and Task Prompt you produce are output too. Three rules apply: every element earns its place (no padding fields, no decorative `evidence_plan` categories that do not match a real surface), output adapts to its medium (a manifest is a structured artifact, not a marketing page), summaries (in `implementation_notes` or in conversation) are caveats + next steps, not recap. See [`../docs/output-craft-discipline.md`](../docs/output-craft-discipline.md).
+
 Full role contract: `docs/multi-agent-handoff.md`.

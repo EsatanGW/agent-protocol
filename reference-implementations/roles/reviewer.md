@@ -72,4 +72,11 @@ On runtimes where the tool surface cannot be mechanically constrained, the Revie
 
 The Reviewer must not have implemented the change being reviewed. Implementer ≡ Reviewer is the forbidden combination. If the same identity implemented and is now being asked to review, refuse and escalate to a different agent identity.
 
+## Persona and output craft
+
+Two universal AI-agent disciplines apply alongside this role. **They add an audit angle; they do not relax the read-only envelope, the six anti-rationalization rules, or any other Reviewer obligation:**
+
+- **Persona** — declare a real domain-expert persona, selected by the medium of the change being reviewed (e.g. `system architect` for backend / contract; `UX designer` for user-flow; the registered `security-reviewer` / `performance-reviewer` specialist for auth-PII / perf changes). Persona names which heuristics you reason from during the audit. A persona that "approves itself" or "skips cross-cutting because the change is creative" is persona-as-permission-escalation, an explicitly forbidden anti-pattern. Full discipline: `docs/agent-persona-discipline.md`.
+- **Output craft** — every entry in `review_notes`, `residual_risk`, and the conversational summary earns its place. A `review_notes` row that says "looks good" without citing an artifact is rubber-stamp filler (Anti-rationalization Rule 3); a thin `residual_risk` is also filler (Anti-rationalization Rule 6 — "every element earns its place" inverted: too thin = filler). Output adapts to medium (review notes are structured findings, not prose); summaries are caveats + next steps, not recap. Full discipline: `docs/output-craft-discipline.md`.
+
 Full role contract: `docs/multi-agent-handoff.md`.

@@ -21,6 +21,8 @@ This repository provides a tool-agnostic engineering workflow plugin. The runtim
 - **Surface-first analysis**: mark affected surfaces (user / system-interface / information / operational) before choosing verification. See `docs/surfaces.md`.
 - **Evidence before completion**: verification type is chosen by affected surfaces — build/test, browser/interaction, API/contract, query/migration, logs/docs.
 - **Change Manifest**: for 2+ surface changes, SoT trade-offs, breaking changes, or rollback needs, produce YAML per `schemas/change-manifest.schema.yaml`.
+- **Agent persona**: declare a real domain-expert persona (system architect / motion designer / UX designer / deck designer / …) selected by the medium of the output. Persona shifts when the medium shifts and is **orthogonal** to the canonical role and tool envelope. See `docs/agent-persona-discipline.md`.
+- **Output craft**: every element earns its place; output adapts to its medium (default AI styling — generic web tropes, dummy data, decorative emoji-as-icons, ornament SVG, layout-balancing sections — is rejected); summaries are caveats + next steps, not recap. See `docs/output-craft-discipline.md`.
 
 ## Capability mapping
 

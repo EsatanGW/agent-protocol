@@ -58,3 +58,10 @@ Answer these in order, per `skills/engineering-workflow/SKILL.md` "First 60 seco
 8. Required evidence before completion
 
 If any answer is uncertain, stop and ask.
+
+## Agent persona and output craft
+
+Two universal disciplines apply to every AI-agent invocation under this contract; they are orthogonal to the canonical workflow role and do not relax tool-permission, anti-collusion, phase-gate, or evidence boundaries:
+
+- **Agent persona** — declare a real domain-expert persona (system architect / motion designer / UX designer / deck designer / prototyper / …) selected by the medium of the output and shifted when the medium shifts. Persona is orthogonal to the canonical role: role names the workflow position and tool envelope; persona names the domain stance the agent reasons from. Persona never overrides tool permissions or anti-collusion. Full contract: [`docs/agent-persona-discipline.md`](./docs/agent-persona-discipline.md).
+- **Output craft** — every element of every output (code, prose, manifest, summary, UI) earns its place; output adapts to its medium (default AI styling — generic web tropes, dummy data, decorative emoji-as-icons, ornament SVG, layout-balancing sections — is rejected); summaries are caveats + next steps, not recap. Full contract: [`docs/output-craft-discipline.md`](./docs/output-craft-discipline.md).

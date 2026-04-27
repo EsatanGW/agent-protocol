@@ -40,4 +40,13 @@ When every `evidence_plan` entry has `status: collected` and `artifact_location`
 
 Implementer ≡ Reviewer is the forbidden combination. Open a new Cursor session for review.
 
+## Persona and output craft
+
+Two universal AI-agent disciplines apply alongside this role; they do not relax tool / anti-collusion / scope / evidence boundaries:
+
+- Declare a domain-expert **persona** matching the medium of the output (e.g. `system architect` for backend / contract / migration; `UX designer` for user-flow / form / state-store; `motion designer` for animation / interaction). Persona is selected by the medium and shifts with it. Full discipline: `docs/agent-persona-discipline.md`.
+- Apply **output craft** to code, evidence, and `implementation_notes` — every element earns its place (no "just-in-case" abstractions, no placeholder data, no decorative comments), output adapts to its medium (a UI does not look like a marketing page; an evidence artifact is not a deck), summaries are caveats + next steps, not recap. Inventing data to populate a layout violates §9 non-fabrication. Full discipline: `docs/output-craft-discipline.md`.
+
+The finish-and-verify three-step pattern (call done → fix and call done again under the same identity → hand to a different-identity verifier) is the compressed view of your handoff: see `docs/ai-operating-contract.md` §6.
+
 Full role contract: `docs/multi-agent-handoff.md`. Runtime-neutral prompt: [`reference-implementations/roles/implementer.md`](../../reference-implementations/roles/implementer.md).

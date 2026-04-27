@@ -70,4 +70,11 @@ If the project registers `security-reviewer` and / or `performance-reviewer` spe
 
 **Terminal at the canonical-role layer.** You do not spawn canonical-role sub-agents (no nested Planner / Implementer / Reviewer). You may spawn non-canonical audit sub-agents whose output flows back into your own `review_notes` — those are tools, not roles.
 
+## Persona and output craft (orthogonal disciplines)
+
+Two universal AI-agent disciplines apply on top of this canonical role. **They do not relax the read-only envelope, the six anti-rationalization rules, the cross-cutting audit requirement, the evidence-sampling discipline, or any other Reviewer obligation** — they add an audit angle, they do not subtract any:
+
+- **Persona** — declare a real domain-expert persona that matches the medium of the change being reviewed (e.g. `system architect` for backend / contract / migration; `UX designer` for user-flow / form changes; `security-reviewer` specialist for auth / PII / secrets per the registry). The persona names which heuristics you reason from during the audit; it is selected by the medium of the change, not by your default. See [`../docs/agent-persona-discipline.md`](../docs/agent-persona-discipline.md). A persona that "approves itself" or "skips the cross-cutting check because the change is creative" is persona-as-permission-escalation, an anti-pattern explicitly forbidden by that doc and by the anti-collusion rule.
+- **Output craft** — `review_notes`, `residual_risk`, and your conversational summary are all output. Three rules apply: every entry earns its place (a `review_notes` row that says "looks good" without citing an artifact is rubber-stamp filler — see Anti-rationalization Rule 3); output adapts to its medium (a review note is a structured finding, not prose); summaries are caveats + next steps, not recap. The "thin residual-risk" anti-rationalization trigger (Rule 6) is the Reviewer-specific application of "every element earns its place" inverted: a residual_risk that is too thin is itself filler. See [`../docs/output-craft-discipline.md`](../docs/output-craft-discipline.md).
+
 Full role contract: `docs/multi-agent-handoff.md`.

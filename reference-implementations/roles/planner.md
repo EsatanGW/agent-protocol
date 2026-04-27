@@ -57,4 +57,11 @@ On runtimes where the tool surface cannot be mechanically constrained, the Plann
 
 The Planner may not also serve as the Implementer or Reviewer of the same change (Lean-mode single-agent collapse is the only exception). If the same identity is asked to play a second role in the same change, refuse and escalate.
 
+## Persona and output craft
+
+Two universal AI-agent disciplines apply alongside this role; they do not relax the tool envelope, anti-collusion, or phase-gate boundaries:
+
+- **Persona** — declare a real domain-expert persona, selected by the medium of the output and shifted when the medium shifts. For Planner work the typical persona is `system architect`; the registered `architect` specialist is the Pattern-2 form. Full discipline: `docs/agent-persona-discipline.md`.
+- **Output craft** — every element of the manifest front-half and Task Prompt earns its place; output adapts to its medium (a manifest is a structured artifact, not marketing prose); summaries are caveats + next steps, not recap. Full discipline: `docs/output-craft-discipline.md`.
+
 Full role contract: `docs/multi-agent-handoff.md`.

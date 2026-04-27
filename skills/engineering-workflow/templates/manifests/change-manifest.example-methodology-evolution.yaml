@@ -1,0 +1,117 @@
+# yaml-language-server: $schema=../schemas/change-manifest.schema.yaml
+#
+# Example 7 — Methodology self-evolution.
+#
+# Scenario: the methodology author (SoT owner) extends `AGENTS.md §Core operating
+# contract` from 8 rules to 10. Full prose narrative is in `CHANGELOG.md` Unreleased.
+#
+# Why this manifest exists despite the change being doc-only:
+#   - Worked-example value: SoT-author L1+ self-evolutions face a structural problem —
+#     no distinct Reviewer identity exists that is not bound by the contract being
+#     changed. This manifest's `review_notes` document that gap honestly rather than
+#     fabricate `pass` entries (which would violate `multi-agent-handoff.md`
+#     §Anti-rationalization Rule 3). That deviation pattern is the teaching content.
+#   - Schema-validated machine-readable record alongside the human-readable CHANGELOG.
+#
+# Deliberately omitted compared to a typical Full-mode manifest:
+#   `cross_cutting` (all dimensions are "none" or "low" for doc-only change);
+#   `implementation_notes` (story is in CHANGELOG); `residual_risks` (forward-looking
+#   notes are in CHANGELOG). `evidence_plan` and `sot_map` are kept (schema-required)
+#   but minimal — the rich evidence is structural, traceable via git history.
+
+change_id: "2026-04-27-agents-md-rule-9-10-promotion"
+title: "Promote Agent persona + Output craft from Tier-3 disciplines to AGENTS.md §9 / §10"
+phase: signoff
+status: accepted
+last_updated: "2026-04-27T16:00:00Z"
+
+authors:
+  - { name: "abel",            role: human, identifier: "abel0615@gmail.com" }
+  - { name: "claude-opus-4-7", role: ai,    identifier: "claude-opus-4-7[1m]" }
+
+surfaces_touched:
+  - { surface: system_interface, role: primary,    notes: "AGENTS.md §Core operating contract is the contract AI runtimes consume; expanding 8→10 rules is a system-interface change at the methodology layer." }
+  - { surface: operational,      role: primary,    notes: "Two new Tier-2 SoT docs + worked example + sub-section additions in ai-operating-contract.md / glossary.md + index updates in docs/README.md + CHANGELOG entry." }
+  - { surface: information,      role: incidental, notes: "No schema, enum, config, validation, or feature-flag change." }
+  - { surface: user,             role: incidental, notes: "No end-user surface; the AI agent reading the contract is captured under system_interface." }
+
+sot_map:
+  - info_name: "AGENTS.md §Core operating contract (10 normative rules)"
+    pattern: 4                              # Contract-Defined
+    source: "AGENTS.md"
+    consumers:
+      - { name: "17 thin-bridge files across 5 runtimes (Claude Code agents / Cursor / Gemini / Windsurf / Codex via reference-implementations/roles)", kind: code, sync_lag: synchronous }
+      - { name: "docs/README.md, AGENTS.md §File role map, CHANGELOG.md", kind: documentation, sync_lag: synchronous }
+    sync_mechanism: "All consumers updated in this same change; bridges carry pointer-only references per `AGENTS.md §File role map` ('bridges may not introduce new normative rules')."
+    desync_risk: low
+
+breaking_change:
+  level: L1                                 # Additive operating-contract rules
+  affected_consumers:
+    - { category: first_party_client, identifier: "AI agents previously bound by §1–§8", notes: "§1–§8 unchanged; §9 / §10 are additive expectations the methodology now formalizes." }
+    - { category: internal_sync,      identifier: "5 runtime bridges + index files", notes: "Updated synchronously in this same change." }
+  migration_path: none
+
+rollback:
+  overall_mode: 1                           # Reversible
+  per_surface_modes:
+    - { surface: system_interface, mode: 1, rationale: "Revert AGENTS.md §9 / §10 + the '10 core rules' string; rules 1–8 untouched." }
+    - { surface: operational,      mode: 1, rationale: "Delete two new docs + worked example + this manifest; revert sub-section additions; revert index/CHANGELOG diffs. All additive, no state side effects." }
+
+evidence_plan:
+  - type: contract_test
+    surface: system_interface
+    status: collected
+    artifact_location: "git diff against AGENTS.md (lines containing '### 9. Agent persona discipline' and '### 10. Output craft discipline')"
+    summary: "§9 and §10 present in AGENTS.md §Core operating contract; '8 core rules' single-point string updated to '10 core rules' in §File role map."
+    collected_at: "2026-04-27T15:30:00Z"
+  - type: reconciliation_report
+    surface: system_interface
+    status: collected
+    artifact_location: "git diff across 17 bridge files (agents/*.md, .cursor/rules/*.mdc, reference-implementations/roles/*.md, GEMINI.md, .windsurfrules)"
+    summary: "All bridges carry pointer-only references to docs/agent-persona-discipline.md + docs/output-craft-discipline.md. Verified by grep; no bridge restates normative content."
+    collected_at: "2026-04-27T15:45:00Z"
+
+# The teaching content of this manifest. The first entry is the worked-example value;
+# the others record what was actually verified mechanically. No fabricated `pass`
+# entries — the structural review gap is named, not papered over.
+review_notes:
+  - topic: "Canonical Phase 5 review applicability (structural gap)"
+    finding: needs_human_decision
+    detail: |
+      Review is *structurally not applicable* to this change. The SoT author is the
+      Implementer; no distinct Reviewer identity exists that is not bound by the
+      operating contract being modified. Per `docs/ai-operating-contract.md` §Rejected
+      patterns ('Self-supervising loops without external Reviewer'), Implementer ≡
+      Reviewer is forbidden — but that prohibition assumes a distinct Reviewer is
+      *available*. Methodology self-evolution is a context the canonical anti-collusion
+      rule was not designed for. Proceeding with abbreviated ceremony and documenting
+      the gap (rather than fabricating review entries) was authorized by the SoT
+      author per the approvals entry below.
+  - topic: "Cross-reference resolution + bridge sync"
+    finding: pass
+    detail: "Verified mechanically — every relative-path link in the new docs resolves; all 17 bridge files updated; no bridge restates normative content."
+  - topic: "Rule-numbering preservation"
+    finding: pass
+    detail: "Rules 1–8 unchanged. New rules appended at the end (§9, §10), not inserted mid-list. Existing consumers citing `AGENTS.md §N` for `N ∈ {1..8}` remain valid."
+  - topic: "Schema validation"
+    finding: pass
+    detail: "This manifest validates against `schemas/change-manifest.schema.yaml` via jsonschema."
+
+approvals:
+  - approver: "abel0615@gmail.com"
+    role: human
+    timestamp: "2026-04-27T16:00:00Z"
+    scope: |
+      Methodology self-evolution authorized: (1) Tier-3 → AGENTS.md §9 / §10 promotion (L1+);
+      (2) Manifest-only abbreviated ceremony with the structural review gap documented honestly
+      in review_notes (Phase 0–7 per-phase records and Phase 5 external review skipped);
+      (3) Future SoT-author L1+ self-evolutions may cite this manifest's deviation pattern as
+      precedent, but must obtain explicit user authorization — never silently.
+
+handoff_narrative: |
+  Audit record paired with `CHANGELOG.md` Unreleased. CHANGELOG carries the human-readable
+  narrative; this manifest carries the schema-validated structured record. Future agents
+  picking up methodology work should read AGENTS.md (now 10 rules) before SKILL.md per the
+  existing reading order; this manifest does not need to be re-read unless investigating
+  the §9 / §10 promotion history specifically.

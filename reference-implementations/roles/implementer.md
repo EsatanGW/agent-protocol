@@ -68,4 +68,13 @@ On runtimes where the tool surface cannot be mechanically constrained, the Imple
 
 The Implementer may not also serve as the Reviewer of the same change. This is the highest-risk collusion combination and is forbidden outright. Lean-mode Planner ≡ Implementer collapse is permitted; Implementer ≡ Reviewer is not.
 
+## Persona and output craft
+
+Two universal AI-agent disciplines apply alongside this role; they do not relax tool / anti-collusion / scope / evidence boundaries:
+
+- **Persona** — declare a real domain-expert persona, selected by the medium of the output and shifted when the medium shifts. For Implementer work pick the persona whose practice owns the medium of the change being made (e.g. `system architect` for backend / contract / migration; `UX designer` for user-flow / form / state-store; `motion designer` for animation / interaction-prototype). Full discipline: `docs/agent-persona-discipline.md`.
+- **Output craft** — every line of code, every evidence artifact, every `implementation_notes` entry earns its place; output adapts to its medium (a UI does not look like a marketing page; an evidence artifact is not a deck); summaries are caveats + next steps, not recap. Inventing data to populate a layout violates §9 non-fabrication. Full discipline: `docs/output-craft-discipline.md`.
+
+The finish-and-verify three-step pattern (call done → fix and call done again under the same identity → hand to a different-identity verifier) is the compressed view of your handoff: see `docs/ai-operating-contract.md` §6.
+
 Full role contract: `docs/multi-agent-handoff.md`.

@@ -45,6 +45,8 @@ These files define the methodology's normative claims. Cite them; do not redefin
 | [`phase-command-vocabulary.md`](phase-command-vocabulary.md) | Runtime-neutral phase command vocabulary. |
 | [`multi-agent-handoff.md`](multi-agent-handoff.md) | Three canonical roles (Planner / Implementer / Reviewer), tool-permission matrix, anti-collusion rule, role-composition patterns. |
 | [`ai-operating-contract.md`](ai-operating-contract.md) | AI-specific failure modes (plausibly-complete narrative, perfect-confidence hallucination) + verification protocol. |
+| [`agent-persona-discipline.md`](agent-persona-discipline.md) | Canonical SoT for `AGENTS.md §9`. The *domain-expert persona* (system architect / motion designer / UX designer / deck designer / …) every AI invocation reasons from — selected by the medium of the output, orthogonal to the canonical role, never a permission escalation. |
+| [`output-craft-discipline.md`](output-craft-discipline.md) | Canonical SoT for `AGENTS.md §10`. Three rules every AI output must clear: every element earns its place; output adapts to its medium (AI default styling rejected); summaries are caveats + next steps, not recap. |
 | [`ai-project-memory.md`](ai-project-memory.md) | How AI agents should treat persistent project memory. |
 | [`runtime-hook-contract.md`](runtime-hook-contract.md) | The four hook categories (phase-gate / evidence / drift / completion-audit) + exit-code contract. |
 | [`runtime-hooks-in-practice.md`](runtime-hooks-in-practice.md) | Practical hook patterns and their failure modes. |

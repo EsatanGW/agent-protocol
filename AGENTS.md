@@ -116,6 +116,29 @@ Trivial changes (single-file typo, pure comment) are exempt. When uncertain, pro
 
 Spec: `docs/change-manifest-spec.md` · Examples: `skills/engineering-workflow/templates/manifests/change-manifest.example-*.yaml`
 
+### 9. Agent persona discipline
+
+Every AI-agent invocation under this contract reasons from a **real domain-expert persona** (system architect / motion designer / UX designer / deck designer / prototyper / …), not from the generic "I am an AI assistant" default that produces detectably AI-shaped output.
+
+- **Selected by the medium of the output**, not by the format of the input. A request phrased as "write HTML for an animation" is animation work — persona is `motion designer`, not `web designer`. The medium is what the user *experiences* through the rendering substrate.
+- **Shifts when the medium shifts**, even mid-session. If the next task is a slide deck and the prior task was a system diagram, drop the architect stance and adopt the deck designer stance. Carrying over the prior persona is a category error.
+- **Orthogonal to the canonical workflow role.** The role names the workflow position and tool envelope (Planner / Implementer / Reviewer per §7); the persona names the domain stance the agent reasons from. The two layers stack and never substitute. Specialist sub-agent roles (`reference-implementations/roles/specialist-roles-registry.md`) are a third axis.
+- **Persona never overrides tool permissions, anti-collusion, phase-gate discipline, evidence requirements, or non-fabrication rules.** A persona that "wins" against any of these has been used as a smuggling device, not a stance. Persona-as-permission-escalation ("as a senior architect I can approve this myself") is explicitly forbidden.
+
+Full contract: `docs/agent-persona-discipline.md` · Worked example: `docs/examples/agent-persona-example.md`
+
+### 10. Output craft discipline
+
+Every output the agent produces — code, prose, manifests, summaries, UI, deliverables — must clear three rules:
+
+- **Every element earns its place.** For each element added (a section, a paragraph, a control, a comment, an emoji, a graphic), the agent must answer "what would be lost if this were removed?" If the answer is "nothing, but it fills the space", the element is filler and must be removed. Default to omission, not inclusion. Treat empty space as content.
+- **Output adapts to its medium; the AI default is rejected.** The default styling an AI produces is a fingerprint, not a feature. A motion graphic does not look like a marketing page. A slide deck does not look like a Notion document. A system diagram does not look like a UI prototype. The persona declared per §9 picks the styling vocabulary; conventions that arrive by default (three-column hero, six-card grid, gradient CTA, emoji-as-icons, ornament SVG, layout-balancing sections, dummy data) are filler everywhere they are not part of the medium. Inventing data to populate a layout is also a §1 / §9-of-`ai-operating-contract.md` non-fabrication violation.
+- **Summaries are caveats and next steps, not recap.** The diff and the manifest are the record; the agent's contribution at the summary slot is what those records do not say — caveats (residual risk, gotchas, what was assumed), next steps (what is still pending, what to confirm). Do not restate completed actions; do not open with preamble; do not close with flourish.
+
+The rules are stated as principles, not as exhaustive trope lists, so they remain medium-agnostic as new AI defaults emerge.
+
+Full contract: `docs/output-craft-discipline.md`
+
 ---
 
 ## Recommended reading order
@@ -165,6 +188,7 @@ Spec: `docs/change-manifest-spec.md` · Examples: `skills/engineering-workflow/t
 - `skills/engineering-workflow/templates/manifests/change-manifest.example-game-gacha.yaml` — live-ops game example
 - `skills/engineering-workflow/templates/manifests/change-manifest.example-multi-agent-handoff.yaml` — Planner → Implementer → Reviewer progression of one manifest
 - `skills/engineering-workflow/templates/manifests/change-manifest.example-security-sensitive.yaml` — JWT signing-key rotation: SoT pattern 8 (dual-representation), L1 breaking change, mode-3 compensation-only rollback, security / compliance cross-cutting escalations
+- `skills/engineering-workflow/templates/manifests/change-manifest.example-methodology-evolution.yaml` — methodology self-evolution: SoT author extends `AGENTS.md §Core operating contract` (8 → 10 rules); L1+ forced-Full with Manifest-only abbreviated ceremony; honest documentation of the structural review gap (Implementer ≡ Reviewer because SoT author == Implementer) instead of fabricated pass entries
 
 **Worked examples across domains:**
 
@@ -225,9 +249,9 @@ The table above lists **installation entry points** per runtime. This map classi
 
 | File / directory | Role | Normative weight |
 |---|---|---|
-| `AGENTS.md` (this file) | SoT — operating contract (the 8 core rules above) | Canonical; all runtimes inherit from here |
+| `AGENTS.md` (this file) | SoT — operating contract (the 10 core rules above) | Canonical; all runtimes inherit from here |
 | `docs/multi-agent-handoff.md` | SoT — role contract (Planner / Implementer / Reviewer definitions, field-ownership matrix, tool-permission matrix, anti-collusion, handoff minima) | Canonical for multi-agent discipline; `agents/`, `.cursor/rules/`, `reference-implementations/roles/` all point back here |
-| `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `glossary.md`, `phase-command-vocabulary.md`, …) | Canonical per topic; referenced from the contracts above |
+| `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `agent-persona-discipline.md`, `output-craft-discipline.md`, `glossary.md`, `phase-command-vocabulary.md`, …) | Canonical per topic; referenced from the contracts above |
 | `skills/engineering-workflow/SKILL.md` + `skills/**` | SoT — execution layer (modes, phases, templates, references) | Canonical for workflow execution |
 | `schemas/**` + `skills/engineering-workflow/templates/manifests/**` | SoT — machine-readable Change Manifest contract + worked examples | Canonical structural output |
 | `CLAUDE.md` | Thin-bridge — Claude Code entry; points at `AGENTS.md` + `skills/` | Onboarding only, no new normative content |
