@@ -96,6 +96,7 @@ Anti-patterns:
 | Sub-agent drifts halfway through; canonical role finds out only on return | No canonical-role monitoring of in-flight state | D2 + D3 |
 | Canonical role narrates delegation, ends turn; looks like silent session break | Post-tool-call silence gap | D3 (symmetric with `ai-operating-contract.md §11`) |
 | Invocation-handle reused as "the still-running sub-agent" for checkpoint poll | Misreads one-shot invocation lifecycle | D2 reads the artifact path; see `role-composition-patterns.md §Invocation lifecycle` and that doc's anti-pattern rows |
+| Sub-agent halts correctly on a runtime / sandbox limit (Bash blocked, CLI unavailable) and re-spawn would face the same limit | Runtime gap that is not specific to the sub-agent | Pattern 8 (canonical-role takeover under sandbox fallback) — `reference-implementations/roles/role-composition-patterns.md §Pattern 8`. Halt-recovery sibling to D1/D2/D3; orthogonal — D1/D2/D3 govern *running* sub-agents, Pattern 8 governs the halt-recovery edge case. |
 
 ---
 
@@ -214,6 +215,7 @@ The canonical role cannot run concurrent work during the sub-agent invocation �
 | `cluster-parallelism.md §4 Discovery-loop handling` / `§5 Planner assembles and spawns Reviewer` | Pattern C halt-all and completion-detection are D3 instances (Planner polls status via the working-space path, reacts to `blocked_discovery` or `completed`). |
 | `docs/post-delivery-observation.md` | Phase 8 observer is a D1/D2/D3 instance at the post-delivery horizon. |
 | `skills/engineering-workflow/phases/subagent-strategy.md` | Phase-file bridge pointing here from sub-agent-relevant phases. |
+| `reference-implementations/roles/role-composition-patterns.md §Pattern 8` | **Halt-recovery sibling.** D1/D2/D3 govern *running* sub-agents; Pattern 8 governs the halt-recovery edge case (sub-agent halts correctly on runtime / sandbox limit; canonical role takes over Implementer slot; Reviewer slot stays sub-agent). Orthogonal but adjacent — a long-running sub-agent that hits a runtime limit may invoke Pattern 8 as the recovery path. Pattern 8 is a documented exception to the single-agent anti-collusion rule (`docs/multi-agent-handoff.md` §Single-agent anti-collusion rule §Rule exceptions). |
 
 ---
 

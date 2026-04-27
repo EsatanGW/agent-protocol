@@ -8,6 +8,55 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.28.0] - 2026-04-27
+
+Cluster F-4 of the 1.8.0-SDD-import follow-up audit. Re-assessment of the 1.18.0 long-running-delegation D1/D2/D3 disciplines after 1.26.0 (Rule 2.12 manifest size) and 1.27.0 (CCKN sync) shipped. Two findings:
+
+1. **D1 / D2 / D3 stay as-is.** The three disciplines address orthogonal failure axes (single-invocation duration / mid-flight visibility / canonical-role idleness). 1.26.0 reduced the *upstream* cause of Planner context-limit hangs (oversized manifests now blocked) but did not replace any of D1 / D2 / D3 — sub-agent invocations can still be substantively long-running for legitimate reasons. Verdict: keep all three; documented in CHANGELOG; no normative content edit.
+
+2. **Pattern 8 (canonical-role takeover under sandbox fallback) added.** Real-workload evidence from `flutter-lottery-app/docs/migration/knowledge/cckn-006-sandbox-fallback-pattern.md` shows 11+ stages where an Implementer sub-agent halts correctly on a runtime / sandbox limit (Bash blocked, framework CLI unavailable, network restricted) and re-spawn would face the same limit. The current methodology has no canonical mechanism for the canonical role to take over; the project invented one and documented it. Pattern 8 codifies the takeover protocol with hard invariants — only the Implementer slot is relaxed (Reviewer remains a separate sub-agent identity); non-fabrication is not relaxed; the takeover must be recorded with attestation; the Reviewer independently re-runs every verification command. Adopted as a documented exception to the single-agent anti-collusion rule in `docs/multi-agent-handoff.md`.
+
+User-facing impact: projects encountering the sandbox-halt failure mode now have a canonical, audit-trail-preserving recovery path instead of either (a) inventing one ad-hoc, (b) stalling Phase 4 indefinitely, or (c) silently violating anti-collusion. The pattern is preserved as **exception, not routine** — a project that triggers Pattern 8 ≥ 5 times across distinct stages should treat the underlying runtime gap as an escalation per `docs/ai-operating-contract.md §5`, not as a permanent operating mode.
+
+### Added
+
+- **`reference-implementations/roles/role-composition-patterns.md` §Pattern 8 — Canonical-role takeover under sandbox fallback** (**L1**, ~70 lines) — third composition mechanism alongside non-canonical sub-agent composition (Patterns 1–6) and canonical-role multi-delegation (Pattern 7). Defines: (a) the four preconditions all of which must hold (sub-agent halted correctly + re-spawn would face same limit + canonical role's runtime has the missing capability + scope fits canonical role's remaining context); (b) the slot-by-slot invariant table (Implementer relaxed; Reviewer mandatory and never relaxed); (c) the non-fabrication discipline preserved unchanged; (d) the required `takeover_attestation` record with five sub-fields; (e) the Reviewer sub-agent's independent re-run obligation under HIGH-severity finding for any detected fabrication; (f) five Pattern-8-specific anti-patterns; (g) the "exception, not routine" discipline.
+
+### Changed
+
+- **`docs/multi-agent-handoff.md` §Single-agent anti-collusion rule §Rule exceptions** — fourth bullet added for Pattern 8 takeover. Lists the hard invariants inline (only Implementer slot relaxed; Reviewer must remain separate; non-fabrication preserved; takeover recorded with attestation; Reviewer independently re-runs verification). Cross-references `role-composition-patterns.md §Pattern 8` for full details.
+
+- **`reference-implementations/roles/role-composition-patterns.md` TL;DR + §What this document is not** — TL;DR rewritten from "two composition mechanisms" to "three composition mechanisms" (adding Pattern 8 as mechanism (c)). The "Not a merger of the two mechanisms" anti-misuse note becomes "Not a merger of the three mechanisms" with Pattern 8 explicitly named as the third. The "any, all, or none of the seven patterns" wording becomes "eight patterns."
+
+- **`skills/engineering-workflow/references/long-running-delegation.md` §Failure modes + §Relation to other rules** — Failure-modes table gains a sixth row for sub-agent runtime-limit halt with Pattern 8 as the discipline. Relation-to-other-rules table gains a Pattern 8 row characterizing it as the **halt-recovery sibling** to D1/D2/D3 (orthogonal but adjacent: D1/D2/D3 govern *running* sub-agents, Pattern 8 governs the halt-recovery edge case). The D1/D2/D3 normative content is unchanged.
+
+### Why minor, not patch
+
+Pattern 8 is a new normative composition mechanism added to canonical SoT (`docs/multi-agent-handoff.md` §Single-agent anti-collusion rule gains a fourth Rule-exception bullet; `role-composition-patterns.md` gains a new pattern in its non-normative companion). The anti-collusion rule's exception list is part of the canonical contract — a new exception is a forced-Full edit per `mode-decision-tree.md §Scenarios that force Full → Canonical methodology content edit (L1+)`. The exception is preconditioned (does not relax the rule unconditionally) and slot-bounded (does not touch the load-bearing Reviewer boundary), so the change is L1-additive in the capability-extension direction; no existing usage regresses.
+
+### Migration notes
+
+- **External consumers using the long-running-delegation D1 / D2 / D3 disciplines** — no change. The three disciplines are unchanged in scope, normative content, and exit criteria. The Pattern 8 cross-reference is informational; D1/D2/D3 readers do not need to adopt Pattern 8 unless they encounter the specific halt-recovery edge case.
+
+- **External consumers encountering the sandbox-halt failure mode** — adopt Pattern 8 per the canonical encoding: (1) verify all four preconditions; (2) record the takeover in `implementation_notes[*]` with a `takeover_attestation` sub-field carrying timestamp / reason / commits / non-fabrication attestation / reviewer_audit_status; (3) ensure the Reviewer sub-agent that audits the post-takeover state is a different identity from the canonical role that performed takeover; (4) do not relax the Reviewer slot under any circumstance.
+
+- **External consumers with a project-local takeover convention** (e.g. `cckn-006-sandbox-fallback-pattern.md` in `flutter-lottery-app/docs/migration/knowledge/`) — re-orient to the Pattern 8 record shape. Project-local extension fields like `main_control_phase4_completion` map to the canonical `implementation_notes[*]` with `takeover_attestation`. The CCKN can be marked as `mirrors_canonical: role-composition-patterns.md §Pattern 8` per the 1.27.0 convention; the Reviewer-audit-mandatory invariant should be made explicit in the project's Reviewer brief.
+
+### Tool-agnostic discipline
+
+Pattern 8 names runtime / sandbox limits as a *category* (Bash blocked, framework CLI unavailable, network restricted), not specific runtimes. The hard invariants (only Implementer slot; Reviewer mandatory; non-fabrication preserved; attestation recorded; Reviewer re-runs verification) are runtime-neutral and apply on Claude Code, Cursor, Gemini CLI, Windsurf, Codex, or any future runtime. No vendor / model / framework names introduced. No schema changes (Pattern 8 records via existing `implementation_notes[*]` field with a new sub-field convention; no new top-level field). No glossary terms added.
+
+### Out of scope (deferred — closes Cluster F)
+
+This release closes the Cluster F follow-up audit. All four sub-items have been addressed:
+
+- **F-1 (manifest-size mechanical enforcement):** SHIPPED 1.26.0 (Rule 2.12).
+- **F-2 (schema-level per-section caps):** confirmed deferred — Rule 2.12 catches the symptom regardless of which section bloats; the user's primary bloat sources are *custom extensions outside the canonical schema*, which per-section schema caps would not catch anyway.
+- **F-3 (CCKN ↔ SoT bidirectional sync):** SHIPPED 1.27.0 (mirrors_canonical convention + reference hook).
+- **F-4 (long-running-delegation upstream rethink):** this release. D1/D2/D3 remain as-is; Pattern 8 added to address the halt-recovery edge case the original D1/D2/D3 framing did not cover.
+
+Future audits beyond Cluster F should be opened only against new evidence — the user-reported symptoms (耗時 10× / log爆量 / errors未減 / doc-vs-impl drift) have been addressed at structural level; remaining work is consumer-side adoption (template trim, manifest split, mirror-CCKN refresh) per `working/2026-04-27-flutter-lottery-app-scan.md`.
+
 ## [1.27.0] - 2026-04-27
 
 Cluster F-3 of the 1.8.0-SDD-import follow-up audit. **CCKN ↔ canonical-SoT bidirectional sync mechanism** — codifies the `mirrors_canonical` frontmatter convention that lets a CCKN declare the canonical methodology SoT it distills, and ships a reference hook that surfaces drift between the CCKN's `updated` date and the SoT's git mtime. Forced-Full per `CLAUDE.md §5` (new normative convention added to a canonical SoT file).

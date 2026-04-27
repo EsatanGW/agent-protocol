@@ -1,6 +1,69 @@
 {
   "releases": [
     {
+      "version": "1.28.0",
+      "date": "2026-04-27",
+      "sections": {
+        "added": [
+          {
+            "title": "`reference-implementations/roles/role-composition-patterns.md` §Pattern 8 — Canonical-role takeover under sandbox fallback",
+            "body": "(**L1**, ~70 lines) — third composition mechanism alongside non-canonical sub-agent composition (Patterns 1–6) and canonical-role multi-delegation (Pattern 7). Defines: (a) the four preconditions all of which must hold (sub-agent halted correctly + re-spawn would face same limit + canonical role's runtime has the missing capability + scope fits canonical role's remaining context); (b) the slot-by-slot invariant table (Implementer relaxed; Reviewer mandatory and never relaxed); (c) the non-fabrication discipline preserved unchanged; (d) the required `takeover_attestation` record with five sub-fields; (e) the Reviewer sub-agent's independent re-run obligation under HIGH-severity finding for any detected fabrication; (f) five Pattern-8-specific anti-patterns; (g) the \"exception, not routine\" discipline."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`docs/multi-agent-handoff.md` §Single-agent anti-collusion rule §Rule exceptions",
+            "body": "fourth bullet added for Pattern 8 takeover. Lists the hard invariants inline (only Implementer slot relaxed; Reviewer must remain separate; non-fabrication preserved; takeover recorded with attestation; Reviewer independently re-runs verification). Cross-references `role-composition-patterns.md §Pattern 8` for full details."
+          },
+          {
+            "title": "`reference-implementations/roles/role-composition-patterns.md` TL;DR + §What this document is not",
+            "body": "TL;DR rewritten from \"two composition mechanisms\" to \"three composition mechanisms\" (adding Pattern 8 as mechanism (c)). The \"Not a merger of the two mechanisms\" anti-misuse note becomes \"Not a merger of the three mechanisms\" with Pattern 8 explicitly named as the third. The \"any, all, or none of the seven patterns\" wording becomes \"eight patterns.\""
+          },
+          {
+            "title": "`skills/engineering-workflow/references/long-running-delegation.md` §Failure modes + §Relation to other rules",
+            "body": "Failure-modes table gains a sixth row for sub-agent runtime-limit halt with Pattern 8 as the discipline. Relation-to-other-rules table gains a Pattern 8 row characterizing it as the **halt-recovery sibling** to D1/D2/D3 (orthogonal but adjacent: D1/D2/D3 govern *running* sub-agents, Pattern 8 governs the halt-recovery edge case). The D1/D2/D3 normative content is unchanged."
+          }
+        ],
+        "notes": [
+          {
+            "title": "External consumers using the long-running-delegation D1 / D2 / D3 disciplines",
+            "body": "no change. The three disciplines are unchanged in scope, normative content, and exit criteria. The Pattern 8 cross-reference is informational; D1/D2/D3 readers do not need to adopt Pattern 8 unless they encounter the specific halt-recovery edge case.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External consumers encountering the sandbox-halt failure mode",
+            "body": "adopt Pattern 8 per the canonical encoding: (1) verify all four preconditions; (2) record the takeover in `implementation_notes[*]` with a `takeover_attestation` sub-field carrying timestamp / reason / commits / non-fabrication attestation / reviewer_audit_status; (3) ensure the Reviewer sub-agent that audits the post-takeover state is a different identity from the canonical role that performed takeover; (4) do not relax the Reviewer slot under any circumstance.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External consumers with a project-local takeover convention",
+            "body": "(e.g. `cckn-006-sandbox-fallback-pattern.md` in `flutter-lottery-app/docs/migration/knowledge/`) — re-orient to the Pattern 8 record shape. Project-local extension fields like `main_control_phase4_completion` map to the canonical `implementation_notes[*]` with `takeover_attestation`. The CCKN can be marked as `mirrors_canonical: role-composition-patterns.md §Pattern 8` per the 1.27.0 convention; the Reviewer-audit-mandatory invariant should be made explicit in the project's Reviewer brief.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "F-1 (manifest-size mechanical enforcement):",
+            "body": "SHIPPED 1.26.0 (Rule 2.12).",
+            "subsection": "out of scope (deferred — closes cluster f)"
+          },
+          {
+            "title": "F-2 (schema-level per-section caps):",
+            "body": "confirmed deferred — Rule 2.12 catches the symptom regardless of which section bloats; the user's primary bloat sources are *custom extensions outside the canonical schema*, which per-section schema caps would not catch anyway.",
+            "subsection": "out of scope (deferred — closes cluster f)"
+          },
+          {
+            "title": "F-3 (CCKN ↔ SoT bidirectional sync):",
+            "body": "SHIPPED 1.27.0 (mirrors_canonical convention + reference hook).",
+            "subsection": "out of scope (deferred — closes cluster f)"
+          },
+          {
+            "title": "F-4 (long-running-delegation upstream rethink):",
+            "body": "this release. D1/D2/D3 remain as-is; Pattern 8 added to address the halt-recovery edge case the original D1/D2/D3 framing did not cover. Future audits beyond Cluster F should be opened only against new evidence — the user-reported symptoms (耗時 10× / log爆量 / errors未減 / doc-vs-impl drift) have been addressed at structural level; remaining work is consumer-side adoption (template trim, manifest split, mirror-CCKN refresh) per `working/2026-04-27-flutter-lottery-app-scan.md`.",
+            "subsection": "out of scope (deferred — closes cluster f)"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.27.0",
       "date": "2026-04-27",
       "sections": {

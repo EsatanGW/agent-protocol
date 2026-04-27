@@ -1,7 +1,7 @@
 # Role Composition Patterns
 
 > **English TL;DR**
-> Canonical roles remain Planner / Implementer / Reviewer. Two composition mechanisms exist: (a) **non-canonical sub-agent composition** (Patterns 1–6) — a canonical role delegates to sub-agents that return findings; the canonical role writes manifest fields. (b) **canonical-role multi-delegation** (Pattern 7) — the Planner spawns multiple canonical Implementers in parallel (one per cluster); each Implementer writes its own cluster's manifest fields directly. Six patterns for mechanism (a): four serial (research, code-explorer, test-writer, reference-sampler) and two parallel fan-out (surface-parallel investigators in Phase 1, specialized audit fan-out in Phase 5 — see `skills/engineering-workflow/references/parallelization-patterns.md`). One pattern for mechanism (b): Pattern 7 (Phase 4 cluster-parallel canonical Implementers — see `skills/engineering-workflow/references/cluster-parallelism.md`). The anti-collusion rule binds both.
+> Canonical roles remain Planner / Implementer / Reviewer. Three composition mechanisms exist: (a) **non-canonical sub-agent composition** (Patterns 1–6) — a canonical role delegates to sub-agents that return findings; the canonical role writes manifest fields. (b) **canonical-role multi-delegation** (Pattern 7) — the Planner spawns multiple canonical Implementers in parallel (one per cluster); each Implementer writes its own cluster's manifest fields directly. (c) **canonical-role takeover under sandbox fallback** (Pattern 8, 1.28.0) — a documented exception to anti-collusion when an Implementer sub-agent halts on a runtime / sandbox limit; canonical role takes over the Implementer slot, Reviewer slot remains a separate sub-agent identity. Six patterns for mechanism (a): four serial (research, code-explorer, test-writer, reference-sampler) and two parallel fan-out (surface-parallel investigators in Phase 1, specialized audit fan-out in Phase 5 — see `skills/engineering-workflow/references/parallelization-patterns.md`). One pattern for mechanism (b): Pattern 7 (Phase 4 cluster-parallel canonical Implementers — see `skills/engineering-workflow/references/cluster-parallelism.md`). One pattern for mechanism (c): Pattern 8. The anti-collusion rule binds all three; Pattern 8 relaxes it only at the Implementer slot under preconditions, never at the Reviewer slot.
 
 This document is **non-normative**. The canonical operating contract is `docs/multi-agent-handoff.md` — three roles, explicit field ownership, anti-collusion rule. This document addresses a question that arises in practice: *what if one agent invocation cannot comfortably do everything a Planner / Implementer / Reviewer is asked to do?* The answer here is a set of composition patterns that preserve the three-role contract while letting a role decompose its internal work.
 
@@ -136,6 +136,57 @@ The `multi-agent-handoff.md §Tool-permission matrix` already allows Planner-to-
 
 Full execution discipline: `skills/engineering-workflow/references/cluster-parallelism.md`.
 
+### Pattern 8 — Canonical-role takeover under sandbox fallback
+
+Pattern 8 is the **third mechanism**, distinct from both non-canonical sub-agent composition (Patterns 1–6) and canonical-role multi-delegation (Pattern 7). It applies when an Implementer sub-agent **halts correctly on a runtime / sandbox limit** — Bash blocked, framework CLI unavailable, network restricted, or other capability the runtime cannot grant — and re-spawning would face the same limit. The canonical role (typically the Planner that originally spawned the Implementer, or the main-control session) **takes over the halted Implementer's Phase 4 work** as "operating Implementer in sandbox fallback mode."
+
+This is a documented **exception to the single-agent anti-collusion rule** (`docs/multi-agent-handoff.md` §Single-agent anti-collusion rule §Rule exceptions). Without Pattern 8 the Phase 4 work stalls indefinitely; with it the canonical role can complete the Implementer's deliverable while preserving the audit-trail properties anti-collusion exists to guarantee.
+
+**Preconditions (all must hold).** Pattern 8 is not a convenience escape — every condition is load-bearing:
+
+1. **Implementer sub-agent halted correctly.** No fabricated evidence (no "all tests passed" without a real test run); transparent stdout reporting that the runtime limit was hit; no silent termination.
+2. **Re-spawn would face the same limit.** The limit is runtime-level (sandbox capability gap), not agent-specific. Re-spawning the same Implementer prompt against the same sandbox would loop without progress.
+3. **Canonical role's runtime has the missing capability.** If the canonical role's session also lacks the capability, takeover does not unblock — escalate per `docs/ai-operating-contract.md` §5 instead.
+4. **Stage scope fits the canonical role's remaining context budget.** Takeover that exhausts the canonical role's context creates a second halt at a worse boundary; if context budget is tight, split via `part_of` or escalate.
+
+**Hard invariants during takeover.**
+
+| Slot | Normal mode | Pattern 8 takeover | Why |
+|---|---|---|---|
+| Planner | sub-agent | sub-agent (or canonical role; identical to normal) | Read-only + plan output; no shell dependency |
+| Implementer | sub-agent | **canonical role** (taking over) | The slot whose runtime gap motivated takeover |
+| Reviewer | sub-agent | **sub-agent (mandatory; never relaxed)** | Implementer ≢ Reviewer is the single most consequential anti-collusion boundary; relaxing it under takeover would collapse audit |
+
+**Non-fabrication is not relaxed.** The canonical role taking over is bound by the same `docs/ai-operating-contract.md` §9 non-fabrication list and §3 evidence quality rules as the original Implementer. Every verification command runs for real; every evidence artifact's `artifact_location` points to real stdout / file. If the canonical role's runtime *also* hits a limit during takeover, the takeover halts with the same transparent stdout reporting, escalating to user judgment per §5.
+
+**Required record.** The takeover is recorded in `implementation_notes[*]` with the new sub-field `takeover_attestation` (or, for projects that prefer it, in a project-local extension field; the canonical encoding is via `implementation_notes`). Required content:
+
+- `timestamp` — when takeover began (ISO 8601).
+- `reason` — short prose naming the runtime limit that triggered it (e.g. `"Bash tool unavailable in sub-agent runtime"`).
+- `commits` — list of commit SHAs the takeover produced.
+- `non_fabrication_attestation` — boolean confirming the canonical role ran every verification command for real, plus an enumeration of the commands run.
+- `reviewer_audit_status` — set to `pending` at takeover time; flipped to `passed` / `failed` once the Reviewer sub-agent has independently re-run all verification commands and confirmed the takeover output matches.
+
+**Reviewer sub-agent's role under Pattern 8.** The Reviewer is **mandatory** and **must be a different identity from the canonical role that performed takeover** (anti-collusion preserved at the Reviewer boundary). The Reviewer independently re-runs every Implementer verification command — not "trusts the takeover_attestation," not "samples a few commands," but the full verification surface. A Reviewer who finds any fabrication during takeover treats it as **HIGH-severity finding** (Anti-Rationalization Rule 2's unsubstantiated `pass` case at structural level: the canonical role asserted verification without it).
+
+**Anti-patterns specific to Pattern 8.**
+
+- Takeover invoked because re-spawn is *inconvenient* rather than because the runtime limit is real (preconditions 1–2 not met).
+- Reviewer slot also taken over by the canonical role (anti-collusion broken at its load-bearing boundary).
+- `non_fabrication_attestation` set to true without a real verification-command enumeration (audit becomes ceremony).
+- Takeover used as a permanent operating mode rather than an exception (the change should escalate to a runtime that supports the missing capability, not run takeover indefinitely).
+- Reviewer sub-agent treats `takeover_attestation` as evidence and skips re-running verification (Anti-Rationalization Rule 3 — read-only review).
+
+**Relation to other rules.**
+
+- `docs/multi-agent-handoff.md §Single-agent anti-collusion rule` — Pattern 8 is the rule's documented exception; the canonical-role-as-Implementer combination is permitted only when Pattern 8 preconditions hold.
+- `docs/ai-operating-contract.md §9 Non-fabrication list` — applies unchanged to the canonical role under takeover.
+- `docs/ai-operating-contract.md §3 Evidence quality` — the higher-than-human evidence bar applies unchanged.
+- `skills/engineering-workflow/references/long-running-delegation.md` — D1 / D2 / D3 govern *running* sub-agents; Pattern 8 governs the *halt-recovery* edge case. Orthogonal: a long-running sub-agent that hits a runtime limit and halts correctly may invoke Pattern 8 as the recovery path.
+- `docs/multi-agent-handoff.md §Reviewer §Must not do` — Reviewer's read-only envelope is unchanged; the Reviewer running the post-takeover audit is a normal Reviewer invocation.
+
+**Recurrence signal — when to consider Pattern 8 a project standard vs an exception.** A project that triggers Pattern 8 once or twice has hit two specific runtime limits; Pattern 8 is an exception for that project. A project that triggers it ≥5 times across distinct stages should treat the underlying runtime gap as an *escalation per `docs/ai-operating-contract.md §5`*, not as a recurring takeover routine — the runtime is not a fit for the work being done, and recurring Pattern 8 invocations mask that mismatch.
+
 ---
 
 ## Shape of a composition
@@ -202,7 +253,7 @@ Identity is a property of the invocation, not of the handle. A new invocation se
 
 - **Not a replacement for the three-role contract.** The three canonical roles remain the only roles with field ownership.
 - **Not a license to proliferate sub-agents.** Two sub-agents in a composition is a decomposition; nine sub-agents per role is a bureaucracy. The parallel patterns (5, 6, 7) cap at 4 sub-agents / clusters per group for the same reason.
-- **Not a prescribed pattern.** Teams may use any, all, or none of the seven patterns; the document exists to show that composition is possible without losing the contract.
-- **Not a merger of the two mechanisms.** Patterns 1–6 are non-canonical sub-agent composition; Pattern 7 is canonical-role multi-delegation. Both preserve the three-role contract, but via different means — do not conflate them.
+- **Not a prescribed pattern.** Teams may use any, all, or none of the eight patterns; the document exists to show that composition is possible without losing the contract.
+- **Not a merger of the three mechanisms.** Patterns 1–6 are non-canonical sub-agent composition; Pattern 7 is canonical-role multi-delegation; Pattern 8 is canonical-role takeover under sandbox fallback (a documented anti-collusion exception). All three preserve the three-role contract, but via different means — do not conflate them.
 
 If you find yourself unable to fit the composition into the four parts listed in §Shape of a composition, you do not have a composition — you have a proliferation. Return to the three-role contract and choose a different decomposition.
