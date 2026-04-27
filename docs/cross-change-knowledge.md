@@ -102,52 +102,25 @@ When the Implementer's Discovery loop uncovers reusable knowledge (not just a sc
 
 ## When to query a CCKN
 
-CCKNs serve two asymmetric operations: **write** (when a change produces reusable knowledge — covered in §Relation to the Change Manifest §3 and §Ceremony scaling) and **query** (when a change might benefit from pre-existing reusable knowledge). This section defines the query-side timing rule. Without it, the write side produces notes no one reads — the cost CCKN exists to eliminate is paid anyway.
+CCKNs are queried **opportunistically**, not as a mandatory phase step (1.25.0 demotion from the 1.14.0 mandatory-startup-query rule). If the change's anticipated `surfaces_touched`, libraries, or external APIs overlap with topics catalogued in the CCKN directory (default: `docs/knowledge/`), the Planner reads the matching CCKNs as part of Phase 1 Investigate. If no overlap exists, no query is needed; absent directory = no-op.
 
-The rule is: **query at Phase 1 Investigate startup; write during Phase 1 — at initial Investigate per §Ceremony scaling, or at re-entry after a Phase 4 Discovery loop per §Relation to the Change Manifest §3. Phase 4 Discovery triggers re-entry; it does not itself write.**
-
-### At Phase 1 Investigate startup
-
-Before tracing the main flow — i.e. as step 0 of Phase 1 — the Planner (or the Phase-1 investigator sub-agent under Pattern A in `skills/engineering-workflow/references/parallelization-patterns.md`) greps the repo's CCKN directory (default: `docs/knowledge/` per §Location and naming) for `topics` overlap with:
-
-- The change's anticipated `surfaces_touched`.
-- Any `uncontrolled_interfaces` the change will depend on (third-party SDKs, external APIs, platform behaviors).
-- The libraries, frameworks, or domain rules the change will touch.
-
-One grep, one pass, before the investigation proper begins. If the CCKN directory does not exist (e.g. first use of this methodology in a repo), the grep is a no-op and the change proceeds as if no match was found — an absent directory is not a failure. Querying late (e.g. at Phase 4 mid-implementation) has the same failure mode as late schema discovery — the investigation has already decided against the fact the CCKN would have supplied, and the cost of Phase 1 from zero has already been paid.
+The write-side timing rule is unchanged: writes happen during Phase 1 — at initial Investigate or at re-entry after a Phase 4 Discovery loop per §Relation to the Change Manifest §3. Phase 4 itself never writes.
 
 ### What to do on a match
 
-**Fresh match** (CCKN `updated` within 12 months and every `Verified references.Last verified` row within 12 months):
+**Fresh match** (CCKN `updated` within 12 months and every cited reference within 12 months): cite inline — typically `sot_map[].notes` with `see: docs/knowledge/<slug>.md`, or `implementation_notes`. Skip re-discovering the aspect the CCKN covers. If this change extends the CCKN, add the path to `knowledge_notes_touched[]` and append to the CCKN's changelog.
 
-- Cite the CCKN inline where its content is load-bearing for the Phase 1 output — typically in `sot_map[].notes` (with the prose `see: docs/knowledge/<slug>.md` convention) or in a later phase's `implementation_notes`.
-- Skip re-discovery of the aspect the CCKN covers. The Phase 1 output records "covered by CCKN `<path>`" as the impact row for that aspect.
-- If this change also extends the CCKN (new gotcha row, new verified reference, etc.), add the note path to `knowledge_notes_touched[]` and append to the CCKN's changelog.
+**Stale match** (CCKN or any cited reference > 12 months old per §Not a free pass for stale claims): still cite, but the referencing change **inherits the refresh obligation** — re-verify the cited references, append to the CCKN's changelog with this change's `change_id`, and add the path to `knowledge_notes_touched[]`. Silent acceptance of stale claims is forbidden by §Not a free pass for stale claims.
 
-**Stale match** (the CCKN itself or any cited reference is > 12 months old per §Not a free pass for stale claims):
+**Partial match**: cite what the CCKN covers; investigate the remainder normally. If the remainder generalizes to the same topic, the Planner extends the CCKN as part of this change.
 
-- Still cite, but the referencing change inherits the refresh obligation. Refreshing the stale references is part of this change's Phase 1 work, not a deferred follow-up.
-- Log the refresh in the CCKN's changelog with this change's `change_id` and add the CCKN path to `knowledge_notes_touched[]`. This is mandatory — silent acceptance of stale claims is the anti-pattern §Not a free pass for stale claims specifically forbids.
-
-**Partial match** (the CCKN covers some but not all of the relevant facet):
-
-- Cite for what it covers; Phase 1 still investigates the uncovered portion normally.
-- If the investigation of the uncovered portion turns up additional reusable knowledge that generalizes to the same topic, the Planner extends the CCKN (new changelog row, new gotcha / reference / constraint) as part of this change and records the path in `knowledge_notes_touched[]`.
-
-### What to do on no match
-
-Continue with the full Phase 1 investigation per `skills/engineering-workflow/phases/phase1-investigate.md`. The write-side rule stated in the summary above still applies — no match does not unlock an end-of-change write path. If Phase 1 itself surfaces reusable knowledge, the Planner writes the CCKN during this Phase 1 per §Ceremony scaling. If a Phase 4 Discovery loop later uncovers reusable knowledge, the returning Planner writes during Phase 1 re-entry per §Relation to the Change Manifest §3. If neither happens, this change produces no CCKN.
-
-No match is a valid outcome, not a signal to invent a shallow CCKN pre-emptively. CCKNs are for *discovered* reusable knowledge, not for speculatively-future knowledge.
+**No match**: continue Phase 1 normally per `skills/engineering-workflow/phases/phase1-investigate.md`. No match is a valid outcome, not a signal to invent a speculative CCKN — CCKNs document *discovered* knowledge with verified references.
 
 ### Anti-patterns specific to query timing
 
 | Anti-pattern | What breaks |
 |---|---|
-| Skipping the startup query and re-discovering a fact a CCKN already documents | The cost CCKN exists to eliminate is paid anyway; CCKN infrastructure sits unused on the query side |
-| Querying mid-implementation (Phase 4) instead of at Phase 1 startup | Cost paid twice — investigation happened without the CCKN, then the CCKN is cited retroactively after decisions that should have been informed by it are already made |
 | Citing a stale CCKN without triggering the refresh obligation | Silent acceptance of unverified claims; directly contradicts §Not a free pass for stale claims |
-| Using CCKN query absence as license to skip Phase 1 investigation | CCKN covers *reusable* facts; the change's *specific* SoT map, consumer list, and impact are still Phase 1 deliverables |
 | Creating a speculative CCKN pre-emptively "in case it is useful later" | CCKNs document *discovered* knowledge with verified references; speculative notes cannot satisfy the §Verified references requirement |
 
 ---
@@ -230,11 +203,11 @@ Any subsequent iOS analytics change can now reference this CCKN in its `sot_map`
 
 ## Ceremony scaling
 
-Ceremony scaling governs the **write** side. The Phase 1 startup **query** (§When to query) is a cheap grep and runs in every non-Zero-ceremony change regardless of tier — the table below states where the query also turns off.
+Both query and write sides are opportunistic across all modes — neither is unconditionally mandatory. Ceremony scaling governs whether CCKN applies at all.
 
-- **Zero-ceremony mode** — CCKN does not apply: neither the Phase 1 startup query nor the write side runs. A task small enough to skip the methodology is too small to produce reusable knowledge worth a separate artifact.
-- **Lean mode** — the Phase 1 startup query still runs; a CCKN *write* is optional. If the discovered knowledge will obviously recur (e.g. a documented third-party quirk), create the note during the same Phase 1 that discovered it, or — if discovery only happens at a Phase 4 Discovery loop — at Phase 1 re-entry per §Relation to the Change Manifest §3. If the knowledge is purely local, an `implementation_notes` entry is sufficient and no CCKN is written.
-- **Full mode** — the Phase 1 startup query runs. The Planner *evaluates* during Phase 1 Investigate whether the change's learning content belongs in a CCKN; a positive evaluation then *writes* under one of two timings: (a) if the knowledge is already available at Phase 1 (e.g. the change itself is *about* documenting a library quirk), the CCKN is written during this Phase 1, or (b) if the knowledge only surfaces later, write is deferred to Phase 1 re-entry after a Phase 4 Discovery loop per §Relation to the Change Manifest §3 — Phase 4 itself never writes. Treating every discovery as change-specific is a known drift pattern (see the anti-metrics in `docs/adoption-anti-metrics.md`).
+- **Zero-ceremony mode** — CCKN does not apply. A task small enough to skip the methodology is too small to produce reusable knowledge worth a separate artifact.
+- **Lean mode** — query when the change's surfaces / libraries overlap CCKN topics; write is optional and only when discovered knowledge will obviously recur. Otherwise an `implementation_notes` entry is sufficient.
+- **Full mode** — query per §When to query; the Planner *evaluates* during Phase 1 Investigate whether the change's learning content belongs in a CCKN. Writes happen during Phase 1 (initial or re-entry after a Phase 4 Discovery loop per §Relation to the Change Manifest §3); Phase 4 itself never writes. Treating every discovery as change-specific is a known drift pattern (see anti-metrics in `docs/adoption-anti-metrics.md`).
 
 ---
 

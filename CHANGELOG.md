@@ -8,6 +8,42 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.25.0] - 2026-04-27
+
+Cluster C of the 1.8.0-SDD-import reverse audit (`working/2026-04-27-1-8-0-sdd-audit.md`). One normative change: **R9 CCKN query-timing demoted from mandatory to opportunistic**. The 1.14.0 mandate ("query at Phase 1 Investigate startup as step 0; one grep, one pass, before investigation proper begins") is replaced with conditional consultation ("if the change's surfaces / libraries / external APIs overlap topics catalogued in the CCKN directory, read the matching CCKNs before tracing the main flow; otherwise no-op"). Forced-Full per `CLAUDE.md §5` (changes a normative claim in a canonical SoT file).
+
+User-facing impact: changes whose surfaces or dependencies do not overlap any catalogued CCKN topic no longer pay the cost of an unconditional Phase 1 grep. Stale-CCKN refresh obligation and write-side timing rules are unchanged. The directly-affected file (`docs/cross-change-knowledge.md`) shrinks 246 → 219 lines (-11%); content reduction concentrated in the 1.14.0-introduced query-timing rules and the speculative anti-patterns table.
+
+### Changed
+
+- **`docs/cross-change-knowledge.md` §When to query a CCKN** (**L1**) — section rewritten. The mandatory "query at Phase 1 Investigate startup; one grep, one pass" rule is demoted to "query opportunistically when surfaces / libraries / APIs overlap CCKN topics; absent directory = no-op." The four match-handling sub-sections (Fresh / Stale / Partial / No match) are preserved verbatim in semantics but compressed into single-paragraph form. The five-row "Anti-patterns specific to query timing" table is reduced to two rows, dropping three anti-patterns whose force depended on the mandatory-query framing — "Skipping the startup query" (no longer an anti-pattern; query is conditional), "Querying mid-implementation instead of startup" (no longer a specific anti-pattern when query timing is event-driven), and "Using CCKN query absence as license to skip Phase 1 investigation" (already covered by Phase 1's standing investigation requirement). The two preserved anti-patterns are the load-bearing ones: stale-CCKN-no-refresh (a substantive correctness rule) and speculative-pre-emptive-CCKN (a discipline against polluting the CCKN directory). Section length reduced from ~50 lines to ~20 lines.
+
+- **`docs/cross-change-knowledge.md` §Ceremony scaling** — three-mode table updated. Lean-mode and Full-mode rows no longer assert "Phase 1 startup query runs"; both modes now describe the query as opportunistic per §When to query. Zero-ceremony mode unchanged (CCKN does not apply). The intro sentence "the Phase 1 startup query is a cheap grep and runs in every non-Zero-ceremony change regardless of tier" is replaced with "Both query and write sides are opportunistic across all modes — neither is unconditionally mandatory."
+
+- **`skills/engineering-workflow/phases/phase1-investigate.md` §Optional startup: CCKN consultation** — section renamed from "Startup: query CCKN precedent" and condensed from a four-bullet match-handling enumeration plus an anti-pattern footer paragraph into a single 4-line paragraph. The procedural body (fresh / stale / partial / no match handling) defers to `cross-change-knowledge.md` §When to query a CCKN as the canonical source. Net reduction: ~10 lines.
+
+- **`skills/engineering-workflow/SKILL.md`** — Phase 1 Quick refresher entry "Startup: query CCKN precedent" renamed to "Optional CCKN consultation at Phase 1 startup" and reworded to describe the consultation as conditional on topic overlap. Pointer text updated to match the new `phase1-investigate.md` section heading.
+
+- **`docs/glossary.md` §Cross-Change Knowledge Note (CCKN)** — second paragraph updated. "Query at Phase 1 Investigate startup" rewritten as "Query opportunistically when a change's surfaces / libraries / external APIs overlap with topics catalogued in the CCKN directory." "Querying late is the primary anti-pattern" replaced with "Citing a stale CCKN (>12 months) without triggering the refresh obligation is the primary anti-pattern" (the actual load-bearing anti-pattern after the demotion). Write-side timing rules unchanged.
+
+### Why minor, not patch
+
+This release changes a normative claim in canonical SoT content. The 1.14.0 query-timing rule was framed as mandatory ("step 0 of Phase 1"); the 1.25.0 form is opportunistic ("query when topic overlap exists"). Per `mode-decision-tree.md §Scenarios that force Full → Canonical methodology content edit (L1+)`, this is a forced-Full trigger. Real-workload evidence (`flutter-lottery-app/docs/migration/`'s 27-stage workload demonstrates 7 self-authored CCKNs queried per overlap, not per Phase 1) supports the demotion: the mandatory framing was paying ceremony cost on every Phase 1 even when the CCKN directory had no relevant topic. The demotion is L1-additive in the cost-reduction direction, and the correctness rules (stale refresh obligation, speculative-CCKN prohibition, write-side timing) are preserved.
+
+### Migration notes
+
+- **External consumers citing the mandatory query-timing form** ("step 0 of Phase 1," "Phase 1 begins with a cheap grep," "Phase 1 startup query") — re-orient to the opportunistic form. The grep itself, when done, looks the same; what changed is whether it is unconditionally performed or only when topic overlap is anticipated.
+- **External consumers relying on "Skipping the startup query" as an anti-pattern** — that anti-pattern is removed from §Anti-patterns specific to query timing. The replacement honest framing is: skipping consultation when topic overlap exists is still a re-discovery cost; skipping consultation when no overlap exists is now correct behavior.
+- **Reviewers auditing post-1.25.0 manifests** — a missing CCKN consultation in Phase 1 is no longer automatically a finding; it becomes a finding only when the change clearly touches CCKN-catalogued topics and the manifest does not cite or extend them.
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. Stale-reference threshold (>12 months) and write-side timing constants (Phase 1 only; Phase 4 Discovery triggers re-entry, never writes directly) preserved verbatim. No schema changes (`knowledge_notes_touched` optional field unchanged). No glossary terms added or renamed; the existing CCKN entry is reworded, not redefined.
+
+### Audit input
+
+This release acts on the Cluster C verdict in `working/2026-04-27-1-8-0-sdd-audit.md` (R9 Restrict — trim 1.14.0 query-timing additions to advisory; collapse Anti-patterns table 5→2 rows). Cluster B (R4 Restrict + R5 Merge in `phase-gate-discipline.md`) shipped in 1.23.0. Cluster A (`multi-agent-handoff.md` cleanup — R1 Merge, R3 Merge, R7 Delete, R10 Delete) shipped in 1.24.0. Cluster D was downgraded to Keep-as-is per Q1 resolution. Remaining: a follow-up Cluster F audit (manifest-size enforcement, CCKN ↔ SoT sync, Planner context-limit) targeting the ~60-70% of user-reported pain that lies outside 1.8.0 SDD-import scope.
+
 ## [1.24.0] - 2026-04-27
 
 Cluster A of the 1.8.0-SDD-import reverse audit (`working/2026-04-27-1-8-0-sdd-audit.md`). Four normative changes concentrated in `docs/multi-agent-handoff.md`: **R7 Reading-order guide deleted** (35 lines; meta-doc that disambiguated three pairs of rules — no longer needed for advanced users); **R10 Optional pre-filter section deleted** (41 lines; redundant for any team with hooks); **R1 Pre-handoff self-check merged** (5 questions → 3 questions; coverage / reference existence / pattern + evidence-path); **R3 Anti-rationalization rules merged** (6 rules → 4 rules; narrative confidence and substantiation gaps consolidated, read-only and back-door preserved). All semantic content preserved 1-for-1; changes are presentational compactness. Forced-Full per `CLAUDE.md §5` (multiple normative claims edited in a canonical SoT file).

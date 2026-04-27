@@ -1,6 +1,51 @@
 {
   "releases": [
     {
+      "version": "1.25.0",
+      "date": "2026-04-27",
+      "sections": {
+        "changed": [
+          {
+            "title": "`docs/cross-change-knowledge.md` §When to query a CCKN",
+            "body": "(**L1**) — section rewritten. The mandatory \"query at Phase 1 Investigate startup; one grep, one pass\" rule is demoted to \"query opportunistically when surfaces / libraries / APIs overlap CCKN topics; absent directory = no-op.\" The four match-handling sub-sections (Fresh / Stale / Partial / No match) are preserved verbatim in semantics but compressed into single-paragraph form. The five-row \"Anti-patterns specific to query timing\" table is reduced to two rows, dropping three anti-patterns whose force depended on the mandatory-query framing — \"Skipping the startup query\" (no longer an anti-pattern; query is conditional), \"Querying mid-implementation instead of startup\" (no longer a specific anti-pattern when query timing is event-driven), and \"Using CCKN query absence as license to skip Phase 1 investigation\" (already covered by Phase 1's standing investigation requirement). The two preserved anti-patterns are the load-bearing ones: stale-CCKN-no-refresh (a substantive correctness rule) and speculative-pre-emptive-CCKN (a discipline against polluting the CCKN directory). Section length reduced from ~50 lines to ~20 lines."
+          },
+          {
+            "title": "`docs/cross-change-knowledge.md` §Ceremony scaling",
+            "body": "three-mode table updated. Lean-mode and Full-mode rows no longer assert \"Phase 1 startup query runs\"; both modes now describe the query as opportunistic per §When to query. Zero-ceremony mode unchanged (CCKN does not apply). The intro sentence \"the Phase 1 startup query is a cheap grep and runs in every non-Zero-ceremony change regardless of tier\" is replaced with \"Both query and write sides are opportunistic across all modes — neither is unconditionally mandatory.\""
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/phase1-investigate.md` §Optional startup: CCKN consultation",
+            "body": "section renamed from \"Startup: query CCKN precedent\" and condensed from a four-bullet match-handling enumeration plus an anti-pattern footer paragraph into a single 4-line paragraph. The procedural body (fresh / stale / partial / no match handling) defers to `cross-change-knowledge.md` §When to query a CCKN as the canonical source. Net reduction: ~10 lines."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md`",
+            "body": "Phase 1 Quick refresher entry \"Startup: query CCKN precedent\" renamed to \"Optional CCKN consultation at Phase 1 startup\" and reworded to describe the consultation as conditional on topic overlap. Pointer text updated to match the new `phase1-investigate.md` section heading."
+          },
+          {
+            "title": "`docs/glossary.md` §Cross-Change Knowledge Note (CCKN)",
+            "body": "second paragraph updated. \"Query at Phase 1 Investigate startup\" rewritten as \"Query opportunistically when a change's surfaces / libraries / external APIs overlap with topics catalogued in the CCKN directory.\" \"Querying late is the primary anti-pattern\" replaced with \"Citing a stale CCKN (>12 months) without triggering the refresh obligation is the primary anti-pattern\" (the actual load-bearing anti-pattern after the demotion). Write-side timing rules unchanged."
+          }
+        ],
+        "notes": [
+          {
+            "title": "External consumers citing the mandatory query-timing form",
+            "body": "(\"step 0 of Phase 1,\" \"Phase 1 begins with a cheap grep,\" \"Phase 1 startup query\") — re-orient to the opportunistic form. The grep itself, when done, looks the same; what changed is whether it is unconditionally performed or only when topic overlap is anticipated.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External consumers relying on \"Skipping the startup query\" as an anti-pattern",
+            "body": "that anti-pattern is removed from §Anti-patterns specific to query timing. The replacement honest framing is: skipping consultation when topic overlap exists is still a re-discovery cost; skipping consultation when no overlap exists is now correct behavior.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Reviewers auditing post-1.25.0 manifests",
+            "body": "a missing CCKN consultation in Phase 1 is no longer automatically a finding; it becomes a finding only when the change clearly touches CCKN-catalogued topics and the manifest does not cite or extend them.",
+            "subsection": "migration notes"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.24.0",
       "date": "2026-04-27",
       "sections": {
