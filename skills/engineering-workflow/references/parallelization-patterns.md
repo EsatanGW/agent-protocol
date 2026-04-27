@@ -65,7 +65,7 @@ Fan-out is **not** appropriate when:
 
 **Capability envelope per audit sub-agent:** file read, code search, verification-only shell (tests/builds/lint). **No write. No edit.** These sub-agents inherit the Reviewer's envelope per `role-composition-patterns.md` §The invariant.
 
-**Anti-collusion specifically here:** every audit sub-agent's identity must differ from the Planner's and Implementer's identities on this same change. Sharing identity with the Implementer collapses the audit into self-review — Anti-Rationalization Rule 5 is the language-level expression of what this rule prevents structurally.
+**Anti-collusion specifically here:** every audit sub-agent's identity must differ from the Planner's and Implementer's identities on this same change. Sharing identity with the Implementer collapses the audit into self-review — Anti-Rationalization Rule 4 is the language-level expression of what this rule prevents structurally.
 
 ---
 

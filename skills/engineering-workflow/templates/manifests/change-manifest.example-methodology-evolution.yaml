@@ -10,7 +10,7 @@
 #     no distinct Reviewer identity exists that is not bound by the contract being
 #     changed. This manifest's `review_notes` document that gap honestly rather than
 #     fabricate `pass` entries (which would violate `multi-agent-handoff.md`
-#     §Anti-rationalization Rule 3). That deviation pattern is the teaching content.
+#     §Anti-rationalization Rule 2 — unsubstantiated `pass`). That deviation pattern is the teaching content.
 #   - Schema-validated machine-readable record alongside the human-readable CHANGELOG.
 #
 # Deliberately omitted compared to a typical Full-mode manifest:

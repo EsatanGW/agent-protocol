@@ -17,43 +17,6 @@ This is the **canonical role contract**. Runtime bridges (`agents/*.md`, `.curso
 
 ---
 
-## Reading-order guide — three pairs that look duplicative but are not
-
-Several newer rules sit next to older rules that look similar. Readers who skim these easily conclude "I am being asked to do the same thing twice" and drop one. Each pair has a specific distinction; neither member replaces the other.
-
-### Pair 1 — Global self-check vs Pre-handoff self-check
-
-| Layer | Where | When it fires | Scope |
-|---|---|---|---|
-| Global self-check | [`docs/ai-operating-contract.md`](ai-operating-contract.md) §10 (6 questions) | Any AI co-author, any delivery boundary | Catches fabricated completion claims, hidden scope expansion, rationalized failure |
-| Pre-handoff self-check | §Pre-handoff self-check below (5 questions) | Implementer only, before advancing `phase: review` | Catches acceptance-criterion gaps, unverified references, unfilled evidence paths |
-
-**Both apply.** The global check asks "is this delivery honest?"; the Implementer-specific check asks "is the Implementer's specific work complete enough to hand off?" An Implementer must pass both; other roles only pass the global one.
-
-### Pair 2 — Phase re-entry vs Breaking-change migration path
-
-| Layer | Where | Question it answers |
-|---|---|---|
-| Phase re-entry | [`docs/phase-gate-discipline.md`](phase-gate-discipline.md) Rule 6 | "Which earlier phase must I re-open to fix what I just discovered?" |
-| Breaking-change migration path | [`docs/breaking-change-framework.md`](breaking-change-framework.md) Paths A / B / C | "How do new and old coexist across the shipping boundary?" |
-
-**Both may apply to the same change.** Re-entry is about **internal workflow bookkeeping** (which ROADMAP row to open, which manifest fields to rewrite); migration path is about **external consumer handling** (gray rollout, coexistence, deprecation cycle). A change that discovers a higher breaking-change level mid-implementation triggers **both**: re-enter Phase 1 to rewrite `breaking_change`, **and** pick a migration path from Paths A / B / C for the shipping plan.
-
-### Pair 3 — Anti-rationalization rules vs "Rubber-stamp is not a finding"
-
-| Layer | Where | What it does |
-|---|---|---|
-| "Rubber-stamp is not a finding" | Reviewer's **Must not do** list below | Principle statement — every `pass` cites an artifact |
-| Anti-rationalization rules (6 triggers) | §Anti-rationalization rules below | Mechanical heuristic — if any of 6 observable patterns appears, the review is reopened |
-
-**Rules refine the principle, do not replace it.** The principle explains the intent; the 6 rules catch the specific language / behavior patterns most likely to slip past even a careful Reviewer. A Reviewer who only remembers the principle can still rationalize quietly; a Reviewer who only remembers the rules may miss a seventh pattern not listed. Both live together.
-
-### The general instinct
-
-If two rules look redundant, read each one's **trigger condition** carefully. The methodology's newer rules are almost always either (a) a **narrower trigger** for a specific role or phase, or (b) a **mechanical heuristic** for catching a failure mode the older principle couldn't enforce mechanically. Neither replaces the other — they stack.
-
----
-
 ## Three canonical roles
 
 These roles are **defined by responsibility, not by identity.**
@@ -87,7 +50,7 @@ The same agent can play different roles in different phases; a human can play an
 
 #### Task Prompt structure
 
-Alongside the manifest front-half, the Planner produces a **Task Prompt** for the Implementer — the working brief that scopes the Implementer's work. The Task Prompt is referenced by §Pre-handoff self-check (acceptance-criterion coverage Q1 / Q2), §Tool-permission matrix (the Planner's non-code output), and §Optional machine-readable pre-filter (the source of acceptance criteria the pre-filter checks against). It is **not** a handoff prompt — handoff prompts are session-to-session pointer blocks (≤400 / 800 words, see `docs/glossary.md` §Resume prompt); a Task Prompt is the working brief between two roles in the same change and may be longer when each column carries content the Implementer cannot derive from the manifest alone.
+Alongside the manifest front-half, the Planner produces a **Task Prompt** for the Implementer — the working brief that scopes the Implementer's work. The Task Prompt is referenced by §Pre-handoff self-check (acceptance-criterion coverage Q1) and §Tool-permission matrix (the Planner's non-code output). It is **not** a handoff prompt — handoff prompts are session-to-session pointer blocks (≤400 / 800 words, see `docs/glossary.md` §Resume prompt); a Task Prompt is the working brief between two roles in the same change and may be longer when each column carries content the Implementer cannot derive from the manifest alone.
 
 A Task Prompt has **six required columns**:
 
@@ -97,7 +60,7 @@ A Task Prompt has **six required columns**:
 | **scope** | What is in / out of scope, named explicitly. For Pattern C clusters this is the cluster's `scope_files`; for non-cluster changes it names the surfaces the Implementer touches and the ones it must leave alone. |
 | **input** | Where the Implementer reads from to start: manifest path, plan / test-plan paths if Full mode, prior-session context to read in full. Makes §Read-in vs write obligations §Downstream agent's minimum actions on handoff mechanically applicable. |
 | **expected output** | The deliverables: code diff scope, evidence artifacts (categories from `evidence_plan`, paths to be filled by the Implementer), `implementation_notes` types likely to apply. |
-| **acceptance criteria** | Numbered, individually-checkable statements verifiable against a `file:line` and an evidence artifact. §Pre-handoff self-check Q1 / Q2 cite these directly. A criterion that cannot be cited against `file:line` + evidence is unverifiable — return upstream rather than write a vague AC. |
+| **acceptance criteria** | Numbered, individually-checkable statements verifiable against a `file:line` and an evidence artifact. §Pre-handoff self-check Q1 cites these directly. A criterion that cannot be cited against `file:line` + evidence is unverifiable — return upstream rather than write a vague AC. |
 | **boundaries** | The Implementer's hard "do not do" list: don't write outside `scope_files`; don't change `breaking_change.level`; on Discovery-loop trigger, halt and return. The §Conflict resolution Tier-2 escalation exit valve is named here at spawn time, not discovered late. |
 
 The Task Prompt is **the Planner's output**, not a manifest field. It travels alongside the manifest at spawn time — the sub-agent spawn message in runtimes with sub-agents; the human-paste prompt in runtimes without. It is not a stored artifact unless a project chooses to persist it for audit; the manifest is the durable record.
@@ -129,17 +92,17 @@ The Task Prompt is **the Planner's output**, not a manifest field. It travels al
 
 #### Pre-handoff self-check
 
-Before setting `phase: review`, answer each of these five questions in writing. A **vague** or **hedged** answer ("mostly", "should be", "I think", "looks right") is a failing answer — go back to the work and close the gap. Do not hand off.
+Before setting `phase: review`, answer each of these three questions in writing. A **vague** or **hedged** answer ("mostly", "should be", "I think", "looks right") is a failing answer — go back to the work and close the gap. Do not hand off.
 
-1. **Acceptance-criterion coverage.** For every acceptance criterion in the Task Prompt, can you point to a specific `file:line` that implements it? A criterion without a concrete code location is unmet.
-2. **Verification coverage.** For every acceptance criterion, is there at least one verification artifact (test, migration dry-run, screenshot, log sample, etc.) whose `artifact_location` is recorded in `evidence_plan.artifacts`? Boundary conditions included, not only the happy path.
-3. **Reference existence.** For every identifier you cited — function name, type, file path, config key, field, URL — did a code-search (or equivalent capability) confirm it actually exists in the current scope? See the reference-existence verification protocol in `docs/ai-operating-contract.md` and the non-fabrication list in that same document.
-4. **Pattern alignment.** For every new structure (class, module, schema, endpoint), does it match the SoT pattern the manifest's `sot_map` points to, or is the delta recorded as `scope_flag` in `implementation_notes`?
-5. **Evidence-path completion.** Does every `evidence_plan` entry on a primary surface have `status: collected` and a real `artifact_location`? Any entry still `planned` on a primary surface blocks handoff.
+1. **Coverage.** For every acceptance criterion in the Task Prompt, can you point to (a) a specific `file:line` that implements it AND (b) at least one verification artifact (test, migration dry-run, screenshot, log sample, etc.) whose `artifact_location` is recorded in `evidence_plan.artifacts` (boundary conditions included, not only the happy path)? A criterion missing either leg is unmet.
+2. **Reference existence.** For every identifier you cited — function name, type, file path, config key, field, URL — did a code-search (or equivalent capability) confirm it actually exists in the current scope? See `docs/ai-operating-contract.md` §2a (reference-existence verification protocol) and §9 (non-fabrication list).
+3. **Pattern alignment + evidence-path completion.** For every primary surface — (a) does every new structure (class, module, schema, endpoint) match the SoT pattern the manifest's `sot_map` points to (or is the delta recorded as `scope_flag` in `implementation_notes`)? AND (b) does every `evidence_plan` entry on that surface have `status: collected` with a real `artifact_location`? Either gap blocks handoff.
 
-This is **not** a summary section — do not write prose here or in the manifest. Capture only the factual results into `implementation_notes` using existing types (`assumption_validated`, `evidence_added`, `scope_flag`, `discovery`). If any of the five questions cannot be answered with a concrete reference, treat it as a Discovery-loop trigger: stop, record, return upstream.
+This is **not** a summary section — do not write prose here or in the manifest. Capture only the factual results into `implementation_notes` using existing types (`assumption_validated`, `evidence_added`, `scope_flag`, `discovery`). If any of the three questions cannot be answered with a concrete reference, treat it as a Discovery-loop trigger: stop, record, return upstream.
 
-The global self-check in `docs/ai-operating-contract.md` §10 still applies — this section is the **role-specific** addition the Implementer must clear before advancing phase. In Lean mode the five questions still apply (they do not add ceremony — they make honest reporting checkable); in Zero-ceremony mode they collapse to a single question: "can I point at the change and the verification?"
+The global self-check in `docs/ai-operating-contract.md` §10 still applies — this section is the **role-specific** addition the Implementer must clear before advancing phase. In Lean mode the three questions still apply (they do not add ceremony — they make honest reporting checkable); in Zero-ceremony mode they collapse to a single question: "can I point at the change and the verification?"
+
+Compaction history: this self-check originally had five questions (1.8.0 form). Q1 + Q2 (acceptance-criterion coverage + verification coverage) were merged into Q1 (coverage); Q4 + Q5 (pattern alignment + evidence-path completion) were merged into Q3. Q2 reference-existence is preserved verbatim because it is the question the merger of the other two cannot replace — it catches fabrication, not gaps. The five-question form's content is preserved 1-for-1; consumers citing "Q1 / Q2" should read it as new Q1, citing "Q4 / Q5" should read it as new Q3.
 
 ### Reviewer
 
@@ -157,16 +120,16 @@ The global self-check in `docs/ai-operating-contract.md` §10 still applies — 
 
 #### Anti-rationalization rules
 
-Even when the Reviewer is mechanically prevented from editing code, a Reviewer can still rationalize approval in language. These six conditions are **hard send-back triggers**; if any applies, do not approve:
+Even when the Reviewer is mechanically prevented from editing code, a Reviewer can still rationalize approval in language. These four conditions are **hard send-back triggers**; if any applies, do not approve:
 
-1. **Perfect-confidence hallucination.** You are about to write "no issues found," "everything looks perfect," or equivalent. Real changes carry residual risk; failing to find any usually means you did not look hard enough. Return to the diff and look again.
-2. **Hedging language.** You are about to use "mostly fine," "looks reasonable," "should be okay," "probably works," or any phrase that asserts quality without pointing at an artifact. Replace with a concrete citation or a concrete finding.
-3. **Unsubstantiated `pass` entries.** A `review_notes` entry with `finding: pass` must cite a specific `artifact_location` from `evidence_plan` or a specific `path:line` from the diff. A `pass` with only prose is a rubber stamp.
-4. **Read-only review.** You approved without running at least one verification-only command yourself (test run, build, `git log`, migration dry-run replay, artifact open). Reading the Implementer's summary is not verification; it is trust. Verification is you, with a shell.
-5. **Editing through the back door.** You found a problem and, in a runtime where the tool-write boundary is prose-only, you fixed it directly or dictated a one-line patch that the Implementer copy-pasted. In a mechanically-enforced runtime this is blocked by tool permissions; in a prose-only runtime it is an explicit rule violation. Send back, do not patch.
-6. **Thin residual-risk section.** `residual_risk` says "none identified" or is a single sentence. A real change has at least three risks that were evaluated and judged acceptable. If you cannot name three, you have not evaluated.
+1. **Confidence without substantiation.** You are about to assert quality without pointing at an artifact — common surface forms include "no issues found," "everything looks perfect," "looks reasonable," "should be okay," "probably works," and a `residual_risk` of "none identified" or a single sentence (real changes carry at least three evaluable risks). Replace with a concrete citation or a concrete finding; if no finding exists after a real second look, the audit is too shallow.
+2. **Unsubstantiated `pass` entries.** A `review_notes` entry with `finding: pass` must cite a specific `artifact_location` from `evidence_plan` or a specific `path:line` from the diff. Hedging language ("mostly fine," "probably works") inside a `pass` cell is the same failure as Rule 1 at the cell level: an assertion without a target. A `pass` with only prose is a rubber stamp.
+3. **Read-only review.** You approved without running at least one verification-only command yourself (test run, build, `git log`, migration dry-run replay, artifact open). Reading the Implementer's summary is not verification; it is trust. Verification is you, with a shell.
+4. **Editing through the back door.** You found a problem and, in a runtime where the tool-write boundary is prose-only, you fixed it directly or dictated a one-line patch that the Implementer copy-pasted. In a mechanically-enforced runtime this is blocked by tool permissions; in a prose-only runtime it is an explicit rule violation. Send back, do not patch.
 
-These rules are **heuristic failure mirrors**. They do not enumerate every way a review can go wrong; they catch the six patterns most likely to slip past even a careful Reviewer. If none of the six applies and the review still feels shallow, that is itself a signal — re-open the diff. Any one trigger applying is a **mandatory send-back, not a judgment call**.
+These rules are **heuristic failure mirrors**. They do not enumerate every way a review can go wrong; they catch the four patterns most likely to slip past even a careful Reviewer. If none of the four applies and the review still feels shallow, that is itself a signal — re-open the diff. Any one trigger applying is a **mandatory send-back, not a judgment call**.
+
+Compaction history: these were six rules in the 1.8.0 form. Old Rule 1 (perfect-confidence) and old Rule 6 (thin residual-risk) were both forms of *narrative confidence without substantiation* — merged into new Rule 1. Old Rule 2 (hedging language) and old Rule 3 (unsubstantiated `pass`) were both *substantiation gaps* — merged into new Rule 2 with hedging called out as the same failure at the cell level. Old Rules 4 (read-only review) and 5 (back-door edit) are preserved as new Rules 3 and 4 with their original semantics. Consumers citing "Rule 3" (unsubstantiated `pass`) should read it as new Rule 2; "Rule 5" (back-door edit) as new Rule 4; "Rule 6" (thin residual-risk) as new Rule 1.
 
 **Reference-existence sampling right.** The Reviewer may at any point pick any identifier cited in the manifest and require the Implementer to reproduce the exact code-search command that verified it. This is the Reviewer's primary defence against the plausibly-complete narrative failure mode; see `docs/ai-operating-contract.md` §2a for the verification protocol the Implementer is bound to.
 
@@ -283,50 +246,6 @@ Violation of this rule during Full-mode changes is a Tier-2 escalation per the C
 
 ---
 
-## Optional machine-readable pre-filter
-
-Some teams want a cheap mechanical check between the Implementer's handoff and the Reviewer's audit — not to *replace* the Reviewer, but to catch structural incompleteness before a human or high-cost reviewer spends time on it. This section defines that optional layer and the hard limits that keep it from drifting into the Reviewer's role.
-
-### What it is
-
-A pre-filter is a sub-agent invocation with capabilities limited to **file read** and **code search** (and optionally **network fetch** for external-reference checks). It runs after `phase: review` is set and before a Reviewer is summoned. Its job is **binary structural verification** — a list of "present / absent" and "resolves / does not resolve" answers.
-
-Typical checks a pre-filter performs:
-
-- Every acceptance criterion in the Task Prompt has a matching `evidence_plan` entry.
-- Every `evidence_plan.artifacts[*].artifact_location` resolves to a real file or URL.
-- Every identifier cited in `implementation_notes` resolves via code search to an existing `path:line`.
-- The five questions of the Implementer's pre-handoff self-check (§Pre-handoff self-check above) have documented answers, not placeholders.
-- Declared `surfaces_touched` is consistent with files actually changed in the diff.
-
-### Hard limits
-
-Four rules keep the pre-filter from collapsing into a Reviewer:
-
-1. **Pre-filter is not Reviewer.** A passing pre-filter proves only that the manifest is **structurally complete** — every required field is filled, every path resolves. It does *not* prove the field contents are correct. A Reviewer must still audit.
-2. **Pre-filter cannot replace Reviewer.** A Reviewer who writes "pre-filter passed, approving" in their `review_notes` has triggered Anti-Rationalization Rule 4 (read-only review without personal verification; see §Anti-rationalization rules above). The pre-filter's output is an input to the Reviewer's audit, not its output.
-3. **Pre-filter outputs binary findings only.** Present / absent, resolves / does not resolve, matches / does not match. A pre-filter that emits a score, a grade, or a subjective quality judgment has exceeded its scope and must be treated as an untrusted input — subjective evaluation is the Reviewer's role.
-4. **Pre-filter is disabled in Zero-ceremony and Lean modes.** Adding a pre-filter to a trivial change increases ceremony without reducing risk. Pre-filter is a Full-mode option only.
-
-### Anti-collusion for pre-filter
-
-The pre-filter sub-agent's identity must differ from all three canonical roles (`Planner / Implementer / Reviewer`) in the same change. A pre-filter that shares identity with the Implementer it is checking collapses back into self-review. The anti-collusion rule above extends to the pre-filter without modification.
-
-### When to adopt
-
-A team should consider a pre-filter only if both conditions hold:
-
-- The team is consistently in **Full mode** for most changes (Lean-mode-dominant teams gain nothing).
-- Reviewer capacity is a bottleneck, not evidence quality (if evidence quality is the bottleneck, the fix is to tighten the Implementer's pre-handoff self-check, not to add another layer).
-
-A pre-filter adopted for the wrong reason becomes another mechanical box to tick and drifts the team toward ceremony. The Reviewer's anti-rationalization rules exist precisely because mechanical checks cannot substitute for audit; the pre-filter adds **prefix** to that audit, not **replacement**.
-
-### Relation to hooks and validators
-
-The runtime-hook contract (`docs/runtime-hook-contract.md`) and the automation contract (`docs/automation-contract.md`) already provide machine-readable structural checks that run **before** the Implementer advances `phase: review`. A pre-filter invocation is a *separate* check that runs **after** the handoff — its purpose is to confirm the Implementer did not forget the things the pre-handoff hooks were supposed to catch. If a team's hooks are comprehensive and disciplined, the pre-filter is redundant; the option exists for teams whose hook coverage is incomplete.
-
----
-
 ## Composable specialist sub-agent roles
 
 Some teams want a **named, registry-grade specialist** that a canonical role can fan out to — for example, an "architect" sub-agent under the Planner for SoT-pattern reasoning, a "security-reviewer" sub-agent under the Reviewer for threat-modeling audits, or a "performance-reviewer" sub-agent under the Reviewer for budget audits. The mechanism for this already exists: it is the non-canonical sub-agent composition Patterns 1–6 in [`reference-implementations/roles/role-composition-patterns.md`](../reference-implementations/roles/role-composition-patterns.md). What this section adds is a **registration discipline** that turns ad-hoc Pattern 1 / 2 / 4 / 6 invocations into a named, auditable specialist with a shared envelope contract.
@@ -363,7 +282,7 @@ The single-agent anti-collusion rule applies to specialists with a sharper edge:
 
 - A `security-reviewer` specialist (parent: Reviewer) auditing the Implementer's diff must differ in identity from both the Implementer and the Reviewer.
 - A `architect` specialist (parent: Planner) consulted on SoT classification must differ in identity from the Planner — which is the standard Pattern 2 rule.
-- A specialist *parented under* the Reviewer who finds an issue must report it as a finding for the Reviewer to weigh; it must not be re-parented to the Implementer to "just fix it." That move would route the finding around the Reviewer's audit and trigger Anti-rationalization Rule 5 (editing through the back door) at the structural level.
+- A specialist *parented under* the Reviewer who finds an issue must report it as a finding for the Reviewer to weigh; it must not be re-parented to the Implementer to "just fix it." That move would route the finding around the Reviewer's audit and trigger Anti-rationalization Rule 4 (editing through the back door) at the structural level.
 
 ### What specialists do not change
 

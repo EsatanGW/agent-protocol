@@ -33,7 +33,7 @@ If you find a gap in the plan (a missing surface, an undeclared SoT, an unexpect
 
 ## Pre-handoff self-check
 
-Before setting `phase: review`, clear the five-question self-check defined in `docs/multi-agent-handoff.md` §Pre-handoff self-check. That section is the canonical source (five questions, vague/hedged-answer rule, recording protocol, Lean / Zero-ceremony mode application). This paste-ready prompt intentionally does not restate the rule; copy this whole file into the target runtime and keep the SoT reference live.
+Before setting `phase: review`, clear the three-question self-check defined in `docs/multi-agent-handoff.md` §Pre-handoff self-check. That section is the canonical source (three questions — coverage / reference existence / pattern + evidence-path — plus vague/hedged-answer rule, recording protocol, Lean / Zero-ceremony mode application). This paste-ready prompt intentionally does not restate the rule; copy this whole file into the target runtime and keep the SoT reference live.
 
 ## Optional: cluster-scoped execution (Pattern C, Full mode)
 

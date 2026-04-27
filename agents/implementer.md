@@ -37,7 +37,7 @@ If you find a gap in the plan (a missing surface, an undeclared SoT, an unexpect
 
 ## Pre-handoff self-check
 
-Before setting `phase: review`, clear the five-question self-check in `docs/multi-agent-handoff.md` §Pre-handoff self-check. That section is the canonical source — the five questions themselves, the "vague / hedged answer is a failing answer" rule, the `implementation_notes` recording protocol, and the Lean / Zero-ceremony mode application all live there. This file is a Claude Code sub-agent bridge; it does not restate the rule and does not fork it.
+Before setting `phase: review`, clear the three-question self-check in `docs/multi-agent-handoff.md` §Pre-handoff self-check. That section is the canonical source — the three questions themselves (coverage / reference existence / pattern + evidence-path), the "vague / hedged answer is a failing answer" rule, the `implementation_notes` recording protocol, and the Lean / Zero-ceremony mode application all live there. This file is a Claude Code sub-agent bridge; it does not restate the rule and does not fork it.
 
 ## Optional: cluster-scoped execution (Pattern C, Full mode)
 

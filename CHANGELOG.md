@@ -8,6 +8,75 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.24.0] - 2026-04-27
+
+Cluster A of the 1.8.0-SDD-import reverse audit (`working/2026-04-27-1-8-0-sdd-audit.md`). Four normative changes concentrated in `docs/multi-agent-handoff.md`: **R7 Reading-order guide deleted** (35 lines; meta-doc that disambiguated three pairs of rules — no longer needed for advanced users); **R10 Optional pre-filter section deleted** (41 lines; redundant for any team with hooks); **R1 Pre-handoff self-check merged** (5 questions → 3 questions; coverage / reference existence / pattern + evidence-path); **R3 Anti-rationalization rules merged** (6 rules → 4 rules; narrative confidence and substantiation gaps consolidated, read-only and back-door preserved). All semantic content preserved 1-for-1; changes are presentational compactness. Forced-Full per `CLAUDE.md §5` (multiple normative claims edited in a canonical SoT file).
+
+User-facing impact: `docs/multi-agent-handoff.md` shrinks 519 → 438 lines (-81 lines / -16%). Pre-handoff self-check ceremony reduced ~40% per Implementer handoff (3 questions instead of 5). Reviewer anti-rationalization scan reduced 33% (4 triggers instead of 6). The Optional pre-filter sub-agent layer is gone — teams that need post-handoff structural verification can compose it ad-hoc using Pattern 4 (reference-sampler) under the Reviewer.
+
+### Removed
+
+- **`docs/multi-agent-handoff.md` §Reading-order guide — three pairs that look duplicative but are not** (35 lines; **L1**) — the section was added in 1.8.0 to disambiguate Global self-check vs Pre-handoff self-check, Phase re-entry vs Breaking-change migration, and Anti-rationalization rules vs Rubber-stamp principle. Real-workload evidence (the audit consumed `flutter-lottery-app/docs/migration/` showing 5 successful methodology upgrades, 27 stages, 7 self-authored CCKNs) demonstrates the three-pair confusion has been internalized and no longer warrants a 35-line lookup table. The section's only consumer was the SoT itself (per the audit's grep). Net reduction in `multi-agent-handoff.md`'s introductory section.
+
+- **`docs/multi-agent-handoff.md` §Optional machine-readable pre-filter** (41 lines; **L1**) — entire section removed. Pre-filter was an optional sub-agent layer that ran between Implementer's handoff and Reviewer's audit, doing binary structural verification (do all `artifact_location`s resolve, do cited identifiers grep) before Reviewer audit. It was redundant for any team with comprehensive runtime hooks (`runtime-hook-contract.md`'s structural-completeness checks already run before `phase: review`); the section's own line 326 admitted this. Real-workload evidence shows the user has hooks-claude-code/ + 5 reference hooks + shellcheck CI gate — not bottlenecked by Reviewer (bottlenecked by Planner context-limit per the E.2 100-min hang in `flutter-lottery-app/docs/migration/ROADMAP.md` 1.18.0 upgrade row). Pre-filter solved the wrong problem for this workload class.
+
+- **`docs/ai-operating-contract.md` §10 → "Machine-readable pre-filter (adjacent, not substitute)" sub-section** (11 lines) — companion deletion to R10 above. The sub-section explained the relationship between the AI's own §10 self-check and the optional pre-filter. With the pre-filter section gone, this sub-section has no referent and would only confuse readers.
+
+- **`reference-implementations/roles/role-composition-patterns.md` §Relationship to other documents** — pre-filter "see also" pointer line removed (1 line).
+
+### Changed
+
+- **`docs/multi-agent-handoff.md` §Pre-handoff self-check** — five questions merged into three (**L1**). Old Q1 (acceptance-criterion `file:line`) and Q2 (verification artifact per criterion) are functionally one gate criterion ("every AC has a `file:line` AND a verification artifact"); merged into new Q1 (Coverage). Old Q4 (pattern alignment with `sot_map`) and Q5 (evidence-path completion per primary surface) both ask "does primary-surface output match the manifest"; merged into new Q3 (Pattern alignment + evidence-path completion). Old Q3 (reference existence — code-search verification before citing identifiers) is preserved verbatim as new Q2 because the merger of the other two cannot replace it (it catches fabrication, not gaps). Compaction history added inline so consumers citing "Q1 / Q2" or "Q4 / Q5" can map to the new numbering. The "vague / hedged answer is failing" rule, the `implementation_notes` recording protocol, and the Lean / Zero-ceremony mode application are all unchanged.
+
+- **`docs/multi-agent-handoff.md` §Anti-rationalization rules** — six rules merged into four (**L1**). Old Rule 1 (perfect-confidence hallucination) and Rule 6 (thin residual-risk section) are both forms of *narrative confidence without substantiation*; merged into new Rule 1. Old Rule 2 (hedging language) and Rule 3 (unsubstantiated `pass` entries) are both *substantiation gaps*; merged into new Rule 2 with hedging called out as the cell-level form of Rule 1's narrative-level failure. Old Rule 4 (read-only review) preserved as new Rule 3. Old Rule 5 (editing through the back door) preserved as new Rule 4. The "heuristic failure mirrors / mandatory send-back" framing and Lean mode behaviour are unchanged. Compaction history added inline so consumers citing "Rule 3" / "Rule 5" / "Rule 6" can map to the new numbering.
+
+- **`docs/multi-agent-handoff.md` §Task Prompt structure** — line citing "§Pre-handoff self-check (acceptance-criterion coverage Q1 / Q2)" updated to "Q1" (post-merger). Acceptance-criteria column description updated similarly. Drops the "and §Optional machine-readable pre-filter (the source of acceptance criteria the pre-filter checks against)" phrase since pre-filter is removed.
+
+- **`docs/multi-agent-handoff.md` §Composable specialist sub-agent roles** — anti-collusion paragraph references "Anti-rationalization Rule 5 (editing through the back door)" updated to "Rule 4" per the renumbering.
+
+- **`agents/reviewer.md` §Anti-rationalization rules + §Persona and output craft** — pointer text updated for the four-rule form. Rule-by-name list "perfect-confidence hallucination, hedging language, unsubstantiated `pass` entries, read-only review, editing through the back door, thin residual-risk section" replaced with "confidence without substantiation, unsubstantiated `pass` entries, read-only review, editing through the back door". Output-craft paragraph cross-refs updated: "Anti-rationalization Rule 3" (rubber-stamp) → "Rule 2 — unsubstantiated `pass`"; "Rule 6" (thin residual-risk) → "Rule 1 — confidence without substantiation". The "six anti-rationalization rules" wording in the persona-discipline guard updated to "four". Specialist Pattern 6 anti-collusion cite "Anti-Rationalization Rule 5" → "Rule 4".
+
+- **`reference-implementations/roles/reviewer.md`** — same renumbering updates as `agents/reviewer.md`. Pointer text and rule-by-name list aligned with the four-rule form.
+
+- **`reference-implementations/roles/role-composition-patterns.md`** — Pattern 4 (reference-sampler) and Pattern 6 (specialized audit fan-out) anti-collusion paragraphs cite "Anti-Rationalization Rule 5" → "Rule 4".
+
+- **`reference-implementations/roles/specialist-roles-registry.md`** — `security-reviewer` anti-collusion cite "Anti-rationalization Rule 5 (editing through the back door)" → "Rule 4".
+
+- **`skills/engineering-workflow/references/parallelization-patterns.md`** — Pattern B audit fan-out anti-collusion cite "Anti-Rationalization Rule 5" → "Rule 4".
+
+- **`skills/engineering-workflow/templates/manifests/change-manifest.example-methodology-evolution.yaml`** — header comment cite "§Anti-rationalization Rule 3" → "Rule 2 — unsubstantiated `pass`".
+
+- **`agents/implementer.md`** — pointer line "five-question self-check" → "three-question self-check (coverage / reference existence / pattern + evidence-path)".
+
+- **`reference-implementations/roles/implementer.md`** — same update as `agents/implementer.md`.
+
+- **`skills/engineering-workflow/phases/phase4-implement.md`** — `§Pre-handoff self-check` and `§See also` pointer text updated from "five-question" to "three-question". Number of questions changed from "five" to "three" in the gating sentence.
+
+- **`skills/engineering-workflow/references/phase-overlap-zones.md`** — P5 → P6 row no longer cites pre-filter as the overlap activity (the activity is now just sign-off template pre-fill of acceptance-criterion headers; pre-filter is gone). The `Relation to other rules` table row referencing `multi-agent-handoff.md §Optional machine-readable pre-filter` is removed.
+
+- **`skills/engineering-workflow/phases/phase5-review.md`** — Optional P5 → P6 overlap zone description updated to match (sign-off template pre-fill only; no pre-filter scan).
+
+### Why minor, not patch
+
+Edits change normative content in canonical SoT files (`docs/multi-agent-handoff.md` and `docs/ai-operating-contract.md`). The R1 / R3 mergers preserve content 1-for-1 but renumber referenced rules — readers and consumers who hardcoded specific rule numbers will need to re-orient. The R7 deletion removes a normative reading-order section. The R10 deletion removes an optional sub-agent layer that some teams may rely on. Per `mode-decision-tree.md §Scenarios that force Full → Canonical methodology content edit (L1+)`, all four edits are forced-Full triggers requiring a minor bump.
+
+The bundling matches `docs/cross-change-knowledge.md`'s recommendation for L1+ work concentrated in a single SoT file — pay the cross-change cognitive cost once per release rather than spreading four L1+ edits across four minor releases.
+
+### Migration notes
+
+- **External consumers citing `Pre-handoff self-check Q1 / Q2`** — read as new Q1 (Coverage). Citing `Q4 / Q5` — read as new Q3 (Pattern alignment + evidence-path completion). Citing `Q3` (reference existence) — unchanged.
+- **External consumers citing `Anti-rationalization Rule 3`** (rubber-stamp / unsubstantiated `pass`) → new Rule 2. Citing `Rule 4` (read-only) → new Rule 3. Citing `Rule 5` (back-door edit) → new Rule 4. Citing `Rule 6` (thin residual-risk) → new Rule 1.
+- **External consumers using the Optional pre-filter** — there is no migration target; the pattern is removed. Teams that genuinely need post-handoff structural verification can build an ad-hoc Pattern 4 (reference-sampler) sub-agent under the Reviewer with the same identity-must-differ constraint.
+- **External consumers citing the §Reading-order guide** — read the relevant rule directly; the disambiguation is now implicit in the rule definitions themselves.
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. Rule renumbering uses the existing canonical numbering convention. No schema changes (R1 self-check and R3 anti-rationalization are normative-prose rules, not schema-validated fields). No glossary terms added; no glossary entries renamed.
+
+### Audit input
+
+This release acts on the Cluster A verdicts in `working/2026-04-27-1-8-0-sdd-audit.md` (R1 Merge + R3 Merge + R7 Delete + R10 Delete). Cluster B (R4 Restrict + R5 Merge in `phase-gate-discipline.md`) shipped in 1.23.0. Cluster C (R9 CCKN trim) and a follow-up Cluster F audit (manifest-size enforcement, CCKN ↔ SoT sync, Planner context-limit) remain as separate future releases. Cluster D (R12 + R13) was downgraded to Keep-as-is after the audit's real-workload evidence-pass showed Pattern C usage is low.
+
 ## [1.23.0] - 2026-04-27
 
 Cluster B of the 1.8.0-SDD-import reverse audit (see `working/2026-04-27-1-8-0-sdd-audit.md`). Two normative changes in `docs/phase-gate-discipline.md`: **Rule 5a Restrict** — Working Space Convention no longer fires at every Full-mode phase boundary; it now fires when (a) `breaking_change.level` ≥ L2, (b) the boundary is Phase 5 (Reviewer audit), or (c) the phase produces intermediate artifacts that another invocation must read (Pattern A/B/C fan-out, long-running-delegation D2 progress, phase overlap-zone prep). **Rule 6 Merge** — phase re-entry decision table re-organized from seven source variations into four destination-phase rows; original variations preserved verbatim as `(a)`–`(g)` sub-cells. Forced-Full per `CLAUDE.md §5` (both edits change normative claims in a canonical SoT file).

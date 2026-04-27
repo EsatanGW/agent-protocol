@@ -32,7 +32,7 @@ Only these are named overlaps. Anything else is either normal serial work or a g
 | **P2 → P3** | Test-plan skeleton: one row per acceptance criterion (from Phase 1), `method: TBD`, `evidence: TBD` | Acceptance-criteria draft from Phase 0/1 is stable | No if ACs are stable; yes if Phase 2 adds new ACs that were not in Phase 1's draft |
 | **P3 → P4** | Baseline verification environment: test harness scaffold, CI branch, screenshot baseline, metric snapshot. **Not implementation code.** | Phase 3 test categories declared (so env matches the category mix) | Yes if Phase 3 changes test method for a critical path; otherwise env reusable across minor plan changes |
 | **P4 → P5** | Reviewer context-pack pre-distillation (per `context-pack.md`), reference-sampler seeding (Pattern B prerequisite) | `surfaces_touched`, `breaking_change.level`, `rollback.mode` stable; evidence-plan categories filled | Yes if Phase 4 discovers a new surface or upgrades breaking-change level (triggers Phase 1 re-entry per Rule 6) |
-| **P5 → P6** | Pre-filter structural scan (per `docs/multi-agent-handoff.md §Optional machine-readable pre-filter`); sign-off template pre-fill with acceptance-criterion headers | `phase: review` set; `review_notes` skeleton exists (even if empty) | No — pre-filter output is binary and cheap to rerun; template pre-fill is discarded and rewritten |
+| **P5 → P6** | Sign-off template pre-fill with acceptance-criterion headers (no verdict language) | `phase: review` set; `review_notes` skeleton exists (even if empty) | Template pre-fill is discarded and rewritten if review findings change the acceptance structure |
 
 ### Zones that are **not** overlap zones
 
@@ -107,7 +107,6 @@ All four must hold. A "mostly" answer is a "no."
 | `phase-gate-discipline.md` Rule 5a (working-space discipline) | Overlap artifacts live in working space until the prior gate passes |
 | `phase-gate-discipline.md` Rule 6 (phase re-entry) | If overlap prep discovers a re-entry trigger (new surface, SoT mis-classification, breaking-change upgrade), the re-entry procedure applies and all affected overlap work is discarded |
 | `parallelization-patterns.md` | Orthogonal — fan-out is within-phase; overlap is between-phase. Both may occur in the same initiative |
-| `multi-agent-handoff.md §Optional machine-readable pre-filter` | The P5 → P6 pre-filter scan is the primary named overlap at that boundary |
 | `SKILL.md` principle 9 (batch independent tool calls) | Tool-layer analog: same independence principle applied at a different layer |
 | `long-running-delegation.md §D3` (canonical-role non-idle rule) | D3's "allowed concurrent work" list cites this document as the boundary — overlap prep is permitted during a long-running delegation only within named zones and the ≤20% budget. Overlap prep into an un-named zone is still a Rule 1 violation regardless of whether a sub-agent is running |
 

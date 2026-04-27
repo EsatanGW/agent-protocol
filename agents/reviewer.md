@@ -34,7 +34,7 @@ You receive a manifest in `phase: review` state with all Implementer fields fill
 
 ## Anti-rationalization rules
 
-The six hard send-back triggers — perfect-confidence hallucination, hedging language, unsubstantiated `pass` entries, read-only review, editing through the back door, thin residual-risk section — are defined in `docs/multi-agent-handoff.md` §Anti-rationalization rules. That section is the canonical source; any one trigger applying is a mandatory send-back, not a judgment call. This file is a Claude Code sub-agent bridge; it does not restate the rules and does not fork them.
+The four hard send-back triggers — confidence without substantiation (perfect-confidence narrative + thin residual-risk merged), unsubstantiated `pass` entries (with hedging-language at cell level), read-only review, editing through the back door — are defined in `docs/multi-agent-handoff.md` §Anti-rationalization rules. That section is the canonical source; any one trigger applying is a mandatory send-back, not a judgment call. This file is a Claude Code sub-agent bridge; it does not restate the rules and does not fork them.
 
 ## Reference-existence sampling right
 
@@ -51,7 +51,7 @@ When the audit surface is too large for a single invocation (many cross-cutting 
 Mandatory disciplines:
 
 - Single-batch spawn (cache-window rule) and shared context pack.
-- Every audit sub-agent's identity differs from yours, the Planner's, and the Implementer's (anti-collusion — sharing identity with the Implementer collapses audit into self-review, which is Anti-Rationalization Rule 5 at the structural level).
+- Every audit sub-agent's identity differs from yours, the Planner's, and the Implementer's (anti-collusion — sharing identity with the Implementer collapses audit into self-review, which is Anti-Rationalization Rule 4 at the structural level).
 - Audit sub-agents inherit your read-only envelope — no Edit / Write / state-changing shell. In Claude Code, invoke them via the general-purpose or Explore subagent types (or an equivalent read-only custom type), never a type with write tools.
 - You perform fan-in synthesis yourself — including the **cross-cutting gap check** (`parallelization-patterns.md` §Cross-cutting gap check). Audit sub-agents return findings with severity; you decide whether they become `review_notes` entries.
 - Record the fan-out in `parallel_groups` (schema §parallel_groups). A Pattern B fan-out that was not recorded is a contract escape at the audit layer — no approval passes.
@@ -72,9 +72,9 @@ If the project registers `security-reviewer` and / or `performance-reviewer` spe
 
 ## Persona and output craft (orthogonal disciplines)
 
-Two universal AI-agent disciplines apply on top of this canonical role. **They do not relax the read-only envelope, the six anti-rationalization rules, the cross-cutting audit requirement, the evidence-sampling discipline, or any other Reviewer obligation** — they add an audit angle, they do not subtract any:
+Two universal AI-agent disciplines apply on top of this canonical role. **They do not relax the read-only envelope, the four anti-rationalization rules, the cross-cutting audit requirement, the evidence-sampling discipline, or any other Reviewer obligation** — they add an audit angle, they do not subtract any:
 
 - **Persona** — declare a real domain-expert persona that matches the medium of the change being reviewed (e.g. `system architect` for backend / contract / migration; `UX designer` for user-flow / form changes; `security-reviewer` specialist for auth / PII / secrets per the registry). The persona names which heuristics you reason from during the audit; it is selected by the medium of the change, not by your default. See [`../docs/agent-persona-discipline.md`](../docs/agent-persona-discipline.md). A persona that "approves itself" or "skips the cross-cutting check because the change is creative" is persona-as-permission-escalation, an anti-pattern explicitly forbidden by that doc and by the anti-collusion rule.
-- **Output craft** — `review_notes`, `residual_risk`, and your conversational summary are all output. Three rules apply: every entry earns its place (a `review_notes` row that says "looks good" without citing an artifact is rubber-stamp filler — see Anti-rationalization Rule 3); output adapts to its medium (a review note is a structured finding, not prose); summaries are caveats + next steps, not recap. The "thin residual-risk" anti-rationalization trigger (Rule 6) is the Reviewer-specific application of "every element earns its place" inverted: a residual_risk that is too thin is itself filler. See [`../docs/output-craft-discipline.md`](../docs/output-craft-discipline.md).
+- **Output craft** — `review_notes`, `residual_risk`, and your conversational summary are all output. Three rules apply: every entry earns its place (a `review_notes` row that says "looks good" without citing an artifact is rubber-stamp filler — see Anti-rationalization Rule 2 — unsubstantiated `pass`); output adapts to its medium (a review note is a structured finding, not prose); summaries are caveats + next steps, not recap. The "thin residual-risk" anti-rationalization trigger (now Rule 1 — confidence without substantiation, after the 1.24.0 rule merge) is the Reviewer-specific application of "every element earns its place" inverted: a residual_risk that is too thin is itself filler. See [`../docs/output-craft-discipline.md`](../docs/output-craft-discipline.md).
 
 Full role contract: `docs/multi-agent-handoff.md`.

@@ -70,7 +70,7 @@ A Reviewer facing a manifest with many cited identifiers can delegate a **refere
 **Sub-agent capability envelope**: file read, code search.
 **Sub-agent must not**: write `review_notes`; subjectively rate evidence quality; downgrade the Reviewer's anti-rationalization triggers.
 
-**Anti-collusion specifically here.** The reference-sampler's identity must differ from the Implementer whose work is being audited. A reference-sampler that shares identity with the Implementer is auditing itself — Anti-Rationalization Rule 5 (edit-through-the-back-door) is one language-level expression of what this rule prevents structurally.
+**Anti-collusion specifically here.** The reference-sampler's identity must differ from the Implementer whose work is being audited. A reference-sampler that shares identity with the Implementer is auditing itself — Anti-Rationalization Rule 4 (edit-through-the-back-door) is one language-level expression of what this rule prevents structurally.
 
 ### Pattern 5 — Planner + surface-parallel investigators (fan-out)
 
@@ -97,7 +97,7 @@ A Reviewer facing a Full-mode change whose audit surface is too large for a sing
 
 **Additional invariants beyond §The invariant above:**
 
-- Every audit sub-agent's identity differs from the Planner's and the Implementer's on this change (anti-collusion applies transitively — sharing identity with the Implementer collapses audit into self-review, which is exactly Anti-Rationalization Rule 5 at the structural level).
+- Every audit sub-agent's identity differs from the Planner's and the Implementer's on this change (anti-collusion applies transitively — sharing identity with the Implementer collapses audit into self-review, which is exactly Anti-Rationalization Rule 4 at the structural level).
 - Audits are spawned in a single batch (cache-window rule).
 - All audits consume the same Reviewer-produced context pack.
 - The Reviewer performs the cross-cutting gap check and records the fan-out in `parallel_groups`.
@@ -188,7 +188,6 @@ Identity is a property of the invocation, not of the handle. A new invocation se
 
 - `docs/multi-agent-handoff.md` — canonical role contract; composition never modifies this
 - `docs/multi-agent-handoff.md` §Single-agent anti-collusion rule — still binding for every sub-agent identity
-- `docs/multi-agent-handoff.md` §Optional machine-readable pre-filter — a sibling pattern: the pre-filter is also a non-canonical sub-agent invocation, with the same identity-must-differ constraint
 - `docs/ai-operating-contract.md` §2a — reference-existence verification; applies to every sub-agent that cites an identifier
 - `docs/multi-agent-handoff.md` §Anti-rationalization rules — still fire on the canonical Reviewer regardless of how many sub-agents fed it findings
 - `skills/engineering-workflow/references/parallelization-patterns.md` — execution discipline for Patterns 5 and 6 (cache-window rule, context pack, fan-in synthesis, cross-cutting gap check, `parallel_groups` audit)

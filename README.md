@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Plugin: Multi-agent](https://img.shields.io/badge/plugin-multi--agent-blue.svg)](./AGENTS.md)
 [![Skill: Engineering Workflow](https://img.shields.io/badge/skill-engineering--workflow-purple.svg)](./skills/engineering-workflow/SKILL.md)
-[![Version: 1.23.0](https://img.shields.io/badge/version-1.23.0-brightgreen.svg)](./CHANGELOG.md)
+[![Version: 1.24.0](https://img.shields.io/badge/version-1.24.0-brightgreen.svg)](./CHANGELOG.md)
 [![Language: English-only](https://img.shields.io/badge/language-English--only-blue.svg)](./CHANGELOG.md)
 
 A **tool-agnostic engineering workflow plugin** for AI coding agents.
