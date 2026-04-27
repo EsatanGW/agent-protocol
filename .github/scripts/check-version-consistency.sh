@@ -1,11 +1,12 @@
 #!/usr/bin/env sh
-# Check that the version string is consistent across the five places
+# Check that the version string is consistent across the six places
 # that independently declare it:
 #   1. .claude-plugin/plugin.json      -> .version
 #   2. .claude-plugin/marketplace.json -> .metadata.version
 #   3. README.md                       -> the "Version: X.Y.Z" badge
 #   4. CHANGELOG.md                    -> the most recent non-Unreleased section
 #   5. CHANGELOG.json                  -> first non-Unreleased release's .version (generated)
+#   6. git tag                         -> v<plugin_version> exists in the local repo
 #
 # Drift between these is the single most common release-hygiene bug.
 # This check is cheap and catches it before a release tag lands.
@@ -15,8 +16,14 @@
 # generate-changelog-json.py". The schema-drift CI job catches
 # schemas/*.json drift the same way.
 #
+# The git-tag check (signal 6) was added in 1.29.1 after a backfill of
+# 10 missing tags (v1.18.1, v1.19.1, v1.20.0, v1.23.0–v1.29.0). Without
+# the tag, downstream `git checkout v$VERSION` workflows fail and bisect
+# is harder. Set AGENT_PROTOCOL_SKIP_TAG_CHECK=1 to opt out (e.g. when
+# running this script before the release tag has been created).
+#
 # Exit codes:
-#   0 all five agree
+#   0 all six agree
 #   1 at least one disagrees
 #   2 tool error (jq missing, file unreadable)
 
@@ -47,6 +54,21 @@ else
   changelog_json_version="<missing>"
 fi
 
+# Tag check: skip cleanly when explicitly opted out, when not in a git repo
+# (e.g. tarball install), or when no tags are reachable in the working tree
+# (a shallow CI checkout without `fetch-tags: true` will look like this).
+if [ "${AGENT_PROTOCOL_SKIP_TAG_CHECK:-}" = "1" ]; then
+  tag_version="<skipped>"
+elif ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  tag_version="<not-a-git-repo>"
+elif [ -z "$(git tag -l 2>/dev/null | head -1)" ]; then
+  tag_version="<no-tags-fetched>"
+elif git rev-parse "v${plugin_version}" >/dev/null 2>&1; then
+  tag_version="$plugin_version"
+else
+  tag_version="<missing>"
+fi
+
 fail=0
 report() {
   printf '  %-36s %s\n' "$1" "$2"
@@ -58,6 +80,7 @@ report "marketplace.json .metadata.version" "$marketplace_version"
 report "README.md badge" "$readme_version"
 report "CHANGELOG.md latest release" "$changelog_version"
 report "CHANGELOG.json first non-Unreleased" "$changelog_json_version"
+report "git tag v${plugin_version}" "$tag_version"
 
 if [ "$plugin_version" != "$marketplace_version" ]; then
   echo "DRIFT: plugin.json vs marketplace.json" >&2
@@ -76,8 +99,14 @@ if [ "$plugin_version" != "$changelog_json_version" ]; then
   echo "  Hint: regenerate with 'python3 .github/scripts/generate-changelog-json.py'" >&2
   fail=1
 fi
+if [ "$tag_version" = "<missing>" ]; then
+  echo "DRIFT: git tag v${plugin_version} not found" >&2
+  echo "  Hint: create the tag with 'git tag v${plugin_version} <release-commit-sha>'" >&2
+  echo "  Or set AGENT_PROTOCOL_SKIP_TAG_CHECK=1 to skip during pre-release checks" >&2
+  fail=1
+fi
 
 if [ $fail -eq 0 ]; then
-  echo "OK: all five declarations agree on $plugin_version"
+  echo "OK: all six declarations agree on $plugin_version"
 fi
 exit $fail

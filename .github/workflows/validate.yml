@@ -184,6 +184,36 @@ jobs:
       - name: Run Codex adapter selftest
         run: sh reference-implementations/hooks-codex/selftests/selftest.sh
 
+  hooks-selftest-macos:
+    # macOS runners ship bash 3.2.57 as /bin/sh and as the system bash, which
+    # contains parser quirks (e.g. `case` inside `$(... | while ... done)` mis-
+    # reading `;;`) that ubuntu-latest's bash 5.x does not exhibit. Without this
+    # job, hook bugs that only surface on the macOS bash 3.2 path can ship
+    # undetected — exactly the 1.7.2 → 1.27.0 latency observed for the
+    # consumer-registry-check.sh `case`/`;;` parser bug fixed in commit a15c77e.
+    name: Hook bundle selftest (macOS / bash 3.2)
+    runs-on: macos-latest
+    needs: hooks-shellcheck
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print bash version
+        # Confirms the runner is on bash 3.2.x. If GitHub ever upgrades the
+        # default macOS bash, this line documents the regression in the log.
+        run: bash --version
+      - name: Install yq
+        # macOS GitHub runners ship Homebrew preconfigured; yq is a single brew install.
+        run: brew install yq
+      - name: Run Claude Code hook selftest
+        run: sh reference-implementations/hooks-claude-code/selftests/selftest.sh
+      - name: Run Cursor adapter selftest
+        run: sh reference-implementations/hooks-cursor/selftests/selftest.sh
+      - name: Run Gemini CLI adapter selftest
+        run: sh reference-implementations/hooks-gemini-cli/selftests/selftest.sh
+      - name: Run Windsurf adapter selftest
+        run: sh reference-implementations/hooks-windsurf/selftests/selftest.sh
+      - name: Run Codex adapter selftest
+        run: sh reference-implementations/hooks-codex/selftests/selftest.sh
+
   validator-python-tests:
     name: Python validator pytest
     runs-on: ubuntu-latest
@@ -213,5 +243,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check plugin.json / marketplace.json / README badge / CHANGELOG agree
+        with:
+          # Need full tag history so the script's git-tag check (signal 6,
+          # added in 1.29.1) can verify v$VERSION exists.
+          fetch-tags: true
+          fetch-depth: 0
+      - name: Check plugin.json / marketplace.json / README badge / CHANGELOG / git tag agree
         run: sh .github/scripts/check-version-consistency.sh

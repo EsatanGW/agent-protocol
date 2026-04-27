@@ -117,6 +117,17 @@ A reference hook ships at `reference-implementations/hooks-claude-code/hooks/cck
 
 Cross-runtime adapters (`hooks-cursor` / `hooks-gemini-cli` / `hooks-windsurf` / `hooks-codex`) point at the same hook script per the existing adapter pattern; no per-runtime fork required.
 
+#### Configuration
+
+The hook reads two environment variables. Both are optional; absent values degrade safely.
+
+| Env var | Default | Purpose | Behavior when unset |
+|---|---|---|---|
+| `CCKN_DIR` | `docs/knowledge` | Project CCKN directory walked by the hook. Override only if the project parks CCKNs elsewhere (e.g. `knowledge/migration/`). | Walks `docs/knowledge/`; if that directory does not exist, the hook exits 0 silently per the methodology's "absent directory = no-op" convention. |
+| `AGENT_PROTOCOL_VERSION` | _unset_ | The agent-protocol version the consumer project is currently pinned to. When set, the hook fires the **third** drift signal (`methodology_version` mismatch) — a CCKN whose `mirrors_canonical[i].methodology_version` disagrees with this value emits a warning even if the SoT mtime drift signal does not fire. | Version-mismatch check is skipped silently. The first two signals (SoT mtime > CCKN `updated`; section anchor named in commits after CCKN updated) still fire. |
+
+A consumer project that maintains mirror-CCKNs and wants the full three-signal coverage should `export AGENT_PROTOCOL_VERSION="<the version they pinned>"` from the same shell environment that runs `git push` (e.g. via `direnv`, project-local `.envrc`, or the runtime's hook-environment configuration). The pinned version is the same value the project records in its CCKN frontmatter under `mirrors_canonical[*].methodology_version`; setting the env var lets the hook detect when the project has moved off that pin without refreshing the CCKNs.
+
 ### What `mirrors_canonical` does *not* do
 
 - Does not turn the CCKN into a sub-document of the canonical SoT — the CCKN remains independently authored, the canonical SoT remains independently authored, and the field declares the relationship without enforcing content equivalence.

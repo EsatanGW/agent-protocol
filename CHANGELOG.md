@@ -8,6 +8,50 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.29.1] - 2026-04-28
+
+Drift-cleanup patch closing five gaps surfaced by a post-1.29.0 audit. No new normative content; no schema changes; every fix converges to existing intent. Matches `VERSIONING.md` patch category — "wording clarifications" and "fixes" — with the same structural shape as 1.18.2 (CI hardening + drift fix in a patch release).
+
+### Fixed
+
+- **`hooks/hooks.json`** — `cckn-canonical-sync-check.sh` now wired under the `Bash(git push*)` matcher, alongside `consumer-registry-check.sh`. The hook script and its selftests shipped in 1.27.0; `reference-implementations/hooks-claude-code/settings.example.json` was updated; **`hooks/hooks.json` (the plugin auto-discovery entry point) was missed**. Plugin installs therefore did not auto-load the new drift hook — only users who manually copied `settings.example.json` got it. This is exactly the fan-out consumer-registry drift codified as Anti-pattern 6 in 1.22.0 (commit `fcba12f`); recurrence in 1.27.0 indicates the lint that would have caught it does not yet exist (deferred — see Out of scope below).
+
+- **`docs/cross-change-knowledge.md` §Reference implementation → §Configuration** — new sub-section documenting both env vars consumed by `cckn-canonical-sync-check.sh`: `CCKN_DIR` (default `docs/knowledge`; configurable directory walk) and `AGENT_PROTOCOL_VERSION` (unset by default; when set, fires the third drift signal — `methodology_version` mismatch). Previously `AGENT_PROTOCOL_VERSION` was only documented in the hook source comments and `reference-implementations/hooks-claude-code/DEVIATIONS.md`. A consumer adopting the 1.27.0 mirror-CCKN convention had no canonical pointer for how to enable the version-mismatch signal — rendering one of the three drift signals invisible. Behavior unchanged; documentation only.
+
+- **10 backfilled git tags** — `v1.18.1`, `v1.19.1`, `v1.20.0`, `v1.23.0`, `v1.24.0`, `v1.25.0`, `v1.26.0`, `v1.27.0`, `v1.28.0`, `v1.29.0` now point at their respective release commits (`e2eb6bf`, `bb2507f`, `8e58d67`, `34bbe44`, `0145bef`, `ebaa450`, `f0f1898`, `59ee89e`, `918c06b`, `2053bcb`). Without the tags, downstream pin-by-tag workflows (`git checkout v$VERSION`, `git bisect` against a known-good release) fail. The tag-publishing step was missing from the release procedure between 1.18.1 and 1.29.0; the new `check-version-consistency.sh` signal 6 (below) prevents recurrence.
+
+- **`working/2026-04-27-cckn-008-baseline-checkin.md` cross-references** — the dangling pointer to a slash command at `~/.claude/commands/cckn-008-30d-checkin.md` (which never existed) is replaced with an honest "not yet created" note plus a recipe for creating it manually. The 30-day re-check (2026-05-25) target date is unchanged. Working-space artifact (gitignored per Rule 5a); no shipping content affected.
+
+### Added
+
+- **`.github/workflows/validate.yml` `hooks-selftest-macos` job** — second hook-selftest job running on `macos-latest`. macOS GitHub runners ship bash 3.2.57 as system bash, exposing parser quirks that ubuntu-latest's bash 5.x does not (e.g. `case` inside `$(... | while ... done)` mis-reading `;;`). Without macOS coverage, the `consumer-registry-check.sh` `case`/`;;` parser bug fixed in commit `a15c77e` could survive from 1.7.2 (its origin commit) to 1.27.0 (when new fixtures finally exercised the failure path) — a 20-version latency. The new job runs the full Claude Code / Cursor / Gemini CLI / Windsurf / Codex selftest matrix on the macOS bash path. Job has the same `needs: hooks-shellcheck` gate as the Linux job, so a lint failure short-circuits both. Side benefit: the runner's `bash --version` line documents the regression if GitHub ever upgrades the default macOS bash.
+
+- **`.github/scripts/check-version-consistency.sh` signal 6 — git tag presence** — the consistency check now also asserts that `git tag v$VERSION` exists for the current `plugin.json` version. Drift detection extended from five declarations (`plugin.json` / `marketplace.json` / `README` badge / `CHANGELOG.md` / `CHANGELOG.json`) to six. Graceful degradation: in a non-git checkout, in a tarball install, with `AGENT_PROTOCOL_SKIP_TAG_CHECK=1` set, or when no tags are reachable in the working tree, the check reports `<skipped>` / `<not-a-git-repo>` / `<no-tags-fetched>` instead of failing — so the script remains usable in pre-release scripts and CI environments that have not fetched tags. The `version-consistency` CI job now uses `actions/checkout@v4` with `fetch-tags: true` and `fetch-depth: 0` so the check runs in CI under the same contract as locally. Closes the gap that allowed 10 missing tags to accumulate between 1.18.1 and 1.29.0.
+
+### Why patch, not minor
+
+All five fixes converge to existing intent without introducing new normative content. The hook wiring sync (R1), the env-var documentation (R3), the backfilled tags (R4), the dangling pointer cleanup (R5), and the macOS CI coverage (R2) all close gaps in already-shipped behavior. No methodology rule changes, no schema changes, no public surface changes outside the new env-var documentation block (which surfaces an existing implementation contract rather than introducing a new rule). Matches `VERSIONING.md` patch category and follows the 1.18.2 precedent (CI hardening + bug fixes shipped as patch).
+
+### Migration notes
+
+- **External consumers of `cckn-canonical-sync-check.sh` who installed the plugin via `.claude-plugin/`** — the hook now auto-loads at `git push` time without manual copying. If you previously copied `settings.example.json` into your local config to get this hook, your config still works (the wiring is identical); the only difference is that fresh plugin installs no longer require the manual step.
+- **External consumers wanting the third drift signal** — set `AGENT_PROTOCOL_VERSION` to the methodology version your project is pinned to. Without this env var, the SoT-mtime and section-anchor drift signals still fire; only the version-mismatch signal is silenced. The new `docs/cross-change-knowledge.md §Configuration` sub-section documents both env vars for the full contract.
+- **Pre-release scripts that bump `plugin.json` before tagging** — the new tag-presence check will fail if it runs after the version bump but before the tag is created. Set `AGENT_PROTOCOL_SKIP_TAG_CHECK=1` for that intermediate window, or run the check after creating the tag.
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. The macOS CI coverage is identified by capability (bash 3.2 parser path) not by vendor lock-in — adopters running their own selftests on macOS get the same coverage. The env-var documentation describes the env-var contract without binding it to any specific runtime (Claude Code, Cursor, Gemini CLI, Windsurf, Codex all consume the same hook script via their adapters; all read the same env vars).
+
+### Out of scope (deferred)
+
+- **Hook-wiring-consistency CI lint** — a Python script that diffs `hooks/hooks.json` ↔ `reference-implementations/hooks-claude-code/settings.example.json` on hook-script-name set membership and fails on any disjoint entry. This would have prevented R1 from landing in 1.27.0. Deferred because the immediate fix (sync the two files) closes the current gap; the lint is preventive infrastructure that should ride with a broader audit of which `hooks/`-rooted artifacts must mirror which `reference-implementations/` artifacts. Tracked for a future audit.
+- **Hook-wiring DEVIATIONS update** — `reference-implementations/hooks-claude-code/DEVIATIONS.md §6` mentions wiring at `settings.example.json` only; a sentence noting the parallel wiring in `hooks/hooks.json` would help the next reader. Editorial; deferred to the next DEVIATIONS pass.
+- **Pre-1.14 git tag audit** — pre-1.14 versions live in `CHANGELOG.archive.md`. Their tags exist (`v1.0.0` through `v1.13.1` are all present) but have not been audited for commit-SHA correctness against the archive. Deferred; the active 1.14+ window is verified.
+
+### Audit input
+
+This release acts on a post-1.29.0 self-audit (no separate audit artifact ships; the audit conversation produced this CHANGELOG entry directly). The five risks (R1 hook wiring, R2 macOS CI gap, R3 env-var doc gap, R4 missing tags, R5 dangling pointer) were ordered by severity (🔴 R1+R2, 🟡 R3+R4+R5) and bundled because all five are mechanical drift fixes; splitting them into separate releases would multiply release ceremony without separating audience impact. The R6 finding from the audit (1.14.x fix-on-fix pattern) is historical and already documented in CHANGELOG entries 1.14.0–1.14.5; no remediation action remains.
+
 ## [1.29.0] - 2026-04-27
 
 α′ remediation of cckn-008 — **Pattern 9 dispatch-class binding rule** + **Discovery-loop 6th trigger row**. Upstream evidence source: `cckn-008-integration-completeness-blind-spots.md` (consumer-side CCKN, `completeness: skeleton`, 1 Stage reproduced). Forced-Full per `mode-decision-tree.md §Scenarios that force Full → Canonical methodology content edit (L1+)` — both shipped items add new normative rules to canonical SoT files. Five of the seven hardening proposals from cckn-008 are explicitly deferred (see `Out of scope` section below).
