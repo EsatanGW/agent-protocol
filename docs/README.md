@@ -48,8 +48,11 @@ These files define the methodology's normative claims. Cite them; do not redefin
 | [`agent-persona-discipline.md`](agent-persona-discipline.md) | Canonical SoT for `AGENTS.md §9`. The *domain-expert persona* (system architect / motion designer / UX designer / deck designer / …) every AI invocation reasons from — selected by the medium of the output, orthogonal to the canonical role, never a permission escalation. |
 | [`output-craft-discipline.md`](output-craft-discipline.md) | Canonical SoT for `AGENTS.md §10`. Three rules every AI output must clear: every element earns its place; output adapts to its medium (AI default styling rejected); summaries are caveats + next steps, not recap. |
 | [`ai-project-memory.md`](ai-project-memory.md) | How AI agents should treat persistent project memory. |
-| [`runtime-hook-contract.md`](runtime-hook-contract.md) | The four hook categories (phase-gate / evidence / drift / completion-audit) + exit-code contract. |
+| [`runtime-hook-contract.md`](runtime-hook-contract.md) | The four hook categories (phase-gate / evidence / drift / completion-audit) + exit-code contract. Includes the *risky-action interception list* (Category-A extension) and the *back-pressure pattern* (Category-D extension). |
 | [`runtime-hooks-in-practice.md`](runtime-hooks-in-practice.md) | Practical hook patterns and their failure modes. |
+| [`repo-as-context-discipline.md`](repo-as-context-discipline.md) | Repo as system of record. *Anything an agent cannot reach in-context effectively does not exist.* External knowledge (chat / docs / verbal decisions) must be transcoded into repo-resident artifacts before it can govern agent behaviour. |
+| [`mechanical-enforcement-discipline.md`](mechanical-enforcement-discipline.md) | The three axes of mechanical enforcement (architecture invariants / taste invariants / documentation freshness) and which capability contract each axis maps to. |
+| [`tool-design-principles.md`](tool-design-principles.md) | Five tool-design principles: less is more, examples beat schemas, error codes are stable, composability through narrowness, context-budget honesty. |
 | [`change-decomposition.md`](change-decomposition.md) | When to split one change into many; cross-change knowledge cost. |
 | [`cross-change-knowledge.md`](cross-change-knowledge.md) | The cost of context switching between concurrent changes; bundling rules. |
 | [`concurrent-changes.md`](concurrent-changes.md) | Coordinating multiple in-flight changes that touch overlapping surfaces. |
@@ -67,6 +70,7 @@ These activate when the change touches a specific dimension. Skip the ones that 
 | [`security-supply-chain-disciplines.md`](security-supply-chain-disciplines.md) | Auth / PII / secrets / dependency provenance is in scope. |
 | [`playtest-discipline.md`](playtest-discipline.md) | Game / interactive / experience-driven changes need playtest evidence. |
 | [`post-delivery-observation.md`](post-delivery-observation.md) | Phase 8 observation: production findings, metrics, continuous-evidence. |
+| [`anti-entropy-discipline.md`](anti-entropy-discipline.md) | Time-driven garbage-collection sweeps for accumulated drift (stale CCKNs, expired deprecations, doc-reference rot). Complements the edit-boundary mechanical enforcement and the delivery-event Phase 8 observation. |
 | [`adoption-strategy.md`](adoption-strategy.md) | Rolling out the methodology to a team that isn't using it yet. |
 | [`adoption-anti-metrics.md`](adoption-anti-metrics.md) | How to recognize fake adoption (compliance theatre). |
 | [`ci-cd-integration-hooks.md`](ci-cd-integration-hooks.md) | Wiring methodology gates into CI/CD pipelines. |
@@ -84,6 +88,7 @@ These activate when the change touches a specific dimension. Skip the ones that 
 | [`bridges-local-deviations-howto.md`](bridges-local-deviations-howto.md) + [`bridges-local-deviations-template.md`](bridges-local-deviations-template.md) | When and how to deviate from a bridge for a local context. |
 | [`stack-bridge-template.md`](stack-bridge-template.md) | Template for authoring a new bridge. |
 | [`examples/`](examples/) | Worked examples per scenario type (bugfix / refactor / migration / mobile-offline / ML / liveops / etc.). Read the example closest to your change. |
+| [`evidence-quality-per-type.md`](evidence-quality-per-type.md) | Per-type artefact-shape and rejection-signal appendix to [`change-manifest-spec.md`](change-manifest-spec.md). Covers all 18 `evidence_plan[*].type` values; non-normative companion. |
 | [`codex-install.md`](codex-install.md) | Codex-specific installation notes. |
 
 ---

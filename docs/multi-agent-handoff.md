@@ -218,6 +218,41 @@ Not every runtime offers the same mechanical enforcement surface. The matrix bel
 
 The honest framing: **mechanical enforcement is a property of the runtime, not the methodology.** The methodology defines the roles, boundaries, and anti-collusion rule; which runtime satisfies them mechanically versus by discipline is a deployment choice.
 
+### Capability gating by risk level
+
+The tool-permission matrix above declares the *baseline* envelope per role. The matrix below declares **how that envelope ratchets up** as the change's risk level rises. Risk is the cross-product of `breaking_change.level` (L0–L4 per [`docs/breaking-change-framework.md`](breaking-change-framework.md)) and `rollback_mode` (1 Reversible / 2 Forward-fix / 3 Compensation per [`docs/rollback-asymmetry.md`](rollback-asymmetry.md)).
+
+| Risk profile (`breaking_change.level` × `rollback_mode`) | Additional gating beyond the baseline matrix |
+|---|---|
+| L0–L1, mode 1 | None. Baseline tool-permission matrix is sufficient. |
+| L0–L1, mode 2 | `evidence_plan` must include a `runbook_update` row when an alert is involved (Reviewer-side rejection signal otherwise). |
+| L2, mode 1 | Reviewer **must** be a different session / model identity from the Implementer (matrix is `block`-strength on Claude Code / Cursor; prose-only on Gemini / Windsurf / Codex with the §Recommended practice fall-back). |
+| L2, mode 2 | The above + `evidence_plan` must include at least one `application-driven` row per [`docs/cross-cutting-concerns.md`](cross-cutting-concerns.md) §Application-driven verification. |
+| L2–L3, mode 3 | The above + `approvals[*].approver_role: human` is required for at least one approval (no all-AI approval chain). The rollback plan itself must be dry-run captured as an `evidence_plan` row before Phase 7 sign-off. |
+| L3, mode 1–2 | The above (mode 2 row) + `approvals[*].approver_role: human` is required + a deprecation-timeline `breaking_change.deprecation_timeline.hard_cutoff` is set (the change cannot be silently delivered without a removal plan). |
+| L3, mode 3 | Strictest: requires (a) `approver_role: human` for at least one approval; (b) a separate `security-reviewer` specialist when the change touches auth / PII / secrets ([`docs/security-supply-chain-disciplines.md`](security-supply-chain-disciplines.md)); (c) a rollback dry-run captured as evidence; (d) the change must consider Pattern C (multiple Implementer identities for file-disjoint clusters) when scope warrants. |
+| L4, any mode | Strictest: all of the above + the change must be Pattern C (multiple canonical Implementers in parallel) **and** dual-Reviewer (two distinct Reviewer identities, neither of whom is any Implementer's identity). L4 is *semantic reversal*: the rule that used to hold no longer does, and downstream consumers may rely silently on the old rule. The strictness is proportional. |
+
+**The principle.** Lower-risk changes operate under the baseline envelope. As risk rises, *more* of the role envelope's defaults convert from "may" to "must": evidence rows that were optional become required; reviewer identity that was advised becomes mandated; approvals that were AI-permissible become human-required. The schema's existing `escalations[*].trigger` enum already encodes the leaves (`rollback_mode_3`, `breaking_change_l3_or_l4`, `auth_pii_path_touched`, …); this matrix is the **routing layer** that names which trigger to raise based on the risk profile, so a Planner reading the matrix can resolve "what gating applies" deterministically without re-deriving from first principles each time.
+
+**No new schema fields.** The matrix uses only the schema's existing fields:
+
+- `breaking_change.level` (already required)
+- `rollback_mode` (already required)
+- `approvals[*].approver_role` (already constrained to enum including `human`)
+- `evidence_plan[*].type` and `evidence_plan[*].tier` (already required)
+- `escalations[*].trigger` (already required when present)
+- The Pattern C / dual-Reviewer rows surface as `parallel_groups[*]` entries that the schema already supports.
+
+**Anti-patterns this matrix rejects.**
+
+- *"L3 with `approver_role: ai` because no human was available."* The L3 row makes the human approval a hard requirement, not an aspiration. Lack of availability is what `escalations[*]` exists to surface, not a bypass condition.
+- *"L4 with one Implementer because Pattern C felt like ceremony."* L4's strictness is *proportional* to the blast radius of a semantic-reversal change. Down-shifting to single-Implementer is the silent scope-shrink that [`AGENTS.md §6`](../AGENTS.md) forbids.
+- *"L2 with same-session Reviewer because the runtime is prose-only."* Prose-only enforcement still requires honesty about identity. Same-session means same context window; same context window means the Reviewer has read everything the Implementer wrote. The rule degrades to "different session" even on prose-only runtimes.
+- *"Mode-3 without rollback dry-run because the rollback plan is documented."* Documentation is the plan; the dry-run is the evidence the plan works. Per [`docs/rollback-asymmetry.md`](rollback-asymmetry.md), Mode-3 (Compensation) is precisely the mode where untested rollback fails most expensively.
+
+The matrix is the canonical source for how risk-level governs role envelope; runtime bridges and `agents/{planner,implementer,reviewer}.md` may *cite* it but must not redeclare it (per [`AGENTS.md §File role map`](../AGENTS.md), normative content lives in exactly one place).
+
 ---
 
 ## Single-agent anti-collusion rule

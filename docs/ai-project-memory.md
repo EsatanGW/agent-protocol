@@ -86,6 +86,27 @@ AI memory splits into three tiers, differing in origin, lifespan, and intended u
 
 ---
 
+## Mapping to other memory taxonomies
+
+Other agent-engineering communities classify memory along axes that differ from this document's lifespan-based three-tier split. The following table maps the most commonly encountered taxonomies onto the canonical Tier 1 / Tier 2 / Tier 3 + CCKN axes so that a bridge document, sub-agent prompt, or external resumption note that uses different terminology can still resolve unambiguously.
+
+The mapping is **descriptive, not prescriptive** — this document's three-tier + CCKN axes remain the canonical structure; the mapping exists so a takeover AI can translate external vocabulary onto canonical disciplines without inventing new ones.
+
+| External taxonomy | Term | Closest tier in this document | Notes |
+|---|---|---|---|
+| Lifespan-based community shorthand (*core / archival / recall*) | core | Tier 1 (session) | "Core" emphasises must-be-resident facts; this document calls these the **pre-compression protection list top priority** (§Pre-compression protection list). |
+| | archival | Tier 2 (project) | "Archival" emphasises slow-but-stable on-disk artifacts; this document calls these **manifests / specs / completion reports / CCKNs** (§Recommended on-disk layout). |
+| | recall | Tier 3 (organizational) | "Recall" emphasises retrieval across history; this document scopes Tier 3 as cross-repo / cross-project memory with the read-only boundary. |
+| Cognitive-science analogy (*working / episodic / semantic*) | working | Tier 1 (session) | Working memory ≈ context window. |
+| | episodic | Tier 2 (project) — manifest history axis | Episodic ≈ "what happened in change X six months ago"; this is the temporal axis of Tier 2, surfaced via §Cross-session resumption. |
+| | semantic | CCKN | Semantic memory ≈ topical knowledge reusable across episodes; CCKN is the canonical artifact for this (see [`docs/cross-change-knowledge.md`](cross-change-knowledge.md)). |
+| Two-tier shorthand (*short-term / long-term*) | short-term | Tier 1 (session) | — |
+| | long-term | Tier 2 + Tier 3 | The two-tier shorthand collapses the project / organizational distinction; this document keeps them separate to preserve the **organizational-memory write boundary** (§Tier 3 — *AI reads but does not write*). |
+
+A consequence of this mapping: when an external prompt or sub-agent return slot says "promote this fact to core," "store in archival," or "this is semantic," the takeover AI translates the action onto the disciplines already specified above (§Pre-compression protection list, §Minimum write-to-disk at session end, §Cross-Change Knowledge Notes), rather than introducing a parallel storage convention.
+
+---
+
 ## Adjacent artifact: Cross-Change Knowledge Notes
 
 The three tiers above classify memory by **lifespan** (session / project-lifetime / organizational). A separate artifact classifies knowledge by **topic**: a Cross-Change Knowledge Note (CCKN) records a fact that applies to many changes within a project — library gotchas, third-party API quirks, platform-specific behavior — and is referenced by any Change Manifest that needs it.

@@ -504,6 +504,52 @@ The same logic executed across different builds, platforms, or points in time **
 
 ---
 
+## Application-driven verification
+
+The six checklists above (security, performance, observability, testability, error handling, build-time risk) generate evidence demands. For checks that bear on the user surface or the operational surface, the evidence must be **collected by exercising the running application** — not solely by reading source, running unit tests, or inspecting documentation. This is *application-driven verification*: the agent (or human) actually renders the page, traverses the flow, queries the live log / metric stream, or pulls the deployed artifact and reads what came out.
+
+### Why application-driven, not source-driven
+
+A source-driven check answers "is the code correct in principle?" An application-driven check answers "does the deployed system behave correctly?" The two are not equivalent: minification rewrites names (Build-time-risk anti-pattern A); release configuration disables debug shortcuts; data-layer state at runtime carries history that source cannot show; CSS / shader / asset pipeline transforms turn a correct-looking source into a different runtime artifact. A user-surface or operational-surface check that stops at "I read the function and it looks right" is incomplete and the cross-cutting concern is not satisfied.
+
+### Where it applies
+
+| Surface | Cross-cutting concern | Application-driven evidence |
+|---|---|---|
+| User surface | Security / Performance / Observability / Testability / Error handling / Build-time risk | Render the page in the target environment; capture before/after screenshot; reproduce the user flow; capture interaction recording or DOM snapshot |
+| Operational surface | Observability / Performance / Error handling | Pull the live log / metric / trace for the change window; verify the new event / span / metric actually fires; attach the query and the result |
+| Information surface | Performance (query plan), Build-time risk (codegen sync) | Run the migration dry-run or `EXPLAIN`; pull the runtime schema; diff against the editor representation |
+| System-interface surface | Performance / Error handling / Security | Issue the actual API call (production-equivalent or staging); capture the response payload, headers, status, and timing |
+
+Implementation-surface and source-driven evidence (unit test pass, build pass, lint pass) remains valid — it does not replace application-driven verification on the surfaces above; it complements it. Existing `evidence_plan[*].type` values (`screenshot_diff`, `interaction_recording`, `log_sample`, `metric_diff`, `api_proof`, `migration_dry_run`) are the manifest-side encoding of this discipline.
+
+### Capability categories required
+
+Application-driven verification is the cross-cutting concern that most depends on the runtime providing **non-read capabilities**:
+
+- **Browser / UI-render capability** — to materialize a user surface and capture the actual rendering. A runtime that lacks this capability cannot fully verify a user-surface change; the change must declare the gap as a residual risk in `evidence_plan` (or use a `waivers[]` entry per the manifest schema) rather than silently mark the check satisfied.
+- **Shell execution + network fetch capability** — to query the live log / metric / trace store, or to issue API calls to a staging or production-equivalent endpoint.
+- **Sub-agent delegation capability** — to spawn a specialised verifier (e.g. a UI-snapshot sub-agent) that performs the application-driven step and returns a pointer to the captured artifact (per [`skills/engineering-workflow/references/context-pack.md`](../skills/engineering-workflow/references/context-pack.md) §Return discipline — pointers, not transcripts).
+
+The mapping is described as capability category, not as a specific tool. Concrete browser / observability stacks per runtime live in the corresponding `docs/bridges/*-stack-bridge.md`.
+
+### Anti-patterns
+
+- *"I read the screenshot and it looks fine."* Without a before/after pair (or before/after states for a state change), a screenshot is decorative; the artifact must capture the change, not just the post-change state.
+- *"All unit tests pass, so the user-surface check is satisfied."* Unit tests are source-driven; user-surface evidence demands a render. Conflating them is what this discipline exists to detect.
+- *"The metric will fire in production; I confirmed the source emits it."* Source emission is necessary but not sufficient — the operational stack (collector, sample, retention, dashboard) intercepts the path. Pull the live metric.
+- *"The runtime cannot render UI, so I'll skip the user-surface evidence."* The change either declares the gap as a residual risk (and the Reviewer accepts the gap explicitly via `waivers[]`), or the change is escalated to a runtime that has the capability. Silent skip is the anti-pattern.
+
+### Phase hookup
+
+- **Phase 3 (Test plan):** for each cross-cutting check that maps to a user / operational / system-interface / information surface, declare which evidence is application-driven and which capability category produces it.
+- **Phase 4 (Implement):** capture the application-driven evidence at the moment the change works end-to-end, not retroactively from memory.
+- **Phase 5 (Review):** the Reviewer's sampling right (per [`docs/ai-operating-contract.md`](ai-operating-contract.md)) extends to re-running the application-driven step, not only re-reading the captured artifact.
+- **Phase 7 (Deliver):** application-driven evidence appears in `evidence_plan[*]` with `artifact_location` pointing at the captured screenshot / log slice / API trace / migration dry-run output — not at source.
+- **Phase 8 (Observe):** post-delivery observation per [`docs/post-delivery-observation.md`](post-delivery-observation.md) is application-driven by definition; the Phase 8 cadence (T+24h / T+72h / T+7d) is the application-driven verification's longitudinal extension.
+
+---
+
 ## How the six cross-cutting concerns interact
 
 They are not independent — improving one typically helps others:

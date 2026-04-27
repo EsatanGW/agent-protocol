@@ -48,8 +48,15 @@ Work serially when any of:
 | Fan-in synthesis performed by the canonical role | Parallel only | `parallelization-patterns.md` §Fan-in discipline |
 | Cross-cutting gap check at fan-in | Parallel only | `parallelization-patterns.md` §Cross-cutting gap check |
 | Fan-out recorded in `parallel_groups` | Parallel only | `schemas/change-manifest.schema.yaml` §parallel_groups |
+| Sub-agent return is pointers + ≤500-word summary + verdict, not full bodies | All patterns 1–6 | `../references/context-pack.md` §Return discipline — pointers, not transcripts |
 
 Silent omission of any row is a contract escape, not a shortcut.
+
+### Return format — pointers, not transcripts
+
+The last row of the discipline table is the most often violated and the cheapest to detect: a sub-agent that returns a 2 000-word write-up with pasted file bodies has either (a) been given a too-large scope, or (b) been allowed by the parent to use the slot as a free-form journal. Both are pack design failures, not sub-agent failures.
+
+The canonical-role's Task Prompt to the sub-agent must declare the return-slot shape from `references/context-pack.md` §Return discipline (≤500-word summary, `filepath:line` pointers not bodies, structured verdict, ≤5 citations per finding). The fan-in step must reject — not silently digest — returns that violate the shape. A return that violates the shape is the sub-agent answer to a different, larger question; the canonical role must either narrow the question or split the sub-agent invocation, not let the parent context absorb the over-large return.
 
 ## Pattern C — canonical-role multi-delegation (not sub-agent fan-out)
 

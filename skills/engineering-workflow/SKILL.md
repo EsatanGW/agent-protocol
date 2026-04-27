@@ -13,6 +13,37 @@ Before anything else, the universal operating contract for this plugin lives in 
 
 If this skill is loaded without `AGENTS.md` being read, read `AGENTS.md` first.
 
+## On-demand reading
+
+This skill follows progressive disclosure: only `SKILL.md` (this file) and the universal operating contract in `AGENTS.md` are read on every session. The deeper layers — phase guides, references, templates, examples — are read **on the trigger that needs them**, not eagerly. Eager loading is a context tax: every reference page that is not load-bearing for the current decision crowds out the task itself, and a manifest that crowds out the task is the failure mode that the §Manifest size ceiling discipline already names from the artifact side; the same logic applies to the skill layer.
+
+**Default reading set (always loaded).**
+
+- `AGENTS.md` (root) — universal operating contract.
+- `skills/engineering-workflow/SKILL.md` (this file) — execution layer.
+
+**Trigger-based reading (loaded when the trigger fires).**
+
+| Trigger | Read this |
+|---|---|
+| Entering Phase N | `phases/phaseN-<name>.md` |
+| Choosing the workflow mode for a non-trivial change | `references/mode-decision-tree.md` |
+| About to fan out non-canonical sub-agents (Pattern A/B) | `references/parallelization-patterns.md` + `references/context-pack.md` |
+| Phase 4 has 3+ file-disjoint clusters (Pattern C) | `references/cluster-parallelism.md` |
+| Resuming a session with a prior manifest | `references/resumption-protocol.md` + `references/lazy-resume-checklist.md` |
+| About to write an artifact | `templates/<artifact>-template.md` |
+| Stuck on a manifest field; need one worked example | `examples/change-manifest.example-<scenario>.yaml` |
+| Long-running sub-agent invocation | `references/long-running-delegation.md` |
+| Phase-overlap prep before prior gate passes | `references/phase-overlap-zones.md` |
+
+The Quick refresher list below is a **trigger index**, not a reading list — it names *where* to find each artifact when the trigger fires, not that all of them should be loaded simultaneously.
+
+**Anti-patterns this discipline rejects.**
+
+- *Eagerly reading all `references/` at session start "for context."* References are organised by trigger; pick the one whose trigger fires.
+- *Re-reading a phase guide in every reply within the same phase.* Read once at phase entry; it stays in working memory for the duration of the phase.
+- *Loading multiple worked examples for comparison shopping.* Pick one example whose scenario most closely matches; if comparison is genuinely necessary, load two — never the full directory.
+
 ## About this skill
 
 This skill is the execution layer built on top of the public method in `docs/`.

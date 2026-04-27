@@ -8,6 +8,75 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.30.0] - 2026-04-28
+
+Methodology alignment release adding fifteen disciplines that close the gap between agent-protocol and the *harness engineering* framing OpenAI published in 2026-02 ([https://openai.com/index/harness-engineering/](https://openai.com/index/harness-engineering/)). The release covers the twelve dimensions named in the awesome-harness-engineering taxonomy (agent loop, planning, context delivery & compaction, tool design, skills/MCP, permissions, memory, orchestration, verification & CI, observability, DX, HITL) — six previously absent or thin in this repository now have explicit normative homes; the others gain reference-level expansion and cross-citation. Every change is **tool-agnostic** per `CLAUDE.md §2`; the schema is unchanged.
+
+### Added
+
+- **`docs/repo-as-context-discipline.md` (new)** — *Repo as system of record.* Anything an agent cannot reach in-context effectively does not exist; external knowledge (chat, docs, verbal decisions) must be transcoded into repo-resident artifacts before it can govern agent behaviour. Three rules: repo as system of record, AGENTS.md as table of contents (not encyclopaedia), external knowledge is transcoded before it governs. Per-Phase enforcement points + anti-pattern list.
+
+- **`docs/mechanical-enforcement-discipline.md` (new)** — *Three axes of mechanical enforcement.* Architecture invariants (dependency direction, layer boundaries, file-size limits) → block-default. Taste invariants (log format, naming, comment style) → warn-default. Documentation freshness (a SoT edit comes with the doc edit; a CCKN does not silently expire) → mixed. Each axis maps to existing capability contracts (`runtime-hook-contract.md`, `automation-contract.md`, `ci-cd-integration-hooks.md`).
+
+- **`docs/anti-entropy-discipline.md` (new)** — *Continuous garbage collection.* Time-driven sweeps that find drift across the long tail (stale CCKNs, expired deprecation timelines, doc-reference rot, retired-manifest cites, mechanical-rule no-fire). Three rules: sweeping is read-only and proposal-shaped; sweeps are time-driven (Phase 8 is event-driven); sweeps stay scoped to one drift class. Optional quality-score formulation. Complements the edit-boundary mechanical enforcement and the delivery-event Phase 8 observation.
+
+- **`docs/tool-design-principles.md` (new)** — *Five tool-design principles.* Less is more (system-prompt budget); examples beat schemas (six concrete invocations beat one verbose argument table); error codes are stable (the 0/1/2 contract shared with hook + validator + CI surfaces); composability through narrowness (one verb per tool); context-budget honesty (a tool that returns 50 lines on a no-scope call is misdesigned).
+
+- **`docs/evidence-quality-per-type.md` (new)** — non-normative companion appendix to `change-manifest-spec.md`. Per-type artefact-shape and rejection-signal guidance for all 18 `evidence_plan[*].type` enum values. Cross-type rules (provenance, tier monotonicity, surface alignment, status truth) and anti-patterns (decorative evidence, stale evidence, coverage-by-counting, tier inflation/compression).
+
+- **`skills/engineering-workflow/references/back-pressure-loop.md` (new)** — non-normative reference walk-through showing how a Category-D completion-audit hook is shaped: silent on success, one short line per finding on failure. Pseudocode reference + per-path agent-context narrative + anti-patterns. Pairs with `runtime-hook-contract.md §Back-pressure pattern` (added below).
+
+### Changed
+
+- **`AGENTS.md` §File role map** — added `repo-as-context-discipline.md` to the `docs/*.md (other)` row's enumerated list so the new SoT-tier discipline file is registered alongside its peers.
+
+- **`docs/ai-project-memory.md`** — added §*Mapping to other memory taxonomies*. Mapping table from session/project/organizational + CCKN onto three external taxonomies (lifespan-based community shorthand: core/archival/recall; cognitive-science analogy: working/episodic/semantic; two-tier shorthand: short-term/long-term). Descriptive, not prescriptive — the three-tier + CCKN axes remain canonical.
+
+- **`docs/decision-trees.md`** — added *Tree D — When must a human review before action?* Five-branch routing aid for HITL escalation: risky-action list match → human review required; `breaking_change.level >= L2` → human approval on the manifest's `approvals` array; `rollback_mode = 3` → human approval on the rollback plan; auth/PII/secrets path → specialist review; canonical methodology content edit at L1+ → cross-identity Reviewer required. Resolves to existing schema fields (`escalations[*].trigger`, `approvals[*].approver_role`, `breaking_change.level`, `rollback_mode`); never invents a new escalation type.
+
+- **`docs/change-manifest-spec.md`** — added §*Compaction algorithm (compact-in-place expansion)* under the existing §*Manifest size ceiling*. Five-step algorithm with per-step stop conditions: inline collected evidence → reference; coalesce review_notes; archive old phase_log entries; lift to `part_of` split; verify the next-action view stays in the first ~50 lines. Anti-pattern list rejects truncating-without-archive and split-eagerly-to-dodge. Also added one-line pointer to the new `evidence-quality-per-type.md` from the `evidence_plan` field-spec section.
+
+- **`docs/cross-cutting-concerns.md`** — added §*Application-driven verification*. Sub-section governs what evidence is collected by *exercising the running application* (render the page, traverse the flow, query the live log/metric stream, pull the deployed artifact) versus by reading source. Per-surface table of which evidence type satisfies which cross-cutting concern application-driven; capability categories required (browser/UI render, shell+network, sub-agent delegation); anti-patterns and Phase hookups.
+
+- **`docs/multi-agent-handoff.md`** — added §*Capability gating by risk level* under the existing §*Tool-permission matrix*. Risk profile (`breaking_change.level` × `rollback_mode`) routes to additional gating beyond the baseline matrix: cross-identity Reviewer at L2; application-driven evidence at L2 mode-2; human approver + rollback dry-run at L3 mode-3; security-reviewer specialist when auth/PII; Pattern C (multi-Implementer) and dual-Reviewer at L4. Uses only existing schema fields; no new normative artefact types.
+
+- **`docs/runtime-hook-contract.md`** — added two extensions to the four-categories section: §*Risky-action interception list* (Category A extension; canonical for Tree D leaves — force-push, bulk delete, production-credential touch, production data-store write, money-movement, auth/PII/secret edit, major-version dependency bump, in-flight-manifest deletion); and §*Back-pressure pattern* (Category D extension; silent on success, one-line on failure; cross-references the new `back-pressure-loop.md` reference).
+
+- **`docs/automation-contract.md`** Tier 2 — added the *evidence provenance* check: every collected evidence row's `collected_at` is greater-or-equal to the manifest's earliest `last_updated`; embedded commit SHAs / version strings should be reachable from the change's commit history. Default severity: advisory; runtime bridges may opt to block.
+
+- **`docs/automation-contract-algorithm.md`** Layer 2 — added Rule 2.13 (*Evidence provenance*) implementing the contract addition above. The pseudocode covers `collected_at` missing, `collected_at` predating the manifest, and an optional bridge-implemented embedded-identifier reachability check.
+
+- **`skills/engineering-workflow/SKILL.md`** — added §*On-demand reading* (progressive disclosure) describing which artefact loads on every session (SKILL.md + AGENTS.md) versus which load on the trigger that needs them (phases / references / templates / examples). Trigger table + anti-patterns. Ties context budget to the existing manifest-size-ceiling discipline.
+
+- **`skills/engineering-workflow/references/context-pack.md`** — extended item 6 of §*What goes in* with §*Return discipline — pointers, not transcripts*: ≤500-word summary, `filepath:line` pointers not bodies, structured verdict, ≤5 citations per finding. Three new anti-pattern rows added to the existing anti-pattern table.
+
+- **`skills/engineering-workflow/phases/subagent-strategy.md`** — added one row to the §*Discipline summary* table (sub-agent return is pointers + ≤500-word summary + verdict, not full bodies) and a §*Return format — pointers, not transcripts* sub-section that defers to `context-pack.md` for the binding shape.
+
+- **`docs/README.md`** (4-tier index) — added new docs to their tiers: Tier 2 (`repo-as-context-discipline.md`, `mechanical-enforcement-discipline.md`, `tool-design-principles.md`); Tier 3 (`anti-entropy-discipline.md`); Tier 4 (`evidence-quality-per-type.md`). Updated the `runtime-hook-contract.md` row to reference the two new extensions.
+
+### Migration notes
+
+- **No schema changes.** Every new rule resolves onto fields already present in `schemas/change-manifest.schema.yaml`. Existing manifests validate without modification.
+- **No vendor / model / framework names introduced** — every new doc names capability categories, not specific tools, per `CLAUDE.md §2`. The `awesome-harness-engineering` taxonomy is cited as community shorthand, not as a binding adoption target.
+- **Tree D (HITL) is descriptive, not novel** — the leaf actions resolve to schema-existing escalation triggers and approval roles. Existing in-flight manifests are not retroactively non-conformant.
+- **Capability gating by risk** (multi-agent-handoff `§Capability gating by risk level`) is a *routing layer* over existing fields. Pre-1.30 manifests that did not name a risk-profile-derived gating do not retroactively fail; the gating applies forward.
+- **Evidence provenance check** (Rule 2.13) defaults to advisory severity. Pre-1.30 manifests that lack `collected_at` on collected rows surface as advisory findings, not blocking. Runtime bridges may opt to block by promoting the rule severity locally.
+- **AGENTS.md size note.** AGENTS.md is 311 lines after this release. The new repo-as-context-discipline names AGENTS.md "should be a table of contents, not an encyclopaedia"; the current size is descriptive of forward direction, not a regression. Inline content lifts to topic-specific docs ride with future minor versions; this release adds *one* line to AGENTS.md (a pointer to the new discipline file).
+
+### Why minor, not major
+
+Minor per `VERSIONING.md`: new normative content added (six new disciplines, two SoT extensions to multi-agent-handoff and automation-contract), no removals, no contract shape changes. Existing manifests, validators, hooks, and bridges remain conformant. Two rules add new normative claims (`docs/multi-agent-handoff.md §Capability gating by risk level`; `docs/automation-contract*.md` Rule 2.13) — both routed through existing schema fields and existing escalation enums; default-advisory severity preserves backward compatibility.
+
+### Tool-agnostic discipline
+
+Every new doc names capabilities by category (file read, code search, shell execution, sub-agent delegation, browser interaction) rather than by vendor. The OpenAI harness-engineering article is cited only in *Why this release* (this section); no specific tool, model, or product name is introduced into normative content. The `awesome-harness-engineering` taxonomy is one of three external taxonomies named in the new `ai-project-memory.md §Mapping` table, alongside cognitive-science working/episodic/semantic and two-tier short-term/long-term — no taxonomy is privileged.
+
+### Out of scope (deferred)
+
+- **Schema-side acceptance criteria for evidence types.** `evidence-quality-per-type.md` ships as a non-normative companion appendix; promoting any of its per-type checks into a schema field (`evidence_plan[*].acceptance: { ... }`) is a future minor.
+- **AGENTS.md content lift-out.** The repo-as-context-discipline names "AGENTS.md is a table of contents," but lifting `AGENTS.md` content into topic-specific docs is itself an L1+ canonical methodology edit and is deferred to a dedicated minor where it can ride with a single-purpose Change Manifest.
+- **Quality-score automation.** `anti-entropy-discipline.md §Quality score (optional, non-mandatory)` describes a possible scoring formula; automating its computation is left to runtime bridges, not this release.
+
 ## [1.29.1] - 2026-04-28
 
 Drift-cleanup patch closing five gaps surfaced by a post-1.29.0 audit. No new normative content; no schema changes; every fix converges to existing intent. Matches `VERSIONING.md` patch category — "wording clarifications" and "fixes" — with the same structural shape as 1.18.2 (CI hardening + drift fix in a patch release).

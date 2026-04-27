@@ -99,6 +99,69 @@ Every runtime hook must fit into exactly one of these four categories. A hook th
 
 ---
 
+## Risky-action interception list
+
+This list extends Category A (phase-gate). It enumerates classes of action that, when initiated by an agent, must be intercepted **before** the action lands — even if no manifest gate fires. The list is the methodology-level minimum; runtime bridges may extend it (a deployment runtime may add "production database migration"; a payments runtime may add "money-movement endpoint"). The list is canonical for Tree D (HITL escalation, [`docs/decision-trees.md`](decision-trees.md)) — every row a Tree D leaf may invoke is enumerated here.
+
+| Risky action class | What triggers it | Default behavior |
+|---|---|---|
+| Force-push or rewrite history on a protected branch | `git push --force` / `--force-with-lease` to `main` / `master` / `production` / `release` / any branch with branch protection | Block at hook; require explicit user confirmation. The reference implementation `hooks-claude-code/hooks/risky-bash-block.sh` covers the local case |
+| Bulk filesystem deletion | `rm -rf <path>` where `<path>` is the repo root, an ancestor of the repo root, or a directory > 100 files | Block at hook; require explicit user confirmation in stderr |
+| Production-credential touch | Read or write of a path matching `*production*credentials*`, `~/.aws/credentials`, `*.pem` outside `tests/`, or a runtime-declared secret store | Block at hook; the change must declare the credential touch in `evidence_plan` (or `waivers[]`) before the hook is allowed to pass |
+| Production data-store write | Direct `psql`, `mysql`, `mongo`, `redis-cli` etc. against a host whose hostname matches a production-host pattern | Block at hook; production writes must come from a reviewed deploy pipeline, not an agent's shell |
+| Money-movement / payment endpoint | Tool call whose target URL or tool name matches a payments-domain pattern declared by the runtime bridge | Block at hook; this row maps to Tree D's "Auth / PII / secrets" + the schema's `escalations[*].trigger: money_movement` |
+| Auth / PII / secret-path edit | File edit under a path declared as auth / PII / secrets in `docs/security-supply-chain-disciplines.md` | Block at hook; require Reviewer confirmation that the edit was reviewed by the security-reviewer specialist |
+| Major-version dependency bump that crosses a deprecation boundary | Lockfile diff that bumps a package across a major version | Warn at hook (exit 2); the change must register the bump in the manifest's `breaking_change` and / or `uncontrolled_interfaces[*].known_deprecation` before progressing past Phase 4 |
+| Deletion of an in-flight manifest or its evidence directory | `rm` / `git rm` on a path matching `*change-manifest*.yaml` or its declared `evidence_plan[*].artifact_location` directory | Block at hook; in-flight manifests are state snapshots, not disposable working files |
+
+**The two enforcement modes.**
+
+- **Mechanical block.** When the runtime supports `pre-tool-use` interception with stdin payload, a hook in `reference-implementations/hooks-<runtime>/hooks/risky-*.sh` returns exit 1 and the action does not land. This is the strong form.
+- **Prose-only refuse.** When the runtime cannot intercept a tool call (no hook surface, or the action is initiated outside the agent loop), the discipline degrades to a refusal in the agent's text output: the agent narrates that the action falls in the risky-action list, lists the row, and stops without taking the action. This is the weak form. It depends on the agent's compliance with [`AGENTS.md §Stop conditions`](../AGENTS.md), and is therefore enforceable only in the same way other prose-level rules are.
+
+**Anti-patterns.**
+
+- *Treating the list as exhaustive.* The list is the methodology minimum; production environments add their own. The runtime bridge owns its extensions. A blank extension list is a signal the bridge has not done the threat-modelling exercise, not that the runtime is risk-free.
+- *Asking the user to "type yes to confirm" for every block.* If the same risky action recurs every session, the underlying workflow is wrong — surface to the user and request a runbook, not a per-occurrence rubber-stamp.
+- *Silencing the block by editing the hook.* The hook is the enforcement; if it fails wrongly on a legitimate path (e.g. a `production` substring in a non-production directory name), the fix is a more precise pattern, not deletion.
+
+---
+
+## Back-pressure pattern
+
+This pattern extends Category D (completion-audit). It addresses the most common failure mode of on-stop hooks: hooks that print "all checks passed" after every turn produce a noisy, low-information log that the agent and the user both stop reading; the next time a real failure fires, it is buried in the same template. Back-pressure inverts the default — hooks are **silent on success and surfaced on failure**.
+
+### The principle
+
+A Category D hook's job is to *push back* on a premature "I'm done" claim. When there is nothing to push back on, the hook produces no output. When a real check fails, the hook surfaces a short, specific failure message and exits non-zero. The agent re-enters its loop with the failure as the next fact, and re-attempts; the user sees a single failure message rather than a wall of "ok / ok / ok / failure / ok."
+
+### Concrete shape
+
+A back-pressure-shaped on-stop hook:
+
+- **Exit 0 silent.** No `stdout`, no `stderr`. The runtime treats this as the default; the user never sees a turn-end "all good" message.
+- **Exit 1 / 2 surfaces a one-line cause.** `stderr` carries one short sentence: what failed, where, and a pointer to fix. No "running checks…" preamble; no recap of which checks passed.
+- **Cumulative latency stays under the Category D budget.** Multiple back-pressure hooks chained together must sum to less than the section's latency budget; if they exceed, fold them into one hook or split off the slowest into Category C (drift, warn-only).
+
+### Why this matters
+
+The signal-to-noise ratio of a turn-end log is what determines whether the agent's next turn re-reads it. A hook that prints anything on success poisons the channel: the agent learns the channel is for chatter, and treats real failures the same way. A hook that prints only on failure stays meaningful — the failure is the entire signal.
+
+This is the runtime-side counterpart of [`docs/output-craft-discipline.md`](output-craft-discipline.md): every element of agent-visible output must earn its place. Hook output is no exception.
+
+### Anti-patterns the pattern rejects
+
+- *Printing "all 12 checks passed" at every turn end.* The agent stops reading the channel; the next real failure is buried.
+- *Echoing each check's name even on success.* "Running drift check… ok. Running evidence check… ok." The 9 lines tell the agent nothing it did not already assume.
+- *Surfacing a 30-line stack trace from a failed check.* The agent's context is now full of trace; the next-turn cause-of-failure summary is overshadowed. Exit non-zero with a one-line cause; put the trace in a side-channel artifact (file under the working space, per `docs/phase-gate-discipline.md` Rule 5a) and reference it by path.
+- *Treating exit 2 as "definitely OK."* Exit 2 is a warn — the user should still see the cause once. The pattern is "silent on 0; one line on 2; one line on 1," not "silent on anything below failure."
+
+### Reference
+
+A worked walk-through of building a back-pressure-shaped completion-audit hook lives in [`skills/engineering-workflow/references/back-pressure-loop.md`](../skills/engineering-workflow/references/back-pressure-loop.md). The reference is non-normative; the contract above is the binding shape.
+
+---
+
 ## I/O contract
 
 Hooks must accept a JSON event on stdin and emit a structured result. The schema below is the minimum; runtimes may extend it additively.

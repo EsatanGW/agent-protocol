@@ -135,6 +135,81 @@ START
 
 ---
 
+## Tree D — When must a human review before action?
+
+**Use this when:** an Implementer or Reviewer is about to take an action and needs to know whether the agent may proceed alone, or whether a human reviewer must be looped in *before* the action lands. Walk top-to-bottom; the first matching row decides.
+
+```
+START — about to perform an action / approve a manifest field
+  │
+  ├─ Is the action on the runtime's risky-action list?
+  │  (force-push to a protected branch; rm -rf or equivalent
+  │   bulk delete; production-credential touch; production
+  │   data-store write; money/payment endpoint; auth / PII /
+  │   secret path; dependency major-version bump that crosses
+  │   a deprecation boundary; deletion of an in-flight manifest)
+  │   ─── YES ──▶ HUMAN REVIEW REQUIRED before the action.
+  │                Stop, surface the action + blast radius, wait.
+  │                Source: AGENTS.md §Stop conditions
+  │                        + docs/security-supply-chain-disciplines.md
+  │                        (auth/PII rows)
+  │
+  ├─ Is the change's breaking_change.level ≥ L2
+  │  (Structural / Removal / Semantic Reversal)?
+  │   ─── YES ──▶ HUMAN APPROVAL on the manifest's `approvals`
+  │                array required before Phase 7 sign-off.
+  │                Reviewer alone may NOT approve L3+ removal
+  │                or L4 semantic reversal — at least one
+  │                approver_role must be human.
+  │                Source: docs/breaking-change-framework.md
+  │                        §Severity ladder + §Migration path
+  │
+  ├─ Is the change's rollback_mode = 3 (Compensation)?
+  │   ─── YES ──▶ HUMAN APPROVAL on the rollback plan
+  │                required — compensation paths cannot be
+  │                rolled back by reverting the commit.
+  │                Source: docs/rollback-asymmetry.md
+  │                        §Mode 3 — Compensation
+  │
+  ├─ Does the change touch the auth / PII / secrets path,
+  │  OR introduce a new external trust boundary?
+  │   ─── YES ──▶ Specialist review (security-reviewer
+  │                sub-agent if the runtime supports it; otherwise
+  │                a separate human) required before Phase 5
+  │                sign-off. Reviewer's sampling right also extends
+  │                to re-running the security check.
+  │                Source: docs/security-supply-chain-disciplines.md
+  │
+  ├─ Is the change a canonical methodology content edit
+  │  at L1+ in this repository
+  │  (modifies an existing normative claim, adds a new
+  │   normative rule to a SoT file, or renames a
+  │   cross-cutting term)?
+  │   ─── YES ──▶ Reviewer must be a different identity from the
+  │                Implementer (anti-collusion remains the
+  │                hard rule). Tree A already forced Full;
+  │                Tree D adds: Reviewer must be human-in-the-loop
+  │                or a fresh session whose context window does
+  │                not overlap the Implementer's.
+  │                Source: CLAUDE.md §5 + docs/multi-agent-handoff.md
+  │                        §Single-agent anti-collusion rule
+  │
+  └─ None of the above?
+      ─── YES ──▶ Agent may proceed under the standard role
+                  envelope. Reviewer audit at Phase 5 / sign-off
+                  at Phase 6 still applies; no extra HITL gate.
+```
+
+**Canonical source.** Tree D is a *routing aid* that condenses rules already binding in the cited sources. The leaf actions resolve to fields and triggers already declared in the manifest schema (`escalations[*].trigger`, `approvals[*].approver_role`, `breaking_change.level`, `rollback_mode`); Tree D never invents a new escalation type. If a situation does not match any row, treat it as an unknown action — escalate per [`AGENTS.md §Stop conditions`](../AGENTS.md) rather than guess.
+
+**Common pitfalls.**
+
+- *Treating Tree D as exhaustive.* Tree D covers the recurring HITL triggers; runtime-specific risky-action lists may be longer (a deployment runtime may add "production database migration" or "API gateway rule change"). The runtime bridge owns those extensions; this tree owns the methodology-level minimum.
+- *Collapsing approver_role into "Reviewer".* When a row says "human approval", the manifest's `approvals[*].approver_role` must literally be `human` (or a runtime-mapped equivalent), not the canonical `Reviewer` identity which may itself be an AI session. The two columns answer different questions.
+- *Skipping Tree D because Tree A already chose Full.* Tree A decides the *artifact* (manifest vs lean vs three-line); Tree D decides *who must look at it before action*. A Full-mode change can still be entirely agent-executed if no Tree D row matches; conversely, a Lean-mode change can require human approval if it touches the auth/PII path.
+
+---
+
 ## Where this page sits
 
 This file is the **routing hub** that consolidates pointers between the three decision-aids that previously cross-cited each other:

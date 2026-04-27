@@ -49,9 +49,20 @@ The pack is pre-distilled **for this change**, not a general methodology dump. T
 3. **Surfaces in scope.** Which of the four (or extension) surfaces are relevant to the fan-out and which sub-agent is responsible for which. No sub-agent should be able to read the pack and be unsure of its own scope.
 4. **Terminology snapshot.** Only the glossary terms actually in play for this change, copied into the pack so sub-agents do not re-fetch `docs/glossary.md`. Typically under 10 terms.
 5. **Hard boundaries.** What each sub-agent must **not** do — e.g. "*do not cross into surface Y*", "*return findings only, do not write manifest fields*", "*do not spawn further sub-agents*". Explicit boundaries compensate for the sub-agent's limited view.
-6. **Return slot shape.** The structured shape the sub-agent's findings must conform to. Typically a small YAML stub (3-8 fields). Pre-declaring the shape is what makes fan-in mechanical.
+6. **Return slot shape.** The structured shape the sub-agent's findings must conform to. Typically a small YAML stub (3-8 fields). Pre-declaring the shape is what makes fan-in mechanical. The shape must encode the return discipline below — returns are *pointers*, not transcripts.
 
 A pack missing any of items 3, 5, or 6 is under-specified and will produce inconsistent sub-agent returns.
+
+### Return discipline — pointers, not transcripts
+
+The Return-slot shape (item 6 above) is what makes fan-in mechanical, but only if the slot also bounds *what kind of content* the sub-agent puts in it. Sub-agent returns that contain full file bodies, long stack traces, or pasted command output defeat fan-out economics: the parent role's context now carries the same content the sub-agent was meant to digest, the parallel-cache benefit is lost, and the canonical role has to re-distill the return before acting. The pack therefore declares — and the parent enforces at fan-in — these shape rules:
+
+- **Summary ≤ 500 words.** A free-form prose field (or fields) totalling under 500 words. If a sub-agent's finding genuinely needs more, it has a scope problem (Pattern A/B sub-agents are bounded; if scope is too large, decompose further) — not a length-limit problem.
+- **Pointers, not bodies.** When the sub-agent identifies relevant code, refer to it by `filepath:line` (or `filepath:start-end`); do not paste the body. The parent reads the pointer if it needs the body. The same applies to log slices, command output, and prior-conversation excerpts.
+- **Verdict field.** A small structured judgement (`pass | fail | escalate | unknown` or pattern-classification per row) so the canonical role can fan-in mechanically without re-reading every summary.
+- **Citations bounded.** ≤ 5 `filepath:line` pointers per finding; if the finding needs more, the finding is too broad — split it.
+
+Returns that violate these constraints fail the §Anti-patterns table row "Pack missing return-slot shape" — except now the failure mode is on the *output* side, not the input side. Parents that accept oversized returns silently are themselves committing a context-pack anti-pattern.
 
 ---
 
@@ -110,5 +121,7 @@ See `skills/engineering-workflow/templates/context-pack-template.md` for a filla
 | Pack edited after the first sub-agent received it | Inconsistent sub-agent contexts; fan-in will show undiagnosable contradictions |
 | Pack contains the full Change Manifest | Sub-agent overreach enabled; fan-out is now effectively self-assigning manifest-writing work |
 | Pack missing return-slot shape | Free-form sub-agent returns; fan-in becomes free-form synthesis; cross-cutting gap check gets skipped |
+| Sub-agent return contains pasted file bodies / long stack traces | Parent context now carries content the sub-agent was meant to digest; parallel-cache benefit is lost; re-distill required (see §Return discipline above) |
+| Sub-agent return summary > 500 words | Scope of the sub-agent is too large; decompose further rather than relax the cap |
 | Pack re-used across phases (Planner's pack reused by Reviewer) | Cross-role context bleed; anti-collusion risk |
 | Pack cited as evidence | Category error — the pack is a working-space optimization, not a verification artifact |

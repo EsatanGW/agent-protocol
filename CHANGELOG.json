@@ -1,6 +1,139 @@
 {
   "releases": [
     {
+      "version": "1.30.0",
+      "date": "2026-04-28",
+      "sections": {
+        "added": [
+          {
+            "title": "`docs/repo-as-context-discipline.md` (new)",
+            "body": "Repo as system of record. Anything an agent cannot reach in-context effectively does not exist; external knowledge (chat, docs, verbal decisions) must be transcoded into repo-resident artifacts before it can govern agent behaviour. Three rules: repo as system of record, AGENTS.md as table of contents (not encyclopaedia), external knowledge is transcoded before it governs. Per-Phase enforcement points + anti-pattern list."
+          },
+          {
+            "title": "`docs/mechanical-enforcement-discipline.md` (new)",
+            "body": "Three axes of mechanical enforcement. Architecture invariants (dependency direction, layer boundaries, file-size limits) → block-default. Taste invariants (log format, naming, comment style) → warn-default. Documentation freshness (a SoT edit comes with the doc edit; a CCKN does not silently expire) → mixed. Each axis maps to existing capability contracts (`runtime-hook-contract.md`, `automation-contract.md`, `ci-cd-integration-hooks.md`)."
+          },
+          {
+            "title": "`docs/anti-entropy-discipline.md` (new)",
+            "body": "Continuous garbage collection. Time-driven sweeps that find drift across the long tail (stale CCKNs, expired deprecation timelines, doc-reference rot, retired-manifest cites, mechanical-rule no-fire). Three rules: sweeping is read-only and proposal-shaped; sweeps are time-driven (Phase 8 is event-driven); sweeps stay scoped to one drift class. Optional quality-score formulation. Complements the edit-boundary mechanical enforcement and the delivery-event Phase 8 observation."
+          },
+          {
+            "title": "`docs/tool-design-principles.md` (new)",
+            "body": "Five tool-design principles. Less is more (system-prompt budget); examples beat schemas (six concrete invocations beat one verbose argument table); error codes are stable (the 0/1/2 contract shared with hook + validator + CI surfaces); composability through narrowness (one verb per tool); context-budget honesty (a tool that returns 50 lines on a no-scope call is misdesigned)."
+          },
+          {
+            "title": "`docs/evidence-quality-per-type.md` (new)",
+            "body": "Non-normative companion appendix to `change-manifest-spec.md`. Per-type artefact-shape and rejection-signal guidance for all 18 `evidence_plan[*].type` enum values. Cross-type rules (provenance, tier monotonicity, surface alignment, status truth) and anti-patterns (decorative evidence, stale evidence, coverage-by-counting, tier inflation/compression)."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/back-pressure-loop.md` (new)",
+            "body": "Non-normative reference walk-through showing how a Category-D completion-audit hook is shaped: silent on success, one short line per finding on failure. Pseudocode reference + per-path agent-context narrative + anti-patterns. Pairs with `runtime-hook-contract.md` §Back-pressure pattern."
+          }
+        ],
+        "changed": [
+          {
+            "title": "`AGENTS.md` §File role map",
+            "body": "added `repo-as-context-discipline.md` to the `docs/*.md (other)` row's enumerated list so the new SoT-tier discipline file is registered alongside its peers."
+          },
+          {
+            "title": "`docs/ai-project-memory.md`",
+            "body": "added §Mapping to other memory taxonomies. Mapping table from session/project/organizational + CCKN onto three external taxonomies (lifespan-based community shorthand: core/archival/recall; cognitive-science analogy: working/episodic/semantic; two-tier shorthand: short-term/long-term). Descriptive, not prescriptive — the three-tier + CCKN axes remain canonical."
+          },
+          {
+            "title": "`docs/decision-trees.md`",
+            "body": "added Tree D — When must a human review before action? Five-branch routing aid for HITL escalation. Resolves to existing schema fields (`escalations[*].trigger`, `approvals[*].approver_role`, `breaking_change.level`, `rollback_mode`); never invents a new escalation type."
+          },
+          {
+            "title": "`docs/change-manifest-spec.md`",
+            "body": "added §Compaction algorithm (compact-in-place expansion) under the existing §Manifest size ceiling. Five-step algorithm with per-step stop conditions. Anti-pattern list rejects truncating-without-archive and split-eagerly-to-dodge. Also added one-line pointer to the new `evidence-quality-per-type.md` from the `evidence_plan` field-spec section."
+          },
+          {
+            "title": "`docs/cross-cutting-concerns.md`",
+            "body": "added §Application-driven verification. Sub-section governs what evidence is collected by exercising the running application versus by reading source. Per-surface table; capability categories required (browser/UI render, shell+network, sub-agent delegation); anti-patterns and Phase hookups."
+          },
+          {
+            "title": "`docs/multi-agent-handoff.md`",
+            "body": "added §Capability gating by risk level under the existing §Tool-permission matrix. Risk profile (`breaking_change.level` × `rollback_mode`) routes to additional gating beyond the baseline matrix: cross-identity Reviewer at L2; application-driven evidence at L2 mode-2; human approver + rollback dry-run at L3 mode-3; security-reviewer specialist when auth/PII; Pattern C (multi-Implementer) and dual-Reviewer at L4. Uses only existing schema fields; no new normative artefact types."
+          },
+          {
+            "title": "`docs/runtime-hook-contract.md`",
+            "body": "added two extensions to the four-categories section: §Risky-action interception list (Category A extension; canonical for Tree D leaves) and §Back-pressure pattern (Category D extension; silent on success, one-line on failure)."
+          },
+          {
+            "title": "`docs/automation-contract.md` Tier 2",
+            "body": "added the evidence provenance check: every collected evidence row's `collected_at` is greater-or-equal to the manifest's earliest `last_updated`; embedded commit SHAs / version strings should be reachable from the change's commit history. Default severity: advisory; runtime bridges may opt to block."
+          },
+          {
+            "title": "`docs/automation-contract-algorithm.md` Layer 2",
+            "body": "added Rule 2.13 (Evidence provenance) implementing the contract addition above. The pseudocode covers `collected_at` missing, `collected_at` predating the manifest, and an optional bridge-implemented embedded-identifier reachability check."
+          },
+          {
+            "title": "`skills/engineering-workflow/SKILL.md`",
+            "body": "added §On-demand reading (progressive disclosure) describing which artefact loads on every session (SKILL.md + AGENTS.md) versus which load on the trigger that needs them (phases / references / templates / examples). Trigger table + anti-patterns. Ties context budget to the existing manifest-size-ceiling discipline."
+          },
+          {
+            "title": "`skills/engineering-workflow/references/context-pack.md`",
+            "body": "extended item 6 of §What goes in with §Return discipline — pointers, not transcripts: ≤500-word summary, `filepath:line` pointers not bodies, structured verdict, ≤5 citations per finding. Three new anti-pattern rows added to the existing anti-pattern table."
+          },
+          {
+            "title": "`skills/engineering-workflow/phases/subagent-strategy.md`",
+            "body": "added one row to the §Discipline summary table (sub-agent return is pointers + ≤500-word summary + verdict, not full bodies) and a §Return format — pointers, not transcripts sub-section that defers to `context-pack.md` for the binding shape."
+          },
+          {
+            "title": "`docs/README.md` (4-tier index)",
+            "body": "added new docs to their tiers: Tier 2 (`repo-as-context-discipline.md`, `mechanical-enforcement-discipline.md`, `tool-design-principles.md`); Tier 3 (`anti-entropy-discipline.md`); Tier 4 (`evidence-quality-per-type.md`). Updated the `runtime-hook-contract.md` row to reference the two new extensions."
+          }
+        ],
+        "notes": [
+          {
+            "title": "No schema changes",
+            "body": "Every new rule resolves onto fields already present in `schemas/change-manifest.schema.yaml`. Existing manifests validate without modification.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "No vendor / model / framework names introduced",
+            "body": "every new doc names capability categories, not specific tools, per `CLAUDE.md §2`. The `awesome-harness-engineering` taxonomy is cited as community shorthand, not as a binding adoption target.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Tree D (HITL) is descriptive, not novel",
+            "body": "the leaf actions resolve to schema-existing escalation triggers and approval roles. Existing in-flight manifests are not retroactively non-conformant.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Capability gating by risk",
+            "body": "(multi-agent-handoff §Capability gating by risk level) is a routing layer over existing fields. Pre-1.30 manifests that did not name a risk-profile-derived gating do not retroactively fail; the gating applies forward.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Evidence provenance check (Rule 2.13)",
+            "body": "defaults to advisory severity. Pre-1.30 manifests that lack `collected_at` on collected rows surface as advisory findings, not blocking. Runtime bridges may opt to block by promoting the rule severity locally.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "AGENTS.md size note",
+            "body": "AGENTS.md is 311 lines after this release. The new repo-as-context-discipline names AGENTS.md should be a table of contents, not an encyclopaedia; the current size is descriptive of forward direction, not a regression. This release adds one line to AGENTS.md (a pointer to the new discipline file).",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Schema-side acceptance criteria for evidence types",
+            "body": "`evidence-quality-per-type.md` ships as a non-normative companion appendix; promoting any of its per-type checks into a schema field (`evidence_plan[*].acceptance: { ... }`) is a future minor.",
+            "subsection": "out of scope (deferred)"
+          },
+          {
+            "title": "AGENTS.md content lift-out",
+            "body": "the repo-as-context-discipline names AGENTS.md is a table of contents, but lifting `AGENTS.md` content into topic-specific docs is itself an L1+ canonical methodology edit and is deferred to a dedicated minor where it can ride with a single-purpose Change Manifest.",
+            "subsection": "out of scope (deferred)"
+          },
+          {
+            "title": "Quality-score automation",
+            "body": "`anti-entropy-discipline.md` §Quality score (optional, non-mandatory) describes a possible scoring formula; automating its computation is left to runtime bridges, not this release.",
+            "subsection": "out of scope (deferred)"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.29.1",
       "date": "2026-04-28",
       "sections": {

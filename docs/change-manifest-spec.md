@@ -93,6 +93,36 @@ When a manifest approaches the ceiling, the remedies — in order of preference:
 
 If a handoff prompt instructs the incoming session to "grep for X in the manifest" or "read lines N–M of the manifest," the manifest is the problem and the prompt is compensating. Compact the manifest first; do not accept the instruction.
 
+### Compaction algorithm (compact-in-place expansion)
+
+When §Manifest size ceiling remedy 1 (*Compact in place*) is the chosen path, run the following five steps in order. Each step has a stop condition: if the manifest is back below the 1500-line advisory threshold after any step, stop and skip the rest. The algorithm preserves the §State-snapshot discipline guarantees (resume-time pointer block readable in the first ~50 lines; `phase` / `status` / `next_action` always at the top).
+
+**Step 1 — Inline collected evidence becomes a reference.**
+Evidence entries with `status: collected` and a non-empty `artifact_location` no longer need their inline `summary` body inside the manifest — the artifact is now the source. Compact each `evidence_plan[*]` entry whose status is `collected` from `{description, summary, …, artifact_location}` to `{description, artifact_location, collected_at}`. Free-form summaries are dropped; if the summary contained a non-trivial finding, promote it to `implementation_notes[]` or `review_notes[]` (not back into evidence).
+*Stop condition:* below 1500 lines.
+
+**Step 2 — Coalesce review notes.**
+`review_notes[]` accumulated across send-back cycles often duplicate each other. Merge entries that share the same `phase` / `surface` / `concern` into one entry with a merged `resolution`. Keep the original `created_at` of the earliest entry; record the merge in `phase_log` for traceability.
+*Stop condition:* below 1500 lines.
+
+**Step 3 — Archive old phase_log entries.**
+`phase_log` for closed phases (current `phase` ≥ N+2) is historical; the resumption protocol does not need it for next-action computation. Move closed-phase entries to a sibling file under the project memory layout (§Recommended on-disk layout in [`docs/ai-project-memory.md`](ai-project-memory.md)) and replace the in-manifest entries with a single `archived_to` pointer. Do not silently delete; archived entries remain readable for audit.
+*Stop condition:* below 1500 lines.
+
+**Step 4 — Lift to a `part_of` split.**
+If Steps 1–3 did not bring the manifest below 1500 lines, the change is genuinely too large for one manifest. Apply remedy 2 (Split via `part_of`) per the section above. The umbrella keeps the cross-cutting fields (`change_id`, `phase`, `status`, `surfaces_touched`, `breaking_change`, `rollback`); each child gets the stage-specific `evidence_plan[]`, `implementation_notes[]`, and `review_notes[]`.
+*Stop condition:* every manifest in the resulting set is below 1500 lines individually.
+
+**Step 5 — Verify the next-action view.**
+After Steps 1–4, re-read the manifest from the top and confirm that the resume-time pointer block (`change_id`, `phase`, `status`, `last_updated`, `next_action`, `outstanding_escalations`, `≤ 3 read paths`) all appear within the first ~50 lines. If compaction has pushed any of those fields below the 50-line cut, restructure: those fields are the §State-snapshot discipline contract and may not be displaced by `evidence_plan[]` or `phase_log[]` no matter how short the latter become.
+*Stop condition:* the resume-time pointer block is in the first ~50 lines.
+
+**Anti-patterns the algorithm rejects.**
+
+- *Truncating evidence summaries without recording where the finding went.* If Step 1 drops a summary that contained a non-trivial fact, that fact must land in `implementation_notes[]` / `review_notes[]` — silent loss is a state-snapshot violation.
+- *Silent deletion of `phase_log` rows.* Step 3 requires an `archived_to` pointer; deletion without archive forfeits Reviewer's sampling right (the audit can no longer reconstruct what happened in the closed phase).
+- *Splitting eagerly to avoid the algorithm.* Step 4 (split via `part_of`) is the *last* compaction option, not the first. A split that follows from genuine size pressure is honest; a split that exists to dodge Steps 1–3 fragments the change manifest into multiple under-filled state snapshots — the opposite of what the size ceiling exists to prevent.
+
 ---
 
 ## Top-level field semantics
@@ -346,7 +376,7 @@ Record the mode per surface so the reviewer can see the least-reversible face.
 
 ## `evidence_plan` — Phase-6 sign-off evidence
 
-Maps to `docs/ai-operating-contract.md` §3.
+Maps to `docs/ai-operating-contract.md` §3. Per-type artefact-shape and rejection-signal guidance: [`docs/evidence-quality-per-type.md`](evidence-quality-per-type.md) — non-normative companion appendix covering all 18 type enum values; this spec retains canonical authority over the enum and tier semantics.
 
 Each evidence entry:
 

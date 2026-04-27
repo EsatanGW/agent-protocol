@@ -203,6 +203,38 @@ function check_layer_2(manifest, repo_root):
             detail: "manifest is " + manifest_lines + " lines; approaching ceiling at 2000. Consider compacting structured note fields or splitting via part_of before the next session boundary."
         })
 
+    # 2.13 Evidence provenance — collected evidence must come from this change.
+    #      A row marked status=collected whose collected_at predates the
+    #      manifest's last_updated, or whose embedded commit identifier
+    #      resolves to a commit unrelated to this change, is an advisory
+    #      finding (Tier 2) by default. Runtime bridges may opt to block.
+    #      The intent is to detect copy-paste of stale evidence (e.g. a
+    #      previous change's test report attached as evidence for the
+    #      current change). See docs/evidence-quality-per-type.md
+    #      §Cross-type rules / Provenance + docs/automation-contract.md
+    #      Tier 2 §Evidence provenance.
+    for ev in manifest.evidence_plan:
+        if ev.status != "collected":
+            continue
+        if ev.collected_at is None:
+            errors.append({
+                rule: "evidence.provenance.collected_at_missing",
+                severity: "advisory",
+                detail: "evidence row marked status=collected but no collected_at timestamp; provenance check cannot run"
+            })
+            continue
+        if ev.collected_at < manifest.created_at_or_earliest_last_updated:
+            errors.append({
+                rule: "evidence.provenance.timestamp_predates_manifest",
+                severity: "advisory",
+                detail: "evidence collected_at (" + ev.collected_at + ") predates the manifest's earliest last_updated; the artefact may not be evidence of this change. Re-collect or attach a waiver explaining."
+            })
+        # Optional: if the runtime bridge can resolve the artifact's embedded
+        # commit SHA / version / CI run ID, verify that identifier is reachable
+        # from the change's commit history. The cost / availability of this
+        # check is bridge-specific; the algorithm states the rule, the bridge
+        # implements as much as the runtime supports.
+
     return errors
 ```
 
