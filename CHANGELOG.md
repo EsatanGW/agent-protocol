@@ -6,6 +6,8 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-04-27
+
 This release adds two new universal AI-agent disciplines — **Agent persona discipline** (§9) and **Output craft discipline** (§10) — to `AGENTS.md §Core operating contract`, expanding the operating contract from 8 rules to 10. Forced-Full per `mode-decision-tree.md §Canonical methodology content edit (L1+)` (adding new normative rules to the SoT operating contract).
 
 ### Added — canonical content
