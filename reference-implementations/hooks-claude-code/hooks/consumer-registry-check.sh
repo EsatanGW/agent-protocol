@@ -43,16 +43,15 @@ timeout_s="${AGENT_PROTOCOL_NET_TIMEOUT:-5}"
 warns=$(yq -r '.. | select(has("external_registry_url")) | .external_registry_url' "$MANIFEST_PATH" 2>/dev/null \
   | grep -v '^$' \
   | while IFS= read -r url; do
-      case "$url" in
-        http://*|https://*) ;;
-        *)
-          # Informational: non-HTTP URL is skipped, but it does NOT count as a
-          # warning. Send straight to the real stderr so it bypasses the
-          # captured-stdout warning channel.
-          printf '[agent-protocol/drift.consumer-registry-stale] non-HTTP consumer URL skipped: %s\n' "$url" >&2
-          continue
-          ;;
-      esac
+      # Skip non-HTTP URLs with an informational note. `case` inside `$(...|while...)`
+      # trips a bash 3.2 parser bug on `;;`, so we use a prefix test instead.
+      if [ "${url#http://}" = "$url" ] && [ "${url#https://}" = "$url" ]; then
+        # Informational: non-HTTP URL is skipped, but it does NOT count as a
+        # warning. Send straight to the real stderr so it bypasses the
+        # captured-stdout warning channel.
+        printf '[agent-protocol/drift.consumer-registry-stale] non-HTTP consumer URL skipped: %s\n' "$url" >&2
+        continue
+      fi
 
       if curl -fsS --max-time "$timeout_s" -o /dev/null "$url" 2>/dev/null; then
         continue
