@@ -85,6 +85,27 @@ The same agent can play different roles in different phases; a human can play an
 - `rollback.mode`.
 - `evidence_plan` (categories enumerated; paths not yet required).
 
+#### Task Prompt structure
+
+Alongside the manifest front-half, the Planner produces a **Task Prompt** for the Implementer — the working brief that scopes the Implementer's work. The Task Prompt is referenced by §Pre-handoff self-check (acceptance-criterion coverage Q1 / Q2), §Tool-permission matrix (the Planner's non-code output), and §Optional machine-readable pre-filter (the source of acceptance criteria the pre-filter checks against). It is **not** a handoff prompt — handoff prompts are session-to-session pointer blocks (≤400 / 800 words, see `docs/glossary.md` §Resume prompt); a Task Prompt is the working brief between two roles in the same change and may be longer when each column carries content the Implementer cannot derive from the manifest alone.
+
+A Task Prompt has **six required columns**:
+
+| Column | Content |
+|---|---|
+| **goal** | The intended effect on the system, in one paragraph, in terms of behavior change — not file edits. The Implementer needs intent, not a checklist; intent disambiguates judgment calls the manifest cannot. |
+| **scope** | What is in / out of scope, named explicitly. For Pattern C clusters this is the cluster's `scope_files`; for non-cluster changes it names the surfaces the Implementer touches and the ones it must leave alone. |
+| **input** | Where the Implementer reads from to start: manifest path, plan / test-plan paths if Full mode, prior-session context to read in full. Makes §Read-in vs write obligations §Downstream agent's minimum actions on handoff mechanically applicable. |
+| **expected output** | The deliverables: code diff scope, evidence artifacts (categories from `evidence_plan`, paths to be filled by the Implementer), `implementation_notes` types likely to apply. |
+| **acceptance criteria** | Numbered, individually-checkable statements verifiable against a `file:line` and an evidence artifact. §Pre-handoff self-check Q1 / Q2 cite these directly. A criterion that cannot be cited against `file:line` + evidence is unverifiable — return upstream rather than write a vague AC. |
+| **boundaries** | The Implementer's hard "do not do" list: don't write outside `scope_files`; don't change `breaking_change.level`; on Discovery-loop trigger, halt and return. The §Conflict resolution Tier-2 escalation exit valve is named here at spawn time, not discovered late. |
+
+The Task Prompt is **the Planner's output**, not a manifest field. It travels alongside the manifest at spawn time — the sub-agent spawn message in runtimes with sub-agents; the human-paste prompt in runtimes without. It is not a stored artifact unless a project chooses to persist it for audit; the manifest is the durable record.
+
+**Pattern C extension** (Full mode, multi-cluster Implementers): each cluster's Task Prompt adds `cluster_id`, `scope_files` (authoritative write boundary), `task_refs`, `evidence_refs`, the cluster-distinct `assigned_identity`, and the cluster-specific Discovery-loop-halt rule on top of the six columns. Full authority: `skills/engineering-workflow/references/cluster-parallelism.md §2`.
+
+**Mode application.** In Lean mode the six columns collapse into the Lean-spec note's task + boundaries sections — the columns are still answered, just compactly. In Zero-ceremony mode the Planner ≡ Implementer collapse makes the Task Prompt implicit (the agent briefs itself); the columns remain the disciplined questions to answer before starting.
+
 ### Implementer
 
 **Responsibilities:**

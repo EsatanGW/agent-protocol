@@ -72,13 +72,13 @@ The Planner writes `implementation_clusters` per `schemas/change-manifest.schema
 
 ### 2. Planner spawns all Implementers in one batch
 
-Single-batch spawn is required per the cache-window rule. Each Implementer is a **full canonical Implementer** with full Implementer tool envelope (read, write, shell). The Task Prompt per cluster contains:
+Single-batch spawn is required per the cache-window rule. Each Implementer is a **full canonical Implementer** with full Implementer tool envelope (read, write, shell). The Task Prompt per cluster carries the canonical six columns (goal / scope / input / expected output / acceptance criteria / boundaries — see `docs/multi-agent-handoff.md` §Task Prompt structure) plus the Pattern C cluster-scoped extension fields below:
 
-- The cluster's `cluster_id` and `scope_files` (authoritative write boundary).
-- The cluster's `task_refs` from the plan.
-- The cluster's `evidence_refs` (evidence entries this Implementer owns and must populate).
+- The cluster's `cluster_id` and `scope_files` (authoritative write boundary, declared in the **scope** column).
+- The cluster's `task_refs` from the plan (Implementer-facing form of the **input** column).
+- The cluster's `evidence_refs` (evidence entries this Implementer owns and must populate; concretizes the **expected output** column).
 - An identity distinct from the Planner's, distinct from every other cluster's `assigned_identity`, and distinct from the Reviewer's identity-to-be (anti-collusion transitively).
-- An explicit "**do not write outside `scope_files`**" boundary.
+- An explicit "**do not write outside `scope_files`**" boundary (the cluster-specific case of the **boundaries** column).
 - An explicit "**on Discovery-loop trigger, advance `status: blocked_discovery` and return — do not continue**" boundary.
 
 Each spawned Implementer, at spawn time, causes `implementation_clusters[i].status` to flip `pending → in_progress` and `assigned_identity` to be recorded.

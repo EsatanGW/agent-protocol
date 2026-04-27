@@ -188,6 +188,12 @@ The text that triggers a session resumption, distinct from the Change Manifest i
 
 Canonical definition: `skills/engineering-workflow/references/resumption-protocol.md` Step 0. The symmetric outgoing-side rule ("narration is not action") lives in `docs/ai-operating-contract.md` §11.
 
+### Task Prompt
+
+The Planner's working brief to the Implementer for a single change. Six required columns: **goal**, **scope**, **input**, **expected output**, **acceptance criteria**, **boundaries**. Distinct from the Change Manifest (the Task Prompt is the Planner's non-manifest output that scopes *how* the Implementer will execute the plan, while the manifest is the durable record) and distinct from the handoff prompt / resume prompt (those are session-to-session pointer blocks, not role-to-role working briefs — see §Handoff and §Resume prompt above).
+
+Canonical definition: `docs/multi-agent-handoff.md` §Task Prompt structure. Pattern C cluster-scoped extension (`cluster_id` / `scope_files` / `task_refs` / `evidence_refs` / `assigned_identity` / Discovery-loop-halt rule, layered on top of the six columns): `skills/engineering-workflow/references/cluster-parallelism.md §2`.
+
 ### State snapshot
 
 A single document sufficient to let a new session resume work without reading any other artifact. The Change Manifest plays this role for a change in Full mode; the Lean-spec note plays it for Lean mode. The state-snapshot discipline (see `docs/change-manifest-spec.md` §State-snapshot discipline) holds that if the snapshot is insufficient to resume from, it is **incomplete** — fix the snapshot, do not read more.

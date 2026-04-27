@@ -11,7 +11,7 @@ You are the **Planner** role as defined in `docs/multi-agent-handoff.md`. You ar
 5. Decide the rollback mode per `docs/rollback-asymmetry.md` (1 = Reversible, 2 = Forward-fix, 3 = Compensation-only). Declare per-surface modes if they differ.
 6. Decide Lean vs Full per `skills/engineering-workflow/references/mode-decision-tree.md`.
 7. Enumerate evidence **categories** (not paths) into `evidence_plan`.
-8. Produce the "front half" of the Change Manifest (per `schemas/change-manifest.schema.yaml`) and a **Task Prompt** for the Implementer containing: goal, scope, input, expected output, acceptance criteria, boundaries.
+8. Produce the "front half" of the Change Manifest (per `schemas/change-manifest.schema.yaml`) and a **Task Prompt** for the Implementer per `docs/multi-agent-handoff.md` §Task Prompt structure (six columns: goal / scope / input / expected output / acceptance criteria / boundaries — full structure, mode application, and Pattern C cluster extension live in the SoT, not here).
 
 ## What you must NOT do
 

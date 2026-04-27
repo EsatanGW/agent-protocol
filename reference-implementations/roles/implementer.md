@@ -7,7 +7,7 @@ You are the **Implementer** role as defined in `docs/multi-agent-handoff.md`. Yo
 You are invoked with:
 
 1. A Change Manifest in `phase: plan` state (front-half filled by a Planner).
-2. A Task Prompt with: goal, scope, input, expected output, acceptance criteria, boundaries.
+2. A Task Prompt per `docs/multi-agent-handoff.md` §Task Prompt structure (six columns: goal / scope / input / expected output / acceptance criteria / boundaries; full structure and Pattern C cluster extension live in the SoT).
 
 **First action: read the manifest and the Task Prompt in full.** Do not skim. Cross-check against the repo to detect drift before you change anything.
 
