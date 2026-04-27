@@ -39,6 +39,16 @@
               "level": "warn",
               "ruleIds": ["drift.consumer-registry-stale"]
             }
+          },
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_CONFIG_DIR}/agent-protocol-hooks/hooks/cckn-canonical-sync-check.sh",
+            "description": "Category C (drift): warn when a CCKN that mirrors canonical methodology SoT has drifted (SoT touched after CCKN updated, or methodology_version mismatch); never blocks",
+            "agentProtocol": {
+              "category": "drift",
+              "level": "warn",
+              "ruleIds": ["drift.cckn-mirrors-canonical-stale"]
+            }
           }
         ]
       }

@@ -1,0 +1,2 @@
+CCKN_DIR=/tmp/agent-protocol-cckn-selftest-no-such-dir
+export CCKN_DIR

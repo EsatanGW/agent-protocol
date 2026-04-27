@@ -1,0 +1,3 @@
+CCKN_DIR=knowledge
+export CCKN_DIR
+unset AGENT_PROTOCOL_VERSION

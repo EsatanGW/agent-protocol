@@ -1,0 +1,2 @@
+CCKN_DIR=knowledge
+export CCKN_DIR

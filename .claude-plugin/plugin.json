@@ -1,7 +1,7 @@
 {
   "name": "agent-protocol",
   "description": "Tool-agnostic engineering workflow plugin: surface-first change analysis, source-of-truth discipline, four-mode execution (Zero-ceremony / Three-line delivery / Lean / Full), evidence-driven delivery. Content is agent-neutral; bridge files provided for Claude Code, Cursor, Gemini CLI, Windsurf, Codex, and any agent reading AGENTS.md.",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "author": {
     "name": "agent-protocol contributors"
   },

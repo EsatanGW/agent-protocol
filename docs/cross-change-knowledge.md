@@ -35,6 +35,7 @@ scope: library | domain-rule | external-api | platform-quirk
 created: 2026-04-21                      # ISO 8601
 updated: 2026-04-21                      # ISO 8601
 supersedes: []                           # optional; list of replaced note paths
+mirrors_canonical: []                    # optional; see §Mirroring canonical methodology SoT
 ---
 ```
 
@@ -59,6 +60,68 @@ CCKN location is a team decision; this document only requires three properties:
 - Notes live in a discoverable directory checked into the repo (suggested: `docs/knowledge/<topic-slug>.md`).
 - Note filenames are stable — renaming a CCKN requires a `supersedes:` frontmatter entry in the replacement.
 - The directory is indexed somewhere a Planner can find it in under 30 seconds (a README index or a skill-layer lookup is sufficient).
+
+---
+
+## Mirroring canonical methodology SoT
+
+Some CCKNs serve as a project-local distillation of canonical methodology content — for example, a CCKN summarising `docs/phase-gate-discipline.md §Rule 6` (the phase re-entry decision table) or `docs/multi-agent-handoff.md §Anti-rationalization rules` (the four hard send-back triggers). These mirror-CCKNs are useful for the same reason any reference summary is useful: a reader can re-derive the rule at the cost of one CCKN read instead of fetching, paging, and re-orienting against the full canonical doc.
+
+The failure mode (1.27.0 codification): when canonical methodology is edited, mirror-CCKNs **drift silently**. The user has no signal that the CCKN is stale until a later change is made against the wrong rule version.
+
+### `mirrors_canonical` frontmatter field
+
+A CCKN that mirrors canonical methodology content **declares the mirror in frontmatter**:
+
+```yaml
+---
+title: Phase Re-entry decision table (1.23.0 form: 4 destination phases)
+topics: [discovery-loop, phase-reentry, planner-restart]
+scope: domain-rule
+created: 2026-04-23
+updated: 2026-04-27
+mirrors_canonical:
+  - path: docs/phase-gate-discipline.md
+    section: "§Rule 6 — Phase re-entry protocol"
+    methodology_version: "1.23.0"
+---
+```
+
+Each `mirrors_canonical` entry has:
+
+| Field | Required | Meaning |
+|---|---|---|
+| `path` | yes | Repo-relative path to the canonical SoT being mirrored. Typically a file in the agent-protocol plugin's `docs/` (e.g. `docs/phase-gate-discipline.md`); may be the consumer project's own canonical content if the CCKN mirrors a project-local SoT. |
+| `section` | optional | Section anchor inside the SoT that the CCKN mirrors. Useful when the SoT is large and only one section is the mirror target. |
+| `methodology_version` | optional | The agent-protocol version (`1.23.0`, `1.26.0`, …) the CCKN was last synced against. Lets a stale-detection check fire on version mismatch even when no file mtime delta exists (e.g. a project pinned to 1.22.0 importing a CCKN written against 1.18.0). |
+
+A CCKN may declare zero, one, or multiple `mirrors_canonical` entries. Zero is the default — most CCKNs document library / API / domain-rule knowledge that is not a methodology mirror, and they should not list canonical methodology paths just for cross-reference (that's what inline `see:` prose is for).
+
+### Stale-detection signal
+
+A CCKN declaring `mirrors_canonical` is stale when **any** of these conditions hold:
+
+1. The SoT file at `path` has commits in its git history *after* the CCKN's `updated` date.
+2. The `section` anchor is named in commits to the SoT *after* the CCKN's `updated` date.
+3. The `methodology_version` does not match the agent-protocol version the consumer project is currently pinned to.
+
+A stale CCKN is **advisory only** — citing it is not forbidden, but the citing change must either (a) refresh the CCKN to match the new canonical content, or (b) explicitly note in `implementation_notes` that the stale CCKN is being cited against an older methodology version with a justification.
+
+### Reference implementation
+
+A reference hook ships at `reference-implementations/hooks-claude-code/hooks/cckn-canonical-sync-check.sh` (since 1.27.0). The hook:
+
+- Walks the project's CCKN directory (default `docs/knowledge/`; configurable via `CCKN_DIR` env var).
+- For each CCKN with `mirrors_canonical` frontmatter, compares `git log -1 --format=%cI -- <path>` with the CCKN's `updated` date.
+- Emits a warning (exit 2 — advisory) for each stale CCKN; never blocks (no exit 1).
+
+Cross-runtime adapters (`hooks-cursor` / `hooks-gemini-cli` / `hooks-windsurf` / `hooks-codex`) point at the same hook script per the existing adapter pattern; no per-runtime fork required.
+
+### What `mirrors_canonical` does *not* do
+
+- Does not turn the CCKN into a sub-document of the canonical SoT — the CCKN remains independently authored, the canonical SoT remains independently authored, and the field declares the relationship without enforcing content equivalence.
+- Does not auto-sync content. Mechanical sync of canonical content into a project-local CCKN would defeat CCKN's purpose (a project-local distillation chosen for its specific consumer audience). The hook flags drift; the human author decides whether to refresh, supersede, or accept the drift.
+- Does not constrain what mirror-CCKNs can contain. A mirror-CCKN may add project-specific context, examples, or cross-references that the canonical SoT does not carry — the `mirrors_canonical` field declares the originating reference, not a containment relationship.
 
 ---
 

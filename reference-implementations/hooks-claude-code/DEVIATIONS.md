@@ -60,6 +60,19 @@ arbitrary egress.
 
 ---
 
+## 6. CCKN canonical-mirror sync check — implemented (1.27.0)
+
+`hooks/cckn-canonical-sync-check.sh` is the reference implementation of the CCKN ↔ canonical-SoT drift signal defined in `docs/cross-change-knowledge.md §Mirroring canonical methodology SoT`. The hook walks the project's CCKN directory (default `docs/knowledge/`; override via `CCKN_DIR`), parses each CCKN's `mirrors_canonical` frontmatter, and warns (`exit 2` — never blocks) when:
+
+- The SoT file at `mirrors_canonical[i].path` has commits in its git history strictly after the CCKN's `updated` date, or
+- The CCKN declares `mirrors_canonical[i].methodology_version` and the value does not match the `AGENT_PROTOCOL_VERSION` env var (the consumer project's pinned methodology version).
+
+Wired in `settings.example.json` under the `Bash(git push*)` matcher so drift warnings surface at pre-push time, alongside `consumer-registry-check.sh`. Selftest fixtures cover four cases: absent CCKN dir, CCKN without `mirrors_canonical`, stale-mirror by mtime, version-mismatch. The git stub at `selftests/stubs/git` was extended to handle the `log -1 --format=%cI -- <path>` invocation; fixtures supply the SoT mtime via a `sot-mtime-<basename>.txt` file.
+
+Limitations: the hook compares `git log -1 --format=%cI` mtimes at file level, not section level. A SoT file change that doesn't touch the `mirrors_canonical[i].section` will still trip the warning. Deferred: section-level diff requires parsing markdown headings out of `git diff`, which is out of scope for a runtime hook (better suited to a dedicated CI lint).
+
+---
+
 ## 5. Cross-runtime coverage — partial
 
 As of v1.4.0 the repo ships thin adapter bundles for four additional

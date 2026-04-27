@@ -1,0 +1,2 @@
+exit=2
+stderr~=methodology_version=1.8.0 but project is pinned to 1.27.0

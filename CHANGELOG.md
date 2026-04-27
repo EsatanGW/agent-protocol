@@ -8,6 +8,49 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.27.0] - 2026-04-27
+
+Cluster F-3 of the 1.8.0-SDD-import follow-up audit. **CCKN ↔ canonical-SoT bidirectional sync mechanism** — codifies the `mirrors_canonical` frontmatter convention that lets a CCKN declare the canonical methodology SoT it distills, and ships a reference hook that surfaces drift between the CCKN's `updated` date and the SoT's git mtime. Forced-Full per `CLAUDE.md §5` (new normative convention added to a canonical SoT file).
+
+User-facing impact: a project that maintains mirror-CCKNs (e.g. `cckn-005-discovery-loop-7-triggers.md` mirroring `docs/phase-gate-discipline.md §Rule 6`, or `cckn-007-reviewer-role-boundary-enforcement.md` mirroring `docs/multi-agent-handoff.md §Anti-rationalization rules`) now has a mechanical drift signal. Real-workload trigger: 1.23.0 (Rule 6 7→4 row merge) and 1.24.0 (Anti-rationalization 6→4 merge) silently invalidated mirror-CCKNs in `flutter-lottery-app` because the CCKNs' `updated` date stayed at the time of last manual sync. Without the new convention, drift is invisible until a later change cites the wrong rule version.
+
+### Added
+
+- **`docs/cross-change-knowledge.md` §Mirroring canonical methodology SoT** (**L1**, ~70 lines) — new sub-section after §Location and naming. Defines: (a) why mirror-CCKNs exist (project-local distillation of canonical methodology), (b) the failure mode they create (silent drift on canonical edit), (c) the new optional `mirrors_canonical` frontmatter field, (d) the three drift signals (SoT mtime > CCKN `updated`; section anchor named in commits after CCKN updated; `methodology_version` mismatch with consumer-project pin), (e) the reference hook that surfaces drift, and (f) what the field deliberately does NOT do (no auto-sync; no content equivalence; no containment). The §Minimal frontmatter block is extended with the optional `mirrors_canonical: []` entry.
+
+- **`reference-implementations/hooks-claude-code/hooks/cckn-canonical-sync-check.sh`** (~95 lines) — reference hook implementing the drift signal. Walks `${CCKN_DIR:-docs/knowledge}`, parses each `*.md` file's frontmatter via `yq --front-matter=extract`, and for every CCKN with `mirrors_canonical[i].path` set: (1) compares `git log -1 --format=%cI -- <path>` against the CCKN's `updated` date; (2) compares `mirrors_canonical[i].methodology_version` against `${AGENT_PROTOCOL_VERSION}`. Emits `[agent-protocol/drift.cckn-mirrors-canonical-stale] …` warnings on stderr, `exit 2` (advisory, never blocks). Graceful degradation: absent CCKN directory, missing yq, missing git, missing CCKN `updated` date — all yield `exit 0` (silent) per the methodology's "absent directory = no-op" convention. Categorically a Category-C drift hook per `docs/runtime-hook-contract.md`.
+
+- **`reference-implementations/hooks-claude-code/selftests/fixtures/cckn-canonical-sync-check/`** (4 cases) — `pass-no-cckn-dir` (absent CCKN_DIR → silent), `pass-no-mirror-declaration` (CCKN without `mirrors_canonical` → silent), `warn-stale-mirror` (CCKN updated 2026-04-22 mirroring SoT touched 2026-04-27 → exits 2 with the expected stderr substring), `warn-version-mismatch` (CCKN declares `methodology_version: 1.8.0`, project pinned to `AGENT_PROTOCOL_VERSION=1.27.0` → exits 2 with the version-mismatch substring). All four fixtures pass on first run. The selftest harness counted 21 total cases (was 17); the three pre-existing failures in `consumer-registry-check.sh` are unrelated to this change.
+
+### Changed
+
+- **`reference-implementations/hooks-claude-code/selftests/stubs/git`** — git stub extended with one new case statement matching `"log -1 --format=%cI -- "*`. The stub reads a fixture-supplied `sot-mtime-<basename>.txt` file containing the ISO 8601 mtime to return. This lets fixtures simulate any SoT-file age relative to a CCKN's `updated` date without needing a real git history. The other case statements (`ls-files`, `diff --cached --name-only`, `diff --name-only`) are unchanged.
+
+- **`reference-implementations/hooks-claude-code/settings.example.json`** — new entry under `PreToolUse` → `Bash(git push*)` matcher (alongside `consumer-registry-check.sh`) wires `cckn-canonical-sync-check.sh` at pre-push time. Category C drift, level warn, rule_id `drift.cckn-mirrors-canonical-stale`. Pre-push is the right trigger because (a) drift discovery should happen before remote propagation, not after; (b) the hook is read-only and side-effect-free, so running it on every push is cheap.
+
+- **`reference-implementations/hooks-claude-code/DEVIATIONS.md`** — new §6 "CCKN canonical-mirror sync check — implemented (1.27.0)" block describing the implementation, the four selftest fixtures, the file-level (vs section-level) granularity limitation, and why section-level diff is deferred to a CI lint rather than a hook.
+
+### Why minor, not patch
+
+The `mirrors_canonical` frontmatter field is a new normative convention added to canonical CCKN format in `docs/cross-change-knowledge.md`. Per `mode-decision-tree.md §Scenarios that force Full → Canonical methodology content edit (L1+)`, that is a forced-Full trigger requiring a minor bump. The convention is opt-in (existing CCKNs without `mirrors_canonical` see no behavioural change), so backward compatibility is preserved. The reference hook is non-blocking (`exit 2` advisory only), so adopting it at pre-push time does not regress any existing workflow.
+
+### Migration notes
+
+- **External consumers using mirror-CCKNs** — adopt the new `mirrors_canonical` frontmatter on each CCKN that distills canonical methodology content. Recommended fields: `path` (required, repo-relative), `section` (optional but useful for large SoT files), `methodology_version` (optional but recommended — lets the version-mismatch signal fire even when no mtime drift exists).
+- **External consumers wanting drift signal at push time** — copy `hooks/cckn-canonical-sync-check.sh` into the project hooks bundle and merge the `settings.example.json` entry under the `Bash(git push*)` matcher. The hook needs `yq` and `git` on PATH (degrades silently if either is missing).
+- **External consumers using cross-runtime adapters** (Cursor / Gemini CLI / Windsurf / Codex) — the existing adapter pattern points back at the Claude Code bundle's `hooks/` directory, so the new hook is reachable from every adapter without per-runtime forking. Adapter selftests exercise hook logic, not registration, so no per-runtime fixture work is required.
+- **External consumers running the selftest** — three pre-existing failures in `consumer-registry-check.sh` (line 47 syntax error on certain shells) remain unresolved; those are unrelated to 1.27.0 and tracked separately. The four new cckn-canonical-sync-check cases all pass.
+
+### Tool-agnostic discipline
+
+The convention is tool-neutral: the `mirrors_canonical` frontmatter is YAML-in-Markdown, parseable by any frontmatter library; the hook is POSIX-shell + `yq` + `git`; no vendor / model / framework names introduced. The reference implementation is one runtime (Claude Code's hook bundle) but adopters on Cursor / Gemini CLI / Windsurf / Codex use it via the existing adapter pattern. No schema changes (CCKN format is convention-not-schema; no `change-manifest.schema.yaml` impact).
+
+### Out of scope (deferred)
+
+- **Section-level drift detection.** The hook compares git mtime at file level. A SoT-file change that does not touch `mirrors_canonical[i].section` still trips the warning (false positive). Section-level diff requires parsing markdown headings out of `git diff`, which is reasonable for a CI lint but heavyweight for a runtime hook. Deferred to a future audit if false-positive rate is empirically high.
+- **Cluster F-2 (schema-level per-section caps).** Rule 2.12 in 1.26.0 already catches the symptom (oversized manifest) regardless of which section is bloated; per-section caps are polish, not a substitute. Deferred.
+- **Cluster F-4 (long-running-delegation upstream rethink).** 1.18.0's D1 / D2 / D3 disciplines are workarounds for Planner context-limit hangs; 1.26.0 attacks the upstream cause. Re-assess the necessity of D1 / D2 / D3 after the 1.26.0 + 1.27.0 combination is exercised on real workload.
+
 ## [1.26.0] - 2026-04-27
 
 Cluster F-1 of the 1.8.0-SDD-import follow-up audit. **Rule 2.12 — manifest size within ceiling** is added to the canonical Layer 2 algorithm and implemented identically in `validator-python` and `validator-posix-shell`. Mechanically enforces the prose ceiling that has lived in `docs/change-manifest-spec.md §State-snapshot discipline §Manifest size ceiling` since 1.10.0 but had no validator-side enforcement until now.

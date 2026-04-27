@@ -26,6 +26,13 @@ case "$*" in
     emit_file unstaged
     exit 0
     ;;
+  "log -1 --format=%cI -- "*)
+    # Fixture supplies sot-mtime-<basename>.txt with the ISO 8601 date string.
+    sot_path="${*##* }"
+    sot_basename=$(basename "$sot_path")
+    emit_file "sot-mtime-$sot_basename.txt"
+    exit 0
+    ;;
 esac
 
 exit 0
