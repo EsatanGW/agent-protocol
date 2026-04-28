@@ -62,8 +62,27 @@ A sweep that surveys *every* form of drift in one pass produces an unreviewable 
 - **Retired-manifest-cite sweep.** Find every `references` field across `docs/`, `skills/`, and live manifests that points at a manifest with `status: retired`; flag for re-pointing or removal.
 - **Reference-implementation drift sweep.** Find every `reference-implementations/*/DEVIATIONS.md` that has not been touched in N versions while the upstream `docs/` source has moved; flag for re-validation.
 - **Mechanical-rule no-fire sweep.** Find every rule in `automation-contract*.md` / `runtime-hook-contract.md` Category B–D that has produced zero findings across the last *K* changes; flag for review (the rule is either covering an extinct case or silently bypassed).
+- **Rung-claim-evidence sweep.** Find every change in the most recent release whose claimed autonomy rung (per [`autonomy-ladder-discipline.md`](autonomy-ladder-discipline.md)) does not match the rung's minimum evidence shape; output the change ID, the claimed rung, and the missing evidence categories — propose either downgrading the rung claim for that change or backfilling the missing evidence. Closes the detector role declared at [`autonomy-ladder-discipline.md §Anti-patterns`](autonomy-ladder-discipline.md) (Rung-claiming).
+- **Discipline-provenance sweep.** Find every project-local discipline / extension (in consumer `docs/`, `skills/`, or bridge-adjacent locations — *not* this repo's canonical principles or canonical disciplines, which are origins by definition) whose originating-incident link is absent. Cross-reference with the usage signal across the last *K* changes: signal present → propose re-anchor (find and cite the originating incident); signal absent → propose retirement. Both proposal shapes share one drift class because both follow from missing provenance. Distinguished from the Mechanical-rule no-fire sweep above: that sweep targets rules that *never* fire; this one targets disciplines that *always* fire but whose justification is no longer locatable. See [`docs/glossary.md §Provenance drift`](glossary.md).
 
 A sweep that covers two or more classes is a sweep that will not be reviewed; split it.
+
+---
+
+## Two discovery paths
+
+Drift is found in two ways, and the cadence below governs only the first:
+
+| Path | Trigger | Default response time |
+|---|---|---|
+| **Active sweep** | Calendar (per the cadence table below) | Per the cadence; this is the sweep agent's job |
+| **Incidental discovery** | A contributor (human or AI) notices drift while doing unrelated work | Open a small Lean-mode change *immediately*; do not wait for the next sweep |
+
+Calendar cadence governs how often we *actively go looking*. It does not govern how soon to act on what we *passively notice*. A drift item that closes in five minutes of Lean-mode work should close in five minutes — not wait six days for the weekly doc-rot sweep.
+
+Both paths share Rule 1 (proposal-shaped, not silent fix) and Rule 3 (one drift class per change). They differ only in trigger and timing.
+
+This is consistent with [`AGENTS.md §2 Scope discipline`](../AGENTS.md) ("do not bundle opportunistic cleanup" — keep it out of the in-flight change) and [`docs/throughput-first-merge-philosophy.md`](throughput-first-merge-philosophy.md) Rule 3 (follow-up over blocking). The incidental path is *a separate small change opened now*, not a bundled cleanup and not a deferred sweep finding.
 
 ---
 
@@ -79,6 +98,8 @@ Each drift class has its own natural cadence; the discipline does not mandate ex
 | Retired-manifest-cite | Quarterly | Retirement events are infrequent |
 | Reference-implementation drift | Per upstream-version-change | Triggered by upstream events, not calendar |
 | Mechanical-rule no-fire | Per minor version | A rule that has not fired in a minor version's worth of PRs deserves a look |
+| Rung-claim-evidence | Per minor version | One-change-per-release sample is enough to detect rung-claim drift; minor-version cadence aligns with the mechanical-rule re-eval rhythm so both axes share one calendar slot |
+| Discipline-provenance | Per minor version | A discipline whose originating incident is no longer locatable after a minor version's worth of changes is a candidate for re-anchoring or retirement; the sweep is the asymmetric retirement pathway's input (see [`mode-decision-tree.md §Scenarios that force Lean`](../skills/engineering-workflow/references/mode-decision-tree.md)) |
 
 A repository that picks cadences should write them down (in `docs/bridges/*-stack-bridge.md` or a project-local equivalent) so that the schedule is itself transcoded per [`docs/repo-as-context-discipline.md`](repo-as-context-discipline.md).
 
@@ -112,6 +133,7 @@ This document does **not** mandate the formula, the units, or the storage locati
 - *"Quality score replaces sweeping."* The score summarises sweeps; it does not perform them. A repository whose score is "green" but has not run sweeps in three months has a stale score.
 - *"Sweep agent runs 24/7."* The sweep is calendar-driven; running continuously is a different discipline (drift detection, not anti-entropy GC) and incurs continuous cost. Calendar cadence is the contract; continuous polling is at most an optimization.
 - *"Sweep findings live only in chat."* Findings are external knowledge until transcoded; per [`docs/repo-as-context-discipline.md`](repo-as-context-discipline.md), they must land in a repo-resident artifact (issue, ticket, branch, log) before they govern future behaviour.
+- *"Defer-to-next-sweep what could close in five minutes."* If drift is noticed in passing and the cleanup is Lean-mode-sized, open the small follow-up change now. Calendar cadence is the contract for *active* sweeps; it is not a throttle on incidental fixes. This anti-pattern is the most common AI misreading of the cadence table — see §Two discovery paths.
 
 ---
 
@@ -136,3 +158,6 @@ Anti-entropy sweeps are themselves changes — they go through Phase 0 → Phase
 - [`docs/repo-as-context-discipline.md`](repo-as-context-discipline.md) — the *what should be in the repo* discipline; this discipline is the *what should still be true about what is in the repo* discipline.
 - [`docs/adoption-anti-metrics.md`](adoption-anti-metrics.md) — the over-enforcement counter-pressure; sweep volume itself can become an anti-metric if a repository measures by sweep count rather than drift closed.
 - [`docs/breaking-change-framework.md`](breaking-change-framework.md) §Deprecation timelines — the source of the deprecation-cutoff sweep target.
+- [`docs/autonomy-ladder-discipline.md`](autonomy-ladder-discipline.md) §Anti-patterns — defines the rung-claim and rung-skipping anti-patterns; the Rung-claim-evidence sweep above is the time-driven detector for the former (the latter is caught at the change boundary, not on calendar).
+- [`skills/engineering-workflow/references/mode-decision-tree.md`](../skills/engineering-workflow/references/mode-decision-tree.md) §Scenarios that force Lean — the asymmetric retirement-cost row that lets sweep-backed retirements drop to Lean mode while additions stay Full per L60. This is what makes the methodology able to *shed* weight rather than only accumulate; the Discipline-provenance sweep above produces the finding that the row consumes.
+- [`docs/glossary.md §Provenance drift`](glossary.md) — the term defined for the failure mode the Discipline-provenance sweep targets.

@@ -360,6 +360,16 @@ A Full-mode change correctly producing every required gate artifact is **not** c
 
 > Over-use signals: `docs/onboarding/when-not-to-use-this.md`.
 
+### Provenance drift
+
+A project-local discipline / extension persisting in a consumer repo whose **originating-incident link or load-bearing justification is no longer locatable**. The discipline was correct when introduced — someone added it for a real reason — but the reason has since decayed: the failure mode it prevented was extinguished by a later change, the team that needed it dispersed, or the convention was copied from a sibling project where the original incident lived but never re-justified locally.
+
+Distinguished from `Ceremony` (anti-pattern sense) above by *why* the artifact has stopped doing work — Ceremony names the symptom (the artifact is produced but nobody reads it / nothing depends on it), Provenance drift names the cause (no one can say *why* the discipline exists, even if it does still fire on every change). A discipline can drift in provenance without becoming ceremonial (it still does work), and a ceremonial artifact can have impeccable provenance (the original incident is well-documented; the resulting artifact still influences nothing). The two often co-occur but are independent failure modes.
+
+Targets only **project-local** disciplines and extensions, never canonical principles or canonical disciplines from this repo's `docs/` — those are origins by definition and cannot be orphaned.
+
+Detection: [`docs/anti-entropy-discipline.md §Rule 3`](anti-entropy-discipline.md) Discipline-provenance sweep. Retirement pathway: [`skills/engineering-workflow/references/mode-decision-tree.md §Scenarios that force Lean`](../skills/engineering-workflow/references/mode-decision-tree.md) (sweep-backed retirements drop to Lean; additions stay Full — the asymmetric-cost lever that lets the methodology shed weight over time).
+
 ### Silent change
 
 A change in public behavior with no corresponding changelog, docs update, or consumer notification. A classic desync factory.

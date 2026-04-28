@@ -116,7 +116,7 @@ Skipping a rung (L1 → L3, or L2 → L4) is permitted only when the team can de
 
 ## Anti-patterns
 
-- **Rung-claiming.** The team's adoption record says L4; the actual evidence on every change is L2 (no application-driven artefacts, no cross-identity Reviewer, no Phase 8 query). The claim is theatre. Detection: an `anti-entropy-discipline.md` sweep that spot-checks one change per release against the per-rung evidence shape.
+- **Rung-claiming.** The team's adoption record says L4; the actual evidence on every change is L2 (no application-driven artefacts, no cross-identity Reviewer, no Phase 8 query). The claim is theatre. Detection: the [`anti-entropy-discipline.md`](anti-entropy-discipline.md) **Rung-claim-evidence sweep** (Rule 3), run per minor version, samples one change from the most recent release and confirms its evidence shape matches the team's claimed rung; mismatches are flagged with a propose-downgrade-or-backfill cleanup.
 - **Rung-skipping.** A change crosses two rungs in one step (L1 to L3) without producing the L2 evidence. Detection: the change's Reviewer entry shows no application-driven evidence row when one is mandatory.
 - **Hidden upgrade.** An agent at L1 begins to commit without human edit; effectively L2 but without L2 role separation. Detection: a drift hook that checks whether commits matching `Co-authored-by:` agent footers are paired with a manifest declaring at least an Implementer / Reviewer split.
 - **Per-rung evidence inflation.** A rung claim is supported by L1-tier evidence padded with extra rows of the same tier. The padding does not raise the tier — see `evidence-quality-per-type.md §Coverage by counting`.
