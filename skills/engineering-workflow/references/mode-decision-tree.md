@@ -68,6 +68,7 @@ The following **should not** use Full mode (avoid over-engineering):
 | Single bug fix with a clear root cause, touching 1 surface | Scope is known. |
 | Small-scope refactor in a well-tested area | Tests are the verification; no new contract. |
 | New log / metric without behavior change | Pure operational-surface enhancement. |
+| Retirement of a project-local discipline backed by a recorded `Discipline-provenance sweep` finding (per [`anti-entropy-discipline.md`](../../../docs/anti-entropy-discipline.md) Rule 3) | The sweep finding is the decay evidence; retirement is single-surface, single-consumer, ≤5-min verification (delete the discipline + bridge-pointer cleanup). Adding a new discipline still routes through the canonical-methodology-content row above (L1+ → Full); only sweep-backed *retirement* drops to Lean. This is the asymmetric-cost lever that lets the methodology shed weight over time rather than only accumulate it. Self-applying-methodology check: the retirement change still goes through Phases 0–7; the Lean-mode collapse is on artifact set, not on phase rigour. |
 
 ## Scenarios that force Three-line delivery (not Lean, not Full)
 
