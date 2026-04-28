@@ -1,6 +1,49 @@
 {
   "releases": [
     {
+      "version": "1.31.3",
+      "date": "2026-04-28",
+      "sections": {
+        "fixed": [
+          {
+            "title": "`reference-implementations/hooks-claude-code/selftests/selftest.sh:44` — SC2221 / SC2222",
+            "body": "the case pattern `*mikefarah*|*\"github.com/mikefarah\"*)` introduced in 1.31.1 paired two patterns where the second is mechanically subsumed by the first (any string containing `github.com/mikefarah` necessarily contains `mikefarah`). Shellcheck flagged the pair with SC2221 (\"This pattern always overrides a later one\") and SC2222 (\"This pattern never matches because of a previous pattern\"). Resolved by collapsing to `*mikefarah*)` — the substring is present in every mikefarah/yq variant's `--version` output and absent from kislyuk/yq's, so detection precision is unchanged. The `hooks-shellcheck` job now passes; the dependent `hooks-selftest` and `hooks-selftest-macos` jobs (which had been auto-skipped because of the lint failure) run on subsequent CI invocations."
+          },
+          {
+            "title": "`.github/workflows/validate.yml` `version-consistency` job — PR-time tag-check gating",
+            "body": "the `check-version-consistency.sh` git-tag presence signal (signal 6, added in 1.29.1) was unconditionally enforced on both `push: [main]` and `pull_request: [main]` events. On PR-time CI, `v$VERSION` cannot exist for a version-bumping PR because release tags are created post-merge by convention, so every version-bumping PR since 1.29.1 has been hitting this failure (the prior 1.30.x and 1.31.x PRs included). Resolved by setting `AGENT_PROTOCOL_SKIP_TAG_CHECK=1` on `pull_request` events via `${{ github.event_name == 'pull_request' && '1' || '' }}` — the script's documented opt-out env var, used here exactly for the case it was added for. The other five drift signals (`plugin.json` / `marketplace.json` / `README` badge / `CHANGELOG.md` / `CHANGELOG.json`) still run at PR-time, so a misnumbered version bump is still caught before merge. Push-to-main events continue to enforce the tag check; if the release author forgets to push the tag, the next push to main fails CI and the gap is surfaced before downstream pin-by-tag workflows hit it."
+          }
+        ],
+        "notes": [
+          {
+            "title": "External consumers of `selftest.sh`",
+            "body": "the case pattern collapse is internal; the detection behaviour is unchanged. Forks that copied the harness with the redundant pair will see the same SC2221/SC2222 warning on their own shellcheck runs and should apply the same collapse.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External consumers of `validate.yml`",
+            "body": "the new `env:` block on the `version-consistency` step is additive (the env var is already supported by the script). If your fork's CI also enforces tag presence on PR-time, port the same gating; otherwise no action.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Release authors",
+            "body": "push-event behaviour is unchanged. The workflow continues to fail loudly on push-to-main if the tag is missing, so the human-side release procedure (merge → tag → push tag) is still mechanically enforced. The PR-time gate, which never could be satisfied, is removed.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Tag-check post-merge validation in a separate workflow.",
+            "body": "A nightly or post-merge workflow that runs `check-version-consistency.sh` against the tip of `main` and fails if the tag is missing would catch the \"release author forgot to push the tag\" case faster than waiting for the next push to main. Tracked for a future audit; the current fix preserves the existing safety net.",
+            "subsection": "out of scope (deferred)"
+          },
+          {
+            "title": null,
+            "body": "**Audit of other `*mikefarah*`-style patterns repo-wide.** This patch fixes the one site shellcheck surfaced. A broader pass to confirm no other redundant case patterns lurk in the hook bundles is preventive infrastructure deferred to a future patch.",
+            "subsection": "out of scope (deferred)"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.31.2",
       "date": "2026-04-28",
       "sections": {

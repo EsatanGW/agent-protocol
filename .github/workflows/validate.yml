@@ -249,4 +249,16 @@ jobs:
           fetch-tags: true
           fetch-depth: 0
       - name: Check plugin.json / marketplace.json / README badge / CHANGELOG / git tag agree
+        # Tag-presence (signal 6) is skipped on pull_request events because the
+        # release tag is created post-merge by convention — a version-bumping
+        # PR cannot satisfy it before the merge happens. The other five signals
+        # (plugin.json / marketplace.json / README badge / CHANGELOG.md /
+        # CHANGELOG.json) still run, so a misnumbered bump is still caught
+        # at PR-time. Push-to-main events still enforce the tag check; if the
+        # release author forgets to push the tag, the next push to main fails
+        # the CI run and the gap is surfaced before downstream pin-by-tag
+        # workflows hit it. Set via env-var (the script's documented opt-out)
+        # rather than by branching the workflow logic.
+        env:
+          AGENT_PROTOCOL_SKIP_TAG_CHECK: ${{ github.event_name == 'pull_request' && '1' || '' }}
         run: sh .github/scripts/check-version-consistency.sh

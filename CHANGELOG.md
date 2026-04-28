@@ -8,6 +8,35 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.31.3] - 2026-04-28
+
+Patch release fixing two CI failures surfaced after the 1.31.2 release. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.30.1 and 1.31.1 (post-release CI hotfix in a patch release).
+
+### Fixed
+
+- **`reference-implementations/hooks-claude-code/selftests/selftest.sh:44` — SC2221 / SC2222** — the case pattern `*mikefarah*|*"github.com/mikefarah"*)` introduced in 1.31.1 paired two patterns where the second is mechanically subsumed by the first (any string containing `github.com/mikefarah` necessarily contains `mikefarah`). Shellcheck flagged the pair with SC2221 ("This pattern always overrides a later one") and SC2222 ("This pattern never matches because of a previous pattern"). Resolved by collapsing to `*mikefarah*)` — the substring is present in every mikefarah/yq variant's `--version` output and absent from kislyuk/yq's, so detection precision is unchanged. The `hooks-shellcheck` job now passes; the dependent `hooks-selftest` and `hooks-selftest-macos` jobs (which had been auto-skipped because of the lint failure) run on subsequent CI invocations.
+
+- **`.github/workflows/validate.yml` `version-consistency` job — PR-time tag-check gating** — the `check-version-consistency.sh` git-tag presence signal (signal 6, added in 1.29.1) was unconditionally enforced on both `push: [main]` and `pull_request: [main]` events. On PR-time CI, `v$VERSION` cannot exist for a version-bumping PR because release tags are created post-merge by convention, so every version-bumping PR since 1.29.1 has been hitting this failure (the prior 1.30.x and 1.31.x PRs included). Resolved by setting `AGENT_PROTOCOL_SKIP_TAG_CHECK=1` on `pull_request` events via `${{ github.event_name == 'pull_request' && '1' || '' }}` — the script's documented opt-out env var, used here exactly for the case it was added for. The other five drift signals (`plugin.json` / `marketplace.json` / `README` badge / `CHANGELOG.md` / `CHANGELOG.json`) still run at PR-time, so a misnumbered version bump is still caught before merge. Push-to-main events continue to enforce the tag check; if the release author forgets to push the tag, the next push to main fails CI and the gap is surfaced before downstream pin-by-tag workflows hit it.
+
+### Why patch, not minor
+
+Both fixes converge to existing intent without introducing new normative content. The shellcheck fix removes a lint warning that was always going to fire (the redundant pattern was wrong from when it was written in 1.31.1). The version-consistency fix uses the script's own documented opt-out env var (`AGENT_PROTOCOL_SKIP_TAG_CHECK`, added with the script in 1.29.1) and applies it to the specific event class (PR) where the contract cannot be satisfied. No methodology rule changes, no schema changes, no public surface changes outside the CHANGELOG entry. Matches `VERSIONING.md` patch category and follows the 1.30.1 / 1.31.1 precedent (post-release CI hotfix in a patch release).
+
+### Migration notes
+
+- **External consumers of `selftest.sh`** — the case pattern collapse is internal; the detection behaviour is unchanged. Forks that copied the harness with the redundant pair will see the same SC2221/SC2222 warning on their own shellcheck runs and should apply the same collapse.
+- **External consumers of `validate.yml`** — the new `env:` block on the `version-consistency` step is additive (the env var is already supported by the script). If your fork's CI also enforces tag presence on PR-time, port the same gating; otherwise no action.
+- **Release authors** — push-event behaviour is unchanged. The workflow continues to fail loudly on push-to-main if the tag is missing, so the human-side release procedure (merge → tag → push tag) is still mechanically enforced. The PR-time gate, which never could be satisfied, is removed.
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. The shellcheck fix is internal to the existing detection logic; the workflow fix uses GitHub Actions event-name gating (`github.event_name`) which is the platform's canonical way to distinguish PR vs push events — bridging this would require a separate runner abstraction layer that does not yet exist and is not normative content.
+
+### Out of scope (deferred)
+
+- **Tag-check post-merge validation in a separate workflow.** A nightly or post-merge workflow that runs `check-version-consistency.sh` against the tip of `main` and fails if the tag is missing would catch the "release author forgot to push the tag" case faster than waiting for the next push to main. Tracked for a future audit; the current fix preserves the existing safety net.
+- **Audit of other `*mikefarah*`-style patterns repo-wide.** This patch fixes the one site shellcheck surfaced. A broader pass to confirm no other redundant case patterns lurk in the hook bundles is preventive infrastructure deferred to a future patch.
+
 ## [1.31.2] - 2026-04-28
 
 Patch release adding a clarifying §FAQ to `docs/surfaces.md` answering the recurring "isn't a surface just a layer?" question that 1.31.0's harness-engineering alignment surfaces. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.31.1, 1.30.1, and 1.29.1 (post-release wording / drift cleanup in a patch release).

@@ -38,10 +38,12 @@ else
   #
   # mikefarah/yq prints `mikefarah/yq` or `version v4.x.x` (older builds print
   # `yq (https://github.com/mikefarah/yq/) version 4.x.x`); kislyuk/yq prints
-  # `yq <version>` followed by its jq dependency. Match the former cheaply.
+  # `yq <version>` followed by its jq dependency. Match the former cheaply via
+  # the substring `mikefarah` — it appears in every mikefarah variant's version
+  # string and never in kislyuk's.
   yq_version_line=$(yq --version 2>/dev/null || true)
   case "$yq_version_line" in
-    *mikefarah*|*"github.com/mikefarah"*)
+    *mikefarah*)
       ;;
     *)
       have_yq=0
