@@ -67,6 +67,23 @@ A sweep that covers two or more classes is a sweep that will not be reviewed; sp
 
 ---
 
+## Two discovery paths
+
+Drift is found in two ways, and the cadence below governs only the first:
+
+| Path | Trigger | Default response time |
+|---|---|---|
+| **Active sweep** | Calendar (per the cadence table below) | Per the cadence; this is the sweep agent's job |
+| **Incidental discovery** | A contributor (human or AI) notices drift while doing unrelated work | Open a small Lean-mode change *immediately*; do not wait for the next sweep |
+
+Calendar cadence governs how often we *actively go looking*. It does not govern how soon to act on what we *passively notice*. A drift item that closes in five minutes of Lean-mode work should close in five minutes — not wait six days for the weekly doc-rot sweep.
+
+Both paths share Rule 1 (proposal-shaped, not silent fix) and Rule 3 (one drift class per change). They differ only in trigger and timing.
+
+This is consistent with [`AGENTS.md §2 Scope discipline`](../AGENTS.md) ("do not bundle opportunistic cleanup" — keep it out of the in-flight change) and [`docs/throughput-first-merge-philosophy.md`](throughput-first-merge-philosophy.md) Rule 3 (follow-up over blocking). The incidental path is *a separate small change opened now*, not a bundled cleanup and not a deferred sweep finding.
+
+---
+
 ## Cadence
 
 Each drift class has its own natural cadence; the discipline does not mandate exact frequencies, only the *order of magnitude*:
@@ -112,6 +129,7 @@ This document does **not** mandate the formula, the units, or the storage locati
 - *"Quality score replaces sweeping."* The score summarises sweeps; it does not perform them. A repository whose score is "green" but has not run sweeps in three months has a stale score.
 - *"Sweep agent runs 24/7."* The sweep is calendar-driven; running continuously is a different discipline (drift detection, not anti-entropy GC) and incurs continuous cost. Calendar cadence is the contract; continuous polling is at most an optimization.
 - *"Sweep findings live only in chat."* Findings are external knowledge until transcoded; per [`docs/repo-as-context-discipline.md`](repo-as-context-discipline.md), they must land in a repo-resident artifact (issue, ticket, branch, log) before they govern future behaviour.
+- *"Defer-to-next-sweep what could close in five minutes."* If drift is noticed in passing and the cleanup is Lean-mode-sized, open the small follow-up change now. Calendar cadence is the contract for *active* sweeps; it is not a throttle on incidental fixes. This anti-pattern is the most common AI misreading of the cadence table — see §Two discovery paths.
 
 ---
 
