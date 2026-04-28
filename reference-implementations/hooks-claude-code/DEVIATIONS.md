@@ -60,6 +60,23 @@ arbitrary egress.
 
 ---
 
+## 7. yq variant — mikefarah-only (1.31.1 hardening)
+
+Two distinct binaries ship under the `yq` name. The hooks here use mikefarah-only syntax:
+
+- `cckn-canonical-sync-check.sh` uses `yq --front-matter=extract '<expr>' <md-file>` for CCKN frontmatter parsing. The Python `kislyuk/yq` (a jq-wrapper) does not implement `--front-matter=extract` and exits with `Unknown option`.
+- `consumer-registry-check.sh` uses `yq -r '.. | select(has("external_registry_url")) | .external_registry_url' <yaml>`. Recursive descent (`..`) visits primitives, and `kislyuk/yq` errors with `Cannot check whether string has a string key` on those primitives.
+
+A repo running with the wrong `yq` variant on `PATH` will see the cckn drift signal silently fail-open (frontmatter parse returns empty → "no mirrors declared" branch → exit 0) and the consumer-registry probe silently fail-closed (recursive descent error → empty URL list → no probe runs → exit 0). The user-visible hook output is "everything passed" — exactly the outcome the back-pressure pattern is designed to surface honestly.
+
+**Mitigation in 1.31.1.** `selftests/selftest.sh` now distinguishes the two variants by reading `yq --version` and matching `mikefarah` / `github.com/mikefarah` in the output. When the wrong variant is on `PATH`, the harness skips the affected fixture cases with `# SKIP yq is not mikefarah/yq (Go); see ... §Dependencies` and points the contributor at the README's `§Dependencies` block, which now carries an explicit installation pointer to the Go binary. CI installs the Go binary explicitly, so the production gate always exercises the full suite.
+
+**Why detect at the harness rather than at the hook.** The hook itself uses the contract's `TOOL_ERROR` path when `yq` is missing entirely (`command -v yq` fails). Distinguishing variants inside the hook would add 5–10 ms of variant-detection overhead to every hook invocation, in service of an environment-pollution problem that affects local development only. The harness-side check costs nothing in production and produces an instructive remediation message (per the §Remediation-injection contract added in 1.31.0) the moment a contributor tries to run the suite locally with the wrong yq.
+
+**Open follow-ups.** A future patch may add a startup `yq --version` probe to the install-time docs (`README.md §How to install`) so the wrong-variant case is caught before the first hook fires, not at first selftest run.
+
+---
+
 ## 6. CCKN canonical-mirror sync check — implemented (1.27.0)
 
 `hooks/cckn-canonical-sync-check.sh` is the reference implementation of the CCKN ↔ canonical-SoT drift signal defined in `docs/cross-change-knowledge.md §Mirroring canonical methodology SoT`. The hook walks the project's CCKN directory (default `docs/knowledge/`; override via `CCKN_DIR`), parses each CCKN's `mirrors_canonical` frontmatter, and warns (`exit 2` — never blocks) when:

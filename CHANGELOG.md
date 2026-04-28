@@ -8,6 +8,43 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.31.1] - 2026-04-28
+
+Patch release fixing a selftest false-FAIL surfaced when contributors run the Claude Code hook bundle locally with the wrong `yq` distribution on `PATH`. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.30.1 and 1.29.1 (post-release CI / drift hardening in a patch release).
+
+### Fixed
+
+- **`reference-implementations/hooks-claude-code/selftests/selftest.sh` — yq variant detection** — two distinct binaries ship under the `yq` command name: mikefarah/yq (Go) and kislyuk/yq (Python wrapper around jq). Two hook scripts in this bundle use mikefarah-only syntax: `cckn-canonical-sync-check.sh` uses `--front-matter=extract` (rejected by kislyuk/yq as `Unknown option`), and `consumer-registry-check.sh` uses `.. | select(has(...))` recursive descent (kislyuk/yq errors with `Cannot check whether string has a string key` because jq's `has()` rejects primitives). The harness previously gated yq-dependent fixtures on `command -v yq` only; with kislyuk/yq on `PATH`, the gate passed but the hooks silently mis-classified (cckn drift fail-open; consumer-registry probe fail-closed-and-silent), surfacing as 3 fixture FAILs (`cckn-canonical-sync-check/warn-stale-mirror`, `cckn-canonical-sync-check/warn-version-mismatch`, `consumer-registry-check/warn-unreachable`). The harness now reads `yq --version` and matches `mikefarah` / `github.com/mikefarah`; non-matching variants set `have_yq=0` and the affected cases are skipped with `# SKIP yq is not mikefarah/yq (Go); see reference-implementations/hooks-claude-code/README.md §Dependencies` — the three-segment shape (failure / location / remediation pointer) prescribed by the §Remediation-injection contract added in 1.31.0. CI is unaffected (it installs the Go binary explicitly via the `Install yq` step in `.github/workflows/validate.yml`).
+
+- **`reference-implementations/hooks-claude-code/selftests/selftest.sh` — yq_dependent_dirs completeness** — `cckn-canonical-sync-check` was missing from the list of fixture directories that gate on yq presence, despite the hook using mikefarah-specific frontmatter parsing since 1.27.0. Adding it closes the gap in the same edit; `consumer-registry-check`, `completion-audit`, `evidence-artifact-exists`, and `sot-drift-check` were already in the list and remain unchanged.
+
+### Added
+
+- **`reference-implementations/hooks-claude-code/README.md §Dependencies §Why mikefarah/yq specifically`** — new sub-section documenting the two-yq-variant footgun, with a one-line detection recipe (`yq --version | grep -q mikefarah`) and a pointer at the upstream binary releases. Mirrors the harness-side detection so a contributor seeing the SKIP message can fix the environment without spelunking through hook source.
+
+- **`reference-implementations/hooks-claude-code/DEVIATIONS.md §7 — yq variant — mikefarah-only (1.31.1 hardening)`** — explicit deviation entry documenting (a) which two hooks use mikefarah-only syntax and where, (b) the silent fail-open / fail-closed modes the wrong variant produces, (c) why the variant detection lives at the harness rather than inside the hooks (latency budget; the contract's `TOOL_ERROR` path already covers "yq absent entirely"), and (d) one open follow-up (install-time `yq --version` probe in `README.md §How to install`).
+
+### Why patch, not minor
+
+Both fixes converge to existing intent without introducing new normative content. The harness-side detection makes the existing `# SKIP yq not on PATH` pattern precise rather than coarse; the documentation additions surface a known dependency that the README already named in passing. No methodology rule changes, no schema changes, no public surface changes outside the README and DEVIATIONS additions (both of which describe pre-existing behaviour rather than introducing new rules). Matches `VERSIONING.md` patch category and follows the 1.30.1 / 1.29.1 precedent (post-release CI / drift hardening in a patch release).
+
+### Migration notes
+
+- **CI consumers** (Linux + macOS GitHub Actions per `.github/workflows/validate.yml`) — no action required; the workflow already installs mikefarah/yq explicitly. The detection logic is a no-op when the Go binary is on `PATH`.
+- **Local contributors with kislyuk/yq on `PATH`** — selftests now skip cleanly with an instructive remediation pointer instead of failing. To exercise the full suite, install mikefarah/yq from `https://github.com/mikefarah/yq/releases` and ensure it precedes the Python variant on `PATH`. The hooks themselves were and remain affected by the variant; the patch only fixes the harness's reporting precision.
+- **Forks that customised `selftest.sh`** — the variant detection block adds ~12 lines after the existing `command -v yq` check. If your fork replaced the harness, port the detection by adding a `yq --version | grep -q mikefarah` gate; the hook surface itself is unchanged.
+- **Forks that added new hooks using mikefarah-only yq syntax** — add the hook's fixture directory to `yq_dependent_dirs` in the same change, per the inline comment in `selftest.sh`. Forgetting is exactly the gap that produced the 1.31.1 false-FAILs (`cckn-canonical-sync-check` was added in 1.27.0, never registered).
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. The two yq distributions are named because the deviation IS the distribution mismatch — the same command name, different implementations. Per `CLAUDE.md §2`, capability categories remain the normative surface; the `yq` dependency is reference-implementation glue (the bundle is called `hooks-claude-code`, deliberately runtime-bridge-scoped), and naming the two distributions is correct in that scope.
+
+### Out of scope (deferred)
+
+- **Install-time variant probe.** A `yq --version | grep -q mikefarah` check at the start of every hook would catch the wrong variant before any silent fail-open / fail-closed — at the cost of 5–10 ms of detection overhead on every hook invocation. The harness-side check is cheaper because it runs once per selftest, not once per hook-fire. Tracked for a future audit.
+- **Variant-detection in adapter selftests.** The four adapter bundles (`hooks-cursor`, `hooks-gemini-cli`, `hooks-windsurf`, `hooks-codex`) use a portable yq subset (`yq '.phase' <file>`) that works under both variants, so they pass under kislyuk/yq today. If a future hook addition introduces mikefarah-only syntax to an adapter, the same detection will need to be ported there.
+- **CCKN drift-signal symmetry.** The `cckn-canonical-sync-check` hook has three drift signals (mtime, methodology_version, mirrored-section); the variant fix does not change the signal set. The 1.30.0 deferred "section-level diff" item remains deferred.
+
 ## [1.31.0] - 2026-04-28
 
 Methodology alignment release closing the gaps between agent-protocol and the *harness engineering* article (OpenAI, 2026-02). The 1.30.0 release covered six of the article's twelve dimensions; this release closes the remaining four (autonomy progression, observability legibility, throughput-first merge posture, agent-to-agent review loop) plus the AGENTS.md table-of-contents lift-out that 1.30.0 deferred. Every change is **tool-agnostic** per `CLAUDE.md §2`; the schema is unchanged.
