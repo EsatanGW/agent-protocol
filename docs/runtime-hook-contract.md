@@ -162,6 +162,42 @@ A worked walk-through of building a back-pressure-shaped completion-audit hook l
 
 ---
 
+## Remediation-injection contract
+
+This contract extends the §Output contract below. It governs the *content* of stderr on a non-zero exit — i.e. what the hook tells the agent when it has just blocked or warned. Without a structural rule, hooks degrade to a one-word `"failed"` or a 30-line stack trace; both leave the agent without a path forward, and the next iteration spends its budget rediscovering what the hook already knew.
+
+### The three-segment shape
+
+Every non-zero-exit hook's stderr message must contain three segments, in order, in one short message:
+
+1. **Failure statement** — one sentence naming what failed. Example: `"manifest declares phase: deliver but evidence_plan[2] still has status: planned"`. No "running checks…" preamble; no "an error occurred" wrapper.
+2. **Location pointer** — `filepath:line` (or a stable identifier when the failure is not file-bound, e.g. `manifest:evidence_plan[2]`). The pointer is what makes the failure mechanically remediable; without it, the agent has to grep to find the row the hook is talking about.
+3. **Remediation hint** — a one-line fix recipe **or** a deep link into a SoT document. Example recipes: `"set status: collected once the artifact is produced"` / `"add a waivers[] row with rationale"` / `"see docs/evidence-quality-per-type.md §screenshot_diff for the acceptance signal"`. The hint is not the fix — it is the shortest path to where the fix lives.
+
+The three segments fit on one or two lines for a single finding. When a hook surfaces multiple findings, each gets its own three-segment line; the back-pressure pattern's "one short line per finding" still applies.
+
+### Why the three segments
+
+- **Without the failure statement**, the agent reads exit code 1 with no context and re-invokes the same action; the hook fires again with no progress.
+- **Without the location pointer**, the agent searches for the row, often pattern-matching on the wrong target. The next iteration produces an unrelated change and the original block remains.
+- **Without the remediation hint**, the agent guesses; the guess is often architecturally inconsistent with the SoT (e.g. inventing a `status: complete` value when the enum is `planned | collected | waived`). The hint anchors the fix in the SoT.
+
+The shape is the runtime-hook counterpart of `docs/tool-design-principles.md` Principle 3 (error codes are stable) and Principle 5 (context-budget honesty). The exit code is the stable signal; the three segments are the budget-honest content.
+
+### Anti-patterns
+
+- *"failed"* — exit 1 with one word of stderr. The agent learns nothing; the hook's signal is squandered.
+- *Full stack trace as stderr.* The trace overwhelms the agent's context window; the cause-of-failure summary is buried inside it. Per the back-pressure pattern, write the trace to a side-channel artifact and reference it by path in the one-line stderr.
+- *Remediation hint that names a tool, not a category.* `"run npm test --fix"` ties the hook to a backend; `"see <SoT-link> for the test-evidence shape"` survives backend changes. Per `CLAUDE.md §2`, hint content is capability-shaped; bridge files may name tools.
+- *Remediation hint that points at a wiki the agent cannot read.* The agent's context is the repo. A hint pointing to a Confluence page, a Slack thread, or a private dashboard is not actionable — per `repo-as-context-discipline.md`, knowledge that is not in-repo is not in-context. Hints resolve to repo-resident paths.
+- *Three-segment format degraded to one segment because "the failure is obvious".* Routine failures (a missing field) feel obvious to the rule author; they are not obvious to an agent reading the hook output for the first time. The format applies to every failure, not the unfamiliar ones.
+
+### Optional fourth segment — rule identifier
+
+Hooks that participate in the `automation-contract.md` rule registry may add a fourth segment: `[rule_id: <stable_id>]`. The rule ID is mechanical correlation between hook findings, validator findings, and CI findings — the same rule firing at three layers produces three findings tagged identically, and the agent can deduplicate. The segment is optional because not every hook is registered; when present, it goes after the remediation hint.
+
+---
+
 ## I/O contract
 
 Hooks must accept a JSON event on stdin and emit a structured result. The schema below is the minimum; runtimes may extend it additively.

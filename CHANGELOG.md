@@ -8,6 +8,60 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.31.0] - 2026-04-28
+
+Methodology alignment release closing the gaps between agent-protocol and the *harness engineering* article (OpenAI, 2026-02). The 1.30.0 release covered six of the article's twelve dimensions; this release closes the remaining four (autonomy progression, observability legibility, throughput-first merge posture, agent-to-agent review loop) plus the AGENTS.md table-of-contents lift-out that 1.30.0 deferred. Every change is **tool-agnostic** per `CLAUDE.md §2`; the schema is unchanged.
+
+### Added
+
+- **`docs/autonomy-ladder-discipline.md` (new)** — *Five-rung autonomy ladder.* L0 (hand-written) → L1 (draft-assist) → L2 (in-loop agent) → L3 (cross-Phase delegation) → L4 (end-to-end self-driven). Each rung names its scope, role-separation requirement, minimum evidence shape, HITL trigger, and forced-upgrade signal. Indexes existing rules in `multi-agent-handoff.md`, `decision-trees.md` Tree D, `runtime-hook-contract.md`, and `evidence-quality-per-type.md` by autonomy level; introduces no new permission tier. Per-rung × per-surface table for application-driven and observability-stack evidence requirements. Closes the gap that auto-progression to L4 was inferable but not enumerated.
+
+- **`docs/observability-legibility-discipline.md` (new)** — *Three rules keeping the running system's operational evidence reachable by an agent in-loop.* (1) Structured-by-default emission (logs/metrics/traces in parseable shape; an agent that reads source fluently and runtime output crudely has half the loop missing). (2) Per-change isolation (a change being verified runs against its own observability surface, not shared staging). (3) Query-by-capability (log query / metric query / trace query as capability categories — never a specific backend). The operational-surface counterpart of `repo-as-context-discipline.md`. Defaults to advisory severity per `automation-contract.md` Rule 2.13 posture; runtime bridges may promote to block.
+
+- **`docs/throughput-first-merge-philosophy.md` (new)** — *Three rules for the merge-gate posture when agent throughput exceeds human attention.* (1) Default-advisory (block reserved for the risky-action interception list, breaking changes at L2+, rollback-mode-3, auth/PII/secrets paths, canonical methodology edits at L1+). (2) Short-lived PRs (a PR that does not close in one work-cycle is mis-scoped, not a quality bar). (3) Follow-up over indefinite blocking (real-but-non-blocking findings issue follow-up tickets, not holds on the in-flight PR). The strict gate (Tree D leaves) overrides the philosophy unconditionally; the philosophy is a posture, not a permission.
+
+- **`docs/file-role-map.md` (new)** — Lifted from `AGENTS.md §File role map`. The full per-file role classification (SoT / thin-bridge / runtime role-spec / reference wrapper) and the "where a new rule belongs" routing now live here. `AGENTS.md` carries a one-paragraph pointer. Updated to include the new disciplines (autonomy-ladder, observability-legibility, throughput-first-merge) and the new examples (consumer-docs-scaffolding, quality-score-template).
+
+- **`skills/engineering-workflow/references/application-driven-loop.md` (new)** — Non-normative reference walk-through of the L4 evidence shape: select target + clear console → snapshot BEFORE → trigger UI path → collect runtime events → snapshot AFTER → diff → apply fix + restart (loop until clean, capped at 5 iterations) → persist artefacts as evidence rows. Step-by-step evidence mapping onto existing `evidence_plan[*].type` enum values. Pairs with `cross-cutting-concerns.md §Application-driven verification` (the binding shape) the same way `back-pressure-loop.md` pairs with `runtime-hook-contract.md §Back-pressure pattern`.
+
+- **`skills/engineering-workflow/references/review-loop-pattern.md` (new)** — Non-normative reference walk-through of the agent-to-agent review iteration. Three terminal states (approved / continuation / escalation); five-iteration cap with diagnostic rationale; local self-review + cross-identity Reviewer + specialist sub-agent reviewer composition; anti-patterns covering self-approval, cap-raise-to-escape, findings-as-conversation, and Reviewer-as-author. Pairs with `multi-agent-handoff.md` (binding role contract) and `decision-trees.md §Tree D` (HITL leaves).
+
+- **`docs/examples/consumer-docs-scaffolding.md` (new, non-normative)** — Reference layout for a consumer project's repo (AGENTS.md as table of contents, ARCHITECTURE.md as top-level domain map, docs/design-docs / exec-plans / generated / product-specs / references; top-level DESIGN/FRONTEND/PLANS/PRODUCT_SENSE/QUALITY_SCORE/RELIABILITY/SECURITY policy files). Maps the scaffolding's slots onto agent-protocol concepts (surfaces, SoT Pattern 4a, Change Manifest, repo-as-context-discipline). Adoption procedure recommends "map first, rename second."
+
+- **`docs/examples/quality-score-template.md` (new, non-normative)** — Fillable template for a consumer project's `docs/QUALITY_SCORE.md`. Per-domain × per-surface grading on a three-tier scale (good/partial/weak); open and recently-closed gap-finding tables; trend metrics. Anti-patterns covering grade inflation, sweep-as-ceremony, grading-by-counting, quality-score-as-performance-review. Activates `anti-entropy-discipline.md §Quality score (optional, non-mandatory)` for consumers that want it.
+
+### Changed
+
+- **`AGENTS.md` size and shape** — slimmed from 311 lines to 210 lines per the 1.30.0 changelog's deferred-upgrade note. Lifted §File role map's full table to `docs/file-role-map.md`; compressed §Recommended reading order from a 80-line bibliography into a 12-line shortest-paths-in pointer that defers to `docs/README.md`'s 4-tier index. The 10 core operating-contract rules remain verbatim; no normative content was lost. The article's "AGENTS.md is a table of contents, not an encyclopedia" framing is now reflected in shape, not just in claim.
+
+- **`docs/runtime-hook-contract.md`** — added §*Remediation-injection contract* extending the existing §Output contract. The three-segment shape every non-zero-exit hook's stderr must carry: (1) failure statement, (2) `filepath:line` location pointer, (3) one-line remediation hint or deep link into a SoT document. Optional fourth segment for the rule identifier when the hook participates in `automation-contract.md`'s rule registry. Anti-patterns reject one-word `"failed"`, full-stack-trace stderr, vendor-named hints, and hints that point at non-repo wikis. Closes the gap that error-code stability (`tool-design-principles.md` Principle 3) had a stable signal but no stable content.
+
+- **`docs/README.md`** (4-tier index) — added `autonomy-ladder-discipline.md`, `observability-legibility-discipline.md`, `throughput-first-merge-philosophy.md`, and `file-role-map.md` to Tier 2 with one-line descriptions matching the tier's existing shape. Examples (`consumer-docs-scaffolding.md`, `quality-score-template.md`) ride in `docs/examples/` and are discoverable via the existing Tier-4 `examples/` row.
+
+### Migration notes
+
+- **No schema changes.** Every new rule resolves onto fields already present in `schemas/change-manifest.schema.yaml` (`escalations[*].trigger`, `sot_map[*].extension_fields`, `evidence_plan[*].type`, `breaking_change.level`, `rollback_mode`). Existing manifests validate without modification.
+- **AGENTS.md slim-down is non-breaking.** The 10 core operating-contract rules remain verbatim at the same section anchor numbers. Consumers that linked to specific anchors in §File role map should now link to `docs/file-role-map.md` (the new SoT for that content); the §Recommended reading order anchor still exists with a redirected pointer set.
+- **Mirror-CCKN consumers** that maintain a methodology-version-pinned mirror against any 1.30.x docs file — refresh `updated` date, set `methodology_version: "1.31.0"`, re-anchor any consumer-internal section pointers as needed. The `cckn-canonical-sync-check` hook will emit the third drift signal (methodology_version mismatch) until refreshed; SoT-mtime drift signal will fire on consumers with mirrors against `runtime-hook-contract.md` (one new section), `AGENTS.md` (slim-down), or `docs/README.md` (four new rows).
+- **Autonomy-ladder is descriptive, not novel.** The five rungs index existing rules; pre-1.31 manifests are not retroactively non-conformant. A team's adoption record may declare a rung at any time; the rung's evidence shape applies forward.
+- **Observability-legibility default-advisory** — pre-1.31 changes lacking structured emission, per-change isolation, or query-by-capability evidence surface as advisory findings under `phase_log`, not blocking. Promoting to block is per-bridge, recorded in the bridge's `DEVIATIONS.md`.
+- **Throughput-first is opt-in.** Teams in regulated environments, safety-critical software, or early adoption stages may reasonably reject the philosophy; the rejection is recorded in `adoption-strategy.md` under the team's adoption entry. An unrecorded rejection is silent abdication per the philosophy's anti-pattern list.
+
+### Why minor, not major
+
+Minor per `VERSIONING.md`: new normative content added (three new disciplines, one extension to `runtime-hook-contract.md`), no removals, no contract shape changes. Existing manifests, validators, hooks, and bridges remain conformant. The AGENTS.md slim-down preserves all 10 core rules verbatim; the §File role map content moved unchanged into `docs/file-role-map.md` with a pointer left behind. The new disciplines route through existing schema fields and existing escalation enums; no new schema is introduced. Default-advisory severity preserves backward compatibility on the new rules.
+
+### Tool-agnostic discipline
+
+Every new doc names capabilities by category (file read, code search, shell execution, sub-agent delegation, browser interaction, log query, metric query, trace query) rather than by vendor. The harness-engineering article is cited only in *Why this release* (this section); no specific tool, model, product, or backend name is introduced into normative content. Query-language categories (LogQL, PromQL, TraceQL) are named as language categories, not as backend products. The reference layout in `docs/examples/consumer-docs-scaffolding.md` uses category-shaped slot names (`design-docs/`, `references/`); teams map their existing tool-shaped layouts onto the slots without renaming.
+
+### Out of scope (deferred)
+
+- **Schema-side acceptance criteria for autonomy rungs.** `autonomy-ladder-discipline.md` ships as discipline-tier; promoting any rung's per-surface evidence shape into a schema field (`autonomy_rung: L0 | L1 | L2 | L3 | L4` with conditional minima) is a future minor.
+- **Quality-score automation.** `docs/examples/quality-score-template.md` is a template, not an automated artefact. A `quality-score-sweep.sh` reference hook that produces `QUALITY_SCORE.md` from a `cross-cutting-concerns.md` checklist run is left to runtime bridges.
+- **Hook-output remediation lint.** A CI lint that reads every reference hook bundle's stderr-on-failure path and asserts the three-segment shape (failure / location / remediation) is preventive infrastructure deferred to a future patch alongside the broader hook-wiring-consistency lint flagged in 1.29.1.
+- **Per-worktree environment infrastructure.** The `observability-legibility-discipline.md` Rule 2 (per-change isolation) presupposes the runtime can spin up isolated environments. The methodology says *what* the contract requires; the *how* (Dockerfiles, namespaces, process trees) is bridge-local infrastructure-as-code, not methodology content.
+
 ## [1.30.1] - 2026-04-28
 
 Patch release fixing two CI failures surfaced after the 1.30.0 release. No new normative content; no schema changes; no methodology rule additions. Both fixes match `VERSIONING.md` patch category — "fixes" — with the same shape as 1.29.1 (post-release drift cleanup).
