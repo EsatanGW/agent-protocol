@@ -144,85 +144,19 @@ Full contract: `docs/output-craft-discipline.md`
 
 ## Recommended reading order
 
-**Fast lookup (30 seconds, when you don't need reasoning):**
+This file is a **table of contents** ([`docs/repo-as-context-discipline.md`](docs/repo-as-context-discipline.md) Rule 2). For the full discoverability index of every methodology file, read [`docs/README.md`](docs/README.md). The shortest paths in:
 
-- `docs/operational-cheat-sheet.md` — per-role top 5 actions, 5-second checks, and "when you see X, go to Y" navigation table
+- **Fast lookup (30 seconds)** → [`docs/operational-cheat-sheet.md`](docs/operational-cheat-sheet.md)
+- **Five-minute orientation** → [`docs/onboarding/orientation.md`](docs/onboarding/orientation.md)
+- **First principles (why)** → [`docs/principles.md`](docs/principles.md)
+- **Routing aid (manifest needed? / which SoT pattern? / single vs multi-agent? / HITL escalation?)** → [`docs/decision-trees.md`](docs/decision-trees.md)
+- **Execution layer (when and how)** → [`skills/engineering-workflow/SKILL.md`](skills/engineering-workflow/SKILL.md)
+- **Structured output contract** → [`schemas/change-manifest.schema.yaml`](schemas/change-manifest.schema.yaml) + worked examples under [`skills/engineering-workflow/templates/manifests/`](skills/engineering-workflow/templates/manifests/)
+- **Per-runtime entry points** → see §How to use this plugin in different runtimes below
+- **Stack bridges (the only place where specific tool / framework / language names appear)** → [`docs/bridges/`](docs/bridges/)
+- **Reference implementations (non-normative)** → [`reference-implementations/`](reference-implementations/)
 
-**Methodology (why and what):**
-
-1. `docs/onboarding/orientation.md` — 5-minute orientation
-2. `docs/phase-gate-discipline.md` — the per-phase verification, ROADMAP, commit-at-gate, and spec-review-before-plan contract
-3. `docs/principles.md` — first principles (11 rules with derivations)
-4. `docs/surfaces.md` — canonical surface definitions
-5. `docs/source-of-truth-patterns.md` — 10 SoT patterns + desync repair
-6. `docs/breaking-change-framework.md` — severity matrix + migration paths
-7. `docs/rollback-asymmetry.md` — rollback modes + long-lived client handling
-8. `docs/cross-cutting-concerns.md` — security, performance, observability, testability, error handling, build-time risk
-9. `docs/security-supply-chain-disciplines.md` — surface-first threat modeling, supply chain as uncontrolled interface, secret lifecycle, compliance triggers, incident feedback loop
-10. `docs/change-decomposition.md` — when to split or merge a change, dependency graph relations, worked decomposition scenario
-11. `docs/team-org-disciplines.md` — consumer registry, contract catalog, deprecation queue, cross-team handoff
-12. `docs/ai-operating-contract.md` — detailed AI co-author behavior contract
-13. `docs/ai-project-memory.md` — three-layer memory model, write-back protocol, cross-session resumption, conflict resolution
-14. `docs/multi-agent-handoff.md` — Planner / Implementer / Reviewer roles, manifest progression, conflict and resumption rules
-15. `docs/phase-gate-discipline.md` — per-phase gate, ROADMAP tracking artifact, commit-at-gate, read-spec-before-plan
-16. `docs/automation-contract.md` — what a validator must guarantee (structural / cross-reference / drift layers; waiver protocol; offline operability)
-17. `docs/automation-contract-algorithm.md` — normative tool-neutral algorithm, layer-by-layer with rule IDs and exit codes; the bridge from capability contract to executable validator
-17b. `docs/runtime-hook-contract.md` — capability contract for agent-runtime event-driven hooks (pre-tool-use / post-tool-use / pre-commit / on-stop); four categories (phase-gate / evidence / drift / completion-audit); shares exit-code semantics with the automation contract
-18. `docs/adoption-strategy.md` — staged adoption, anti-metrics, decay intervention playbook
-19. `docs/adoption-anti-metrics.md` — **non-normative** diagnostic aids for catching ceremonial adoption (same-artifact evidence, rollback-mode monoculture, LGTM-only review); explicitly not CI gates
-20. `docs/glossary.md` — canonical term definitions
-
-**Execution layer (when and how):**
-
-- `skills/engineering-workflow/SKILL.md` — the main workflow skill
-- `skills/engineering-workflow/references/startup-checklist.md` — 60-second opener
-- `skills/engineering-workflow/references/mode-decision-tree.md` — Lean vs Full
-- `skills/engineering-workflow/templates/` — spec / plan / test / completion templates
-
-**Structured output (AI contract artifact):**
-
-- `schemas/change-manifest.schema.yaml` — JSON Schema 2020-12 (canonical YAML form, comments + anchors preserved)
-- `schemas/change-manifest.schema.json` — generated JSON mirror for Node / browser / GitHub Actions consumers; `.github/scripts/generate-schema-json.py --check` enforces parity in CI
-- `schemas/surface-map.schema.yaml` + `.json` — per-bridge surface-map artifact (same dual-format discipline)
-- `skills/engineering-workflow/templates/manifests/change-manifest.example-crud.yaml` — simple CRUD example
-- `skills/engineering-workflow/templates/manifests/change-manifest.example-mobile-offline.yaml` — offline-first mobile example
-- `skills/engineering-workflow/templates/manifests/change-manifest.example-game-gacha.yaml` — live-ops game example
-- `skills/engineering-workflow/templates/manifests/change-manifest.example-multi-agent-handoff.yaml` — Planner → Implementer → Reviewer progression of one manifest
-- `skills/engineering-workflow/templates/manifests/change-manifest.example-security-sensitive.yaml` — JWT signing-key rotation: SoT pattern 8 (dual-representation), L1 breaking change, mode-3 compensation-only rollback, security / compliance cross-cutting escalations
-- `skills/engineering-workflow/templates/manifests/change-manifest.example-methodology-evolution.yaml` — methodology self-evolution: SoT author extends `AGENTS.md §Core operating contract` (8 → 10 rules); L1+ forced-Full with Manifest-only abbreviated ceremony; honest documentation of the structural review gap (Implementer ≡ Reviewer because SoT author == Implementer) instead of fabricated pass entries
-
-**Worked examples across domains:**
-
-- `docs/examples/bugfix-example.md` / `refactor-example.md` / `migration-rollout-example.md`
-- `docs/examples/game-dev-example.md` / `game-liveops-example.md` / `unity-game-example.md`
-- `docs/examples/mobile-offline-feature-example.md`
-- `docs/examples/flutter-app-example.md` — multi-platform "Save & Share" with platform-channel two-sided contract
-- `docs/examples/android-kotlin-example.md` — offline draft-saving with Room migration + WorkManager + ViewBinding
-- `docs/examples/ios-swift-app-example.md` — CloudKit-synced tag feature + Home Screen Widget, private/public CloudKit rollback asymmetry
-- `docs/examples/react-nextjs-app-example.md` — App Router migration with Server Action, ISR cache tags, Prisma additive migration, and A/B middleware
-- `docs/examples/ktor-server-example.md` — order-lifecycle enum addition with migration + plugin install order + mixed rollback modes
-- `docs/examples/ml-model-training-example.md` — ML retrain / rollout with dataset+weights+config SoT
-- `docs/examples/data-pipeline-example.md` — schema extension with warehouse / feature store / compliance consumers
-- `docs/examples/embedded-firmware-example.md` — OTA across HW versions, long-tail offline devices, three-mode rollback coexistence
-
-**Reference implementations (explicitly non-normative — read only if you are building a validator):**
-
-- `reference-implementations/` — directory index; every sub-implementation ships `README.md` + `DEVIATIONS.md` + source + self-test.
-- `reference-implementations/validator-posix-shell/` — POSIX-shell reference validator (needs `yq`, `git`, and an external JSON Schema validator via `$SCHEMA_VALIDATOR`). Implements most of the algorithm; `DEVIATIONS.md` documents the three deliberate gaps.
-- `reference-implementations/validator-python/` — Python 3.10+ language-native validator; closes rules 2.4 / 2.5 / 3.2 / 3.4 via PyYAML + jsonschema. Recommended when CI already has a Python interpreter. Pytest suite under `tests/`.
-- `reference-implementations/community/validator-node/` — **community-maintained** TypeScript / Node 20+ validator (demoted from first-class in 1.20.0 per `reference-implementations/INVENTORY.md §Validator parity note`); functional sibling to `validator-python` with byte-for-byte equivalent fixtures. Pick this one if your CI is already JS/TS/web-leaning; rule parity with the canonical algorithm is verified by adopters via the bundled `tests/`, not by this repository's `role-consistency` CI job.
-- `reference-implementations/roles/` — runtime-neutral Planner / Implementer / Reviewer role prompts. Paste-ready for Cursor Custom Mode, Gemini CLI session, Windsurf mode, Codex profile. Mirrors the §7 permission matrix in prose for runtimes that cannot gate tool exposure per persona.
-
-**Stack bridges (opt-in, the only place where tool / framework / language names appear):**
-
-- `docs/bridges/flutter-stack-bridge.md`
-- `docs/bridges/android-kotlin-stack-bridge.md`
-- `docs/bridges/android-compose-stack-bridge.md` — companion to the Kotlin + XML bridge; inherits Room / WorkManager / FCM / permission / vendor-fork / deep-link sections, adds Compose-specific state-ownership, effect-API, and recomposition deltas
-- `docs/bridges/ios-swift-stack-bridge.md` — iOS/Swift (UIKit + SwiftUI) with Core Data, CloudKit, Widget/Extension multi-process state, and App Store compliance surface
-- `docs/bridges/react-nextjs-stack-bridge.md` — React + Next.js App Router with RSC / Server Actions / Middleware / four-layer cache invalidation
-- `docs/bridges/ktor-stack-bridge.md`
-- `docs/bridges/unity-stack-bridge.md`
-- Template for new stacks: `docs/stack-bridge-template.md`
+The 4-tier index in [`docs/README.md`](docs/README.md) lists every methodology file by tier (onboarding / core contract / disciplines / references); use it when looking up a rule by topic rather than by entry point.
 
 ---
 
@@ -246,44 +180,9 @@ See `README.md` for installation details per runtime.
 
 ## File role map (where normative content is allowed to live)
 
-The table above lists **installation entry points** per runtime. This map classifies the same files — plus the rest of the repo surface — by their **architectural role**, so a contributor adding a new rule can tell which file owns it. Drift between duplicated rules is the anti-pattern this repo most often warns against; this map is the index that prevents it.
+The table above lists **installation entry points** per runtime. The full per-file role classification — which file owns which rule, which files are SoT vs thin-bridge vs reference, where a new rule belongs — lives in [`docs/file-role-map.md`](docs/file-role-map.md). Read that file when adding a new normative claim, or when two files appear to state the same rule in different words.
 
-| File / directory | Role | Normative weight |
-|---|---|---|
-| `AGENTS.md` (this file) | SoT — operating contract (the 10 core rules above) | Canonical; all runtimes inherit from here |
-| `docs/multi-agent-handoff.md` | SoT — role contract (Planner / Implementer / Reviewer definitions, field-ownership matrix, tool-permission matrix, anti-collusion, handoff minima, Task Prompt structure) | Canonical for multi-agent discipline; `agents/`, `.cursor/rules/`, `reference-implementations/roles/` all point back here |
-| `docs/*.md` (other) | SoT — topic-specific definitions (`surfaces.md`, `source-of-truth-patterns.md`, `breaking-change-framework.md`, `rollback-asymmetry.md`, `phase-gate-discipline.md`, `ai-operating-contract.md`, `agent-persona-discipline.md`, `output-craft-discipline.md`, `glossary.md`, `phase-command-vocabulary.md`, `repo-as-context-discipline.md`, …) | Canonical per topic; referenced from the contracts above |
-| `skills/engineering-workflow/SKILL.md` + `skills/**` | SoT — execution layer (modes, phases, templates, references) | Canonical for workflow execution |
-| `schemas/**` + `skills/engineering-workflow/templates/manifests/**` | SoT — machine-readable Change Manifest contract + worked examples | Canonical structural output |
-| `CLAUDE.md` | Thin-bridge — Claude Code entry; points at `AGENTS.md` + `skills/` | Onboarding only, no new normative content |
-| `GEMINI.md` | Thin-bridge — Gemini CLI entry | Same |
-| `.windsurfrules` | Thin-bridge — Windsurf entry | Same |
-| `.codex-plugin/plugin.json` | Thin-bridge — Codex plugin manifest | Metadata and UI entry only; execution rules remain in `AGENTS.md` + `skills/` |
-| `.agents/plugins/marketplace.json` | Thin-bridge — Codex local marketplace entry | Points Codex at the repository root plugin; no new normative content |
-| `.cursor/rules/engineering-workflow.mdc` | Thin-bridge with `alwaysApply: true` — Cursor repo-level onboarding | Condensed summary only; every bullet must defer to a `docs/` source |
-| `.cursor/rules/{planner,implementer,reviewer}.mdc` | Runtime role-spec — Cursor Custom Mode system prompts | Must remain self-contained because Cursor does not auto-resolve Markdown path references; normative rules are mirrored **from** `docs/multi-agent-handoff.md`, never authored here |
-| `agents/{planner,implementer,reviewer}.md` | Runtime role-spec — Claude Code sub-agent definitions with mechanical `tools:` enforcement | Role behaviour must cite `docs/multi-agent-handoff.md` as the source; runtime-specific supplements (Lean-mode collapse, tool-permission rows) are allowed, new normative rules are not |
-| `reference-implementations/roles/*.md` | Reference wrappers — runtime-neutral paste-ready prompts for Gemini / Windsurf / Codex / Aider | Never introduce normative content; if the wrapper says something `docs/multi-agent-handoff.md` does not, one of them is wrong |
-| `reference-implementations/roles/specialist-roles-registry.md` | Reference wrapper — starter registry for specialist sub-agent roles (`architect`, `security-reviewer`, `performance-reviewer`) per `docs/multi-agent-handoff.md` §Composable specialist sub-agent roles | Non-normative reference; bridges may copy / extend / replace entries. Specialist contract itself lives in `docs/multi-agent-handoff.md`; this file lists which specialists exist |
-| `reference-implementations/validator-{posix-shell,python}/` | First-class reference wrappers — executable validators for the automation contract | Track the spec in `docs/automation-contract*.md`; `DEVIATIONS.md` is the gap record |
-| `reference-implementations/community/validator-node/` | **Community-maintained** reference wrapper (demoted from first-class in 1.20.0); functional sibling to `validator-python/` for JS/TS/web-leaning CI. Rule parity not guaranteed; adopters verify via the bundled tests | Non-normative; not covered by official `role-consistency` / parity gates |
-| `reference-implementations/INVENTORY.md` | Non-normative classifier — flags each entry under `reference-implementations/` as `runtime-glue` (executable / runtime-specific config) or `documentation` (prose mirror, future-relocatable to `docs/`) | Reviewer / audit aid only; not cited from `docs/` |
-| `docs/README.md` | Non-normative — 4-tier index of every methodology file under `docs/` (onboarding / core contract / disciplines / references) | Discoverability layer; renames in `docs/` must update this index in the same change |
-| `docs/decision-trees.md` | Non-normative — 3 routing decisions (manifest-needed / SoT pattern / single vs multi-agent), each routing to its canonical source | Quick decision hub; binding rules stay in the canonical sources it cites |
-| `docs/change-manifest-spec-cookbook.md` | Non-normative companion to `docs/change-manifest-spec.md` — CI integration recipes, AI usage modes, mission-shaped manifests, example tour | Spec wins on contradiction; cookbook holds applied material only |
-| `docs/sot-desync-anti-patterns.md` | Non-normative diagnostic appendix to `docs/source-of-truth-patterns.md` — 7 anti-patterns + 4 repair strategies + mapping | Identification stays in the spec; diagnosis lives in the appendix |
-
-### Where a new rule belongs
-
-- New **operating-contract rule** (applies to every runtime) → extend §Core operating contract in this file; bridges and role-spec files inherit automatically.
-- New **multi-agent / role-boundary rule** → `docs/multi-agent-handoff.md` first; update every consumer that cites it in the same change (per `CLAUDE.md` §5).
-- New **topic-specific definition** (a surface type, an SoT pattern, a breaking-change level) → its own `docs/*.md` file or section; contracts reference it.
-- New **runtime-specific shim** (Cursor quirk, Gemini session idiom, Claude Code frontmatter field) → thin-bridge or runtime role-spec file only; never in `docs/` or this file.
-- New **reference implementation** → `reference-implementations/…` with `README.md` + `DEVIATIONS.md`. Always non-normative.
-
-### The invariant this map enforces
-
-A normative claim appears in **exactly one** SoT file. Every consumer cites that section by name. When two files state the same rule in different words, the thin-bridge / runtime role-spec / reference wrapper yields; the SoT file wins.
+The invariant the map enforces: a normative claim appears in **exactly one** SoT file. Every consumer cites that section by name. When two files state the same rule in different words, the thin-bridge / runtime role-spec / reference wrapper yields; the SoT file wins.
 
 ---
 

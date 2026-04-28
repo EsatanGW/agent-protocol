@@ -354,7 +354,7 @@ Deciding a design based only on what one layer or one surface sees, while ignori
 The term carries **two senses, never collapsed**:
 
 - **Anti-pattern sense (this entry):** producing an artifact that nobody reads and that influences no decision. An unmistakable sign of methodology misuse.
-- **Structural sense:** the *amount of structured procedure* a change carries — phases, gates, manifest fields, ROADMAP rows, evidence artifacts. Different execution modes prescribe different amounts by design; the structural amount is **not** itself ceremonial. Used in `AGENTS.md §6` ("ceremony scaling", "Full mode ceremony", "abbreviated ceremony"), `docs/phase-gate-discipline.md §Ceremony scaling — how the six rules apply per execution mode`, and `§Execution mode` above's "rising ceremony".
+- **Structural sense:** the *amount of structured procedure* a change carries — phases, gates, manifest fields, ROADMAP rows, evidence artifacts. Different execution modes prescribe different amounts by design; the structural amount is **not** itself ceremonial. Used in `AGENTS.md §6` ("ceremony scaling") and `§2` ("Full mode ceremony"); `docs/phase-gate-discipline.md §Ceremony scaling — how the six rules apply per execution mode`; `§Execution mode` above's "rising ceremony"; and `skills/engineering-workflow/templates/manifests/change-manifest.example-methodology-evolution.yaml` ("abbreviated ceremony" / "manifest-only abbreviated ceremony").
 
 A Full-mode change correctly producing every required gate artifact is **not** ceremonial in the anti-pattern sense. A Lean-mode change generating a ROADMAP row that no consumer reads **is**. The two senses share a word because both describe procedural weight; what distinguishes them is whether the weight does work.
 

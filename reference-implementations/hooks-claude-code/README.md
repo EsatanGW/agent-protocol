@@ -53,10 +53,22 @@ Open each `.sh` file to see the check logic, then reimplement in whatever langua
 ## Dependencies
 
 - POSIX-compatible shell (`sh` / `bash` / `zsh`).
-- [`yq`](https://github.com/mikefarah/yq) (v4+) for reading the manifest YAML.
+- [`yq`](https://github.com/mikefarah/yq) (v4+) for reading the manifest YAML — **must be the Go binary from `mikefarah/yq`**, not the Python `kislyuk/yq` jq-wrapper of the same name.
 - `git` (used only by `sot-drift-check.sh` to compute touched paths).
 
 No Node, no Python, no network, no API keys. If `yq` is missing, hooks exit code `2` with `TOOL_ERROR: yq not found on PATH` — per the contract, tool errors are surfaced as warnings, not rule-violation blocks.
+
+### Why mikefarah/yq specifically
+
+Two yq distributions ship under the same command name. The hooks here use mikefarah-only syntax: `--front-matter=extract` (frontmatter parsing in `cckn-canonical-sync-check.sh`) and `.. | select(has(...))` against arbitrary nesting levels (recursive descent in `consumer-registry-check.sh`). The Python `kislyuk/yq` wraps `jq` and does not implement either path: `--front-matter=extract` is rejected as an unknown option, and `has()` errors on primitives during recursive descent. A repo running with the wrong yq variant on `PATH` will see hooks silently fail-open (cckn drift signal not raised) or fail-closed (consumer registry probe never runs), depending on which queries the hook reaches first.
+
+Detect the variant locally:
+
+```sh
+yq --version | grep -q mikefarah && echo OK || echo "wrong yq — install from https://github.com/mikefarah/yq/releases"
+```
+
+The selftest harness (`selftests/selftest.sh`) performs the same detection and skips the affected fixture cases with `# SKIP yq is not mikefarah/yq (Go); see ... §Dependencies` rather than emitting spurious FAILs. CI installs the Go binary explicitly (`Install yq` step in `.github/workflows/validate.yml`), so the production gate always exercises the full suite.
 
 ---
 

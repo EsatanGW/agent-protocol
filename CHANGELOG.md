@@ -12,7 +12,182 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 ### Changed
 
-- **`docs/glossary.md §Ceremony` — disambiguated structural vs anti-pattern senses** — the term *ceremony* appears in two semantically distinct ways across the methodology: the **structural sense** names the amount of procedure a mode prescribes (`AGENTS.md §6` "ceremony scaling", "Full mode ceremony", "abbreviated ceremony"; `docs/phase-gate-discipline.md §Ceremony scaling`; `§Execution mode` "rising ceremony"); the **anti-pattern sense** names empty ritual that escapes the mode's intent (`AGENTS.md` line 171 "ceremonial adoption"; `§Minimum sufficient evidence` "form of ceremony"). The glossary entry previously defined only the anti-pattern sense, leaving readers landing here from a structural-sense citation with no anchor. The entry now lists both senses with a one-line distinguishing example ("a Full-mode change correctly producing every required gate artifact is not ceremonial; a Lean-mode change generating a ROADMAP row that no consumer reads is"), so both classes of citations resolve correctly.
+- **`docs/glossary.md §Ceremony` — disambiguated structural vs anti-pattern senses** — the term *ceremony* appears in two semantically distinct ways across the methodology: the **structural sense** names the amount of procedure a mode prescribes (`AGENTS.md §6` "ceremony scaling", `§2` "Full mode ceremony"; `docs/phase-gate-discipline.md §Ceremony scaling — how the six rules apply per execution mode`; `§Execution mode` "rising ceremony"; the methodology-evolution manifest example's "abbreviated ceremony" idiom); the **anti-pattern sense** names empty ritual that escapes the mode's intent (`docs/adoption-anti-metrics.md` and `docs/situational-disciplines.md` "ceremonial adoption"; `§Minimum sufficient evidence` "form of ceremony"). The glossary entry previously defined only the anti-pattern sense, leaving readers landing here from a structural-sense citation with no anchor. The entry now lists both senses with a one-line distinguishing example ("a Full-mode change correctly producing every required gate artifact is not ceremonial; a Lean-mode change generating a ROADMAP row that no consumer reads is"), so both classes of citations resolve correctly. Citation targets verified against post-1.31.4 main: AGENTS.md no longer carries the `ceremonial adoption` / `abbreviated ceremony` idioms it carried at branch base (1.30.1) — the canonical homes are now the cited `docs/adoption-anti-metrics.md` and methodology-evolution manifest example.
+
+## [1.31.4] - 2026-04-28
+
+Patch release fixing one CI flake surfaced after the 1.31.3 release, by replacing `wget` with `curl --retry-all-errors` in the `Install yq` step. No new normative content; no schema changes; no methodology rule additions. Same shape as the 1.31.x patch series (post-release CI hardening).
+
+### Fixed
+
+- **`.github/workflows/validate.yml` `hooks-selftest` `Install yq` — Linux yq download resilience** — the install step used `wget -q` to fetch `https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64`; `wget`'s default `--tries` setting only retries connection errors, not HTTP error responses. The GitHub Releases CDN occasionally returns 5xx (or its signed-URL JWT briefly races on `release-assets.githubusercontent.com`), and any single such transient surfaces as `wget` exit 8 ("Server issued an error response") with no retry attempt — failing the entire `hooks-selftest` job and, by extension, `hooks-selftest-macos`'s sibling on the dependency chain. Resolved by switching to `curl -fsSL --retry 4 --retry-delay 5 --retry-all-errors`. `--retry-all-errors` (curl 7.71+, available on ubuntu-latest) retries on every error class with backoff. Same source URL, same `chmod +x` and `yq --version` verify shape; macOS path (`brew install yq`) unchanged.
+
+### Why patch, not minor
+
+The fix converges to existing intent (the `Install yq` step is supposed to be reliable) without introducing new normative content. No methodology rule changes, no schema changes, no public surface changes outside the workflow file. Matches `VERSIONING.md` patch category and continues the 1.31.1–1.31.3 post-release CI hotfix cadence.
+
+### Migration notes
+
+- **External consumers of `validate.yml`** — the `wget` → `curl` swap is internal to the workflow's Linux yq install step. Forks that copied the workflow and observe similar Releases-CDN flakes should apply the same swap.
+- **Release authors** — no behaviour change in the version-bumping or release-tagging procedure.
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. Both `wget` and `curl` are POSIX-typical capability categories (HTTP client); the swap names neither tool in normative content. The workflow file (`.github/workflows/validate.yml`) is the canonical place where CI-tooling specifics live.
+
+### Out of scope (deferred)
+
+- **Pin yq to a specific version.** `latest` introduces a small drift risk: a future mikefarah/yq release with breaking syntax changes (e.g. `--front-matter=extract` removal) would silently break the cckn-canonical-sync-check hook. Pinning to `v4.45.x` or similar would close that risk but introduce a manual upgrade burden. Tracked for a future audit; the current fix only addresses transient network resilience.
+- **macOS install hardening.** The macOS path uses `brew install yq` which has its own retry semantics and has not flaked in the recent CI history. If a similar flake surfaces, the same `curl` pattern can be ported.
+
+## [1.31.3] - 2026-04-28
+
+Patch release fixing two CI failures surfaced after the 1.31.2 release. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.30.1 and 1.31.1 (post-release CI hotfix in a patch release).
+
+### Fixed
+
+- **`reference-implementations/hooks-claude-code/selftests/selftest.sh:44` — SC2221 / SC2222** — the case pattern `*mikefarah*|*"github.com/mikefarah"*)` introduced in 1.31.1 paired two patterns where the second is mechanically subsumed by the first (any string containing `github.com/mikefarah` necessarily contains `mikefarah`). Shellcheck flagged the pair with SC2221 ("This pattern always overrides a later one") and SC2222 ("This pattern never matches because of a previous pattern"). Resolved by collapsing to `*mikefarah*)` — the substring is present in every mikefarah/yq variant's `--version` output and absent from kislyuk/yq's, so detection precision is unchanged. The `hooks-shellcheck` job now passes; the dependent `hooks-selftest` and `hooks-selftest-macos` jobs (which had been auto-skipped because of the lint failure) run on subsequent CI invocations.
+
+- **`.github/workflows/validate.yml` `version-consistency` job — PR-time tag-check gating** — the `check-version-consistency.sh` git-tag presence signal (signal 6, added in 1.29.1) was unconditionally enforced on both `push: [main]` and `pull_request: [main]` events. On PR-time CI, `v$VERSION` cannot exist for a version-bumping PR because release tags are created post-merge by convention, so every version-bumping PR since 1.29.1 has been hitting this failure (the prior 1.30.x and 1.31.x PRs included). Resolved by setting `AGENT_PROTOCOL_SKIP_TAG_CHECK=1` on `pull_request` events via `${{ github.event_name == 'pull_request' && '1' || '' }}` — the script's documented opt-out env var, used here exactly for the case it was added for. The other five drift signals (`plugin.json` / `marketplace.json` / `README` badge / `CHANGELOG.md` / `CHANGELOG.json`) still run at PR-time, so a misnumbered version bump is still caught before merge. Push-to-main events continue to enforce the tag check; if the release author forgets to push the tag, the next push to main fails CI and the gap is surfaced before downstream pin-by-tag workflows hit it.
+
+### Why patch, not minor
+
+Both fixes converge to existing intent without introducing new normative content. The shellcheck fix removes a lint warning that was always going to fire (the redundant pattern was wrong from when it was written in 1.31.1). The version-consistency fix uses the script's own documented opt-out env var (`AGENT_PROTOCOL_SKIP_TAG_CHECK`, added with the script in 1.29.1) and applies it to the specific event class (PR) where the contract cannot be satisfied. No methodology rule changes, no schema changes, no public surface changes outside the CHANGELOG entry. Matches `VERSIONING.md` patch category and follows the 1.30.1 / 1.31.1 precedent (post-release CI hotfix in a patch release).
+
+### Migration notes
+
+- **External consumers of `selftest.sh`** — the case pattern collapse is internal; the detection behaviour is unchanged. Forks that copied the harness with the redundant pair will see the same SC2221/SC2222 warning on their own shellcheck runs and should apply the same collapse.
+- **External consumers of `validate.yml`** — the new `env:` block on the `version-consistency` step is additive (the env var is already supported by the script). If your fork's CI also enforces tag presence on PR-time, port the same gating; otherwise no action.
+- **Release authors** — push-event behaviour is unchanged. The workflow continues to fail loudly on push-to-main if the tag is missing, so the human-side release procedure (merge → tag → push tag) is still mechanically enforced. The PR-time gate, which never could be satisfied, is removed.
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. The shellcheck fix is internal to the existing detection logic; the workflow fix uses GitHub Actions event-name gating (`github.event_name`) which is the platform's canonical way to distinguish PR vs push events — bridging this would require a separate runner abstraction layer that does not yet exist and is not normative content.
+
+### Out of scope (deferred)
+
+- **Tag-check post-merge validation in a separate workflow.** A nightly or post-merge workflow that runs `check-version-consistency.sh` against the tip of `main` and fails if the tag is missing would catch the "release author forgot to push the tag" case faster than waiting for the next push to main. Tracked for a future audit; the current fix preserves the existing safety net.
+- **Audit of other `*mikefarah*`-style patterns repo-wide.** This patch fixes the one site shellcheck surfaced. A broader pass to confirm no other redundant case patterns lurk in the hook bundles is preventive infrastructure deferred to a future patch.
+
+## [1.31.2] - 2026-04-28
+
+Patch release adding a clarifying §FAQ to `docs/surfaces.md` answering the recurring "isn't a surface just a layer?" question that 1.31.0's harness-engineering alignment surfaces. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.31.1, 1.30.1, and 1.29.1 (post-release wording / drift cleanup in a patch release).
+
+### Added
+
+- **`docs/surfaces.md` §Common confusion — surface vs layer** — new sub-section between §Using the model and §See also. Distinguishes the layer model (vertical, code-structure, within one codebase, stack-flavoured) from the surface model (horizontal, change-perception, across products, stack-neutral). Three reasons agent-protocol does not promote layered architecture to normative: (1) stack-flavoured names violate `principles.md` Principle 9 + `CLAUDE.md §2`; (2) most worked examples in this repo (data pipeline / firmware OTA / ML retrain / live-ops gacha) do not split into Service/Runtime/UI; (3) `principles.md` Principle 2 is derived from a named failure mode and replacing it would re-introduce that failure without offsetting evidence. Coexistence table showing methodology-level (surface-first, mandatory) and consumer-product-level (free architectural choice — layered, hexagonal, clean, etc.). Anti-pattern list rejects "we use layers so we don't need surface analysis" and the symmetric error.
+
+- **`docs/product-engineering-operating-system.md §2`** — one-paragraph callout pointing readers at the new surfaces.md FAQ. The §2 claim ("we do not slice the world by stack") is unchanged; the callout clarifies that this rejects layer-first as a *methodology axis*, not as a *consumer-product architecture choice*. The two are orthogonal.
+
+### Why patch, not minor
+
+The addition clarifies an existing derived principle (`principles.md` Principle 2) by answering a question that pre-existed but was answered only implicitly across `principles.md`, `surfaces.md`, and `product-engineering-operating-system.md §2`. No new normative claim is introduced — the surface model remains the canonical methodology axis; the layer model remains a consumer-product architecture choice (already supported by `docs/examples/consumer-docs-scaffolding.md`'s ARCHITECTURE.md slot). Matches `VERSIONING.md` patch category — "wording clarifications" — with the same shape as 1.31.1 (`README.md §Why mikefarah/yq specifically` clarification).
+
+### Migration notes
+
+- **Consumers that already use a layered architecture** — no change required. The new FAQ explicitly states layered architectures are a legitimate consumer-product choice; the methodology continues to require surface-first verification regardless of code-organisation style. Existing `ARCHITECTURE.md` files do not need to be rewritten.
+- **Mirror-CCKN consumers tracking `surfaces.md`** — the SoT-mtime drift signal will fire at next push; refresh `updated` date and bump `methodology_version` to `1.31.2`. Section anchors above the new §Common confusion sub-section are unchanged; consumer-internal pointers into `surfaces.md` continue to resolve.
+- **External documentation that compares surface and layer models** — may now link to `surfaces.md#common-confusion--surface-vs-layer` as the canonical agent-protocol position, replacing prior workarounds that paraphrased Principle 2.
+
+### Tool-agnostic discipline
+
+The new sub-section names layered architectures by their generic shape (`Types → Config → Repo → Service → Runtime → UI; Providers; Utils`) without crediting any specific stack or external write-up; the "common confusion" framing covers the family of layered models, not one product's instance. Surface model labels remain as before (User / System interface / Information / Operational). No vendor / model / framework names introduced.
+
+### Out of scope (deferred)
+
+- **Per-bridge layer-mapping templates.** The new sub-section lists a generic layer-to-surface mapping; per-bridge templates (e.g. how the React/Next.js bridge maps Server Action / RSC / Middleware onto User / System interface / Information / Operational) would be a useful expansion but would multiply per-stack entries. Tracked for a future minor where each bridge file carries its own layer mapping.
+- **`mode-decision-tree.md` cross-reference.** The new sub-section's "consumer-product architecture is a free choice" framing intersects with the mode-decision-tree's "canonical methodology content edit (L1+) forces Full" rule — a future patch may add a one-line note clarifying that a consumer's architectural choice is *not* a canonical methodology content edit, so consumer-side ARCHITECTURE.md changes do not force Full mode upstream.
+
+## [1.31.1] - 2026-04-28
+
+Patch release fixing a selftest false-FAIL surfaced when contributors run the Claude Code hook bundle locally with the wrong `yq` distribution on `PATH`. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.30.1 and 1.29.1 (post-release CI / drift hardening in a patch release).
+
+### Fixed
+
+- **`reference-implementations/hooks-claude-code/selftests/selftest.sh` — yq variant detection** — two distinct binaries ship under the `yq` command name: mikefarah/yq (Go) and kislyuk/yq (Python wrapper around jq). Two hook scripts in this bundle use mikefarah-only syntax: `cckn-canonical-sync-check.sh` uses `--front-matter=extract` (rejected by kislyuk/yq as `Unknown option`), and `consumer-registry-check.sh` uses `.. | select(has(...))` recursive descent (kislyuk/yq errors with `Cannot check whether string has a string key` because jq's `has()` rejects primitives). The harness previously gated yq-dependent fixtures on `command -v yq` only; with kislyuk/yq on `PATH`, the gate passed but the hooks silently mis-classified (cckn drift fail-open; consumer-registry probe fail-closed-and-silent), surfacing as 3 fixture FAILs (`cckn-canonical-sync-check/warn-stale-mirror`, `cckn-canonical-sync-check/warn-version-mismatch`, `consumer-registry-check/warn-unreachable`). The harness now reads `yq --version` and matches `mikefarah` / `github.com/mikefarah`; non-matching variants set `have_yq=0` and the affected cases are skipped with `# SKIP yq is not mikefarah/yq (Go); see reference-implementations/hooks-claude-code/README.md §Dependencies` — the three-segment shape (failure / location / remediation pointer) prescribed by the §Remediation-injection contract added in 1.31.0. CI is unaffected (it installs the Go binary explicitly via the `Install yq` step in `.github/workflows/validate.yml`).
+
+- **`reference-implementations/hooks-claude-code/selftests/selftest.sh` — yq_dependent_dirs completeness** — `cckn-canonical-sync-check` was missing from the list of fixture directories that gate on yq presence, despite the hook using mikefarah-specific frontmatter parsing since 1.27.0. Adding it closes the gap in the same edit; `consumer-registry-check`, `completion-audit`, `evidence-artifact-exists`, and `sot-drift-check` were already in the list and remain unchanged.
+
+### Added
+
+- **`reference-implementations/hooks-claude-code/README.md §Dependencies §Why mikefarah/yq specifically`** — new sub-section documenting the two-yq-variant footgun, with a one-line detection recipe (`yq --version | grep -q mikefarah`) and a pointer at the upstream binary releases. Mirrors the harness-side detection so a contributor seeing the SKIP message can fix the environment without spelunking through hook source.
+
+- **`reference-implementations/hooks-claude-code/DEVIATIONS.md §7 — yq variant — mikefarah-only (1.31.1 hardening)`** — explicit deviation entry documenting (a) which two hooks use mikefarah-only syntax and where, (b) the silent fail-open / fail-closed modes the wrong variant produces, (c) why the variant detection lives at the harness rather than inside the hooks (latency budget; the contract's `TOOL_ERROR` path already covers "yq absent entirely"), and (d) one open follow-up (install-time `yq --version` probe in `README.md §How to install`).
+
+### Why patch, not minor
+
+Both fixes converge to existing intent without introducing new normative content. The harness-side detection makes the existing `# SKIP yq not on PATH` pattern precise rather than coarse; the documentation additions surface a known dependency that the README already named in passing. No methodology rule changes, no schema changes, no public surface changes outside the README and DEVIATIONS additions (both of which describe pre-existing behaviour rather than introducing new rules). Matches `VERSIONING.md` patch category and follows the 1.30.1 / 1.29.1 precedent (post-release CI / drift hardening in a patch release).
+
+### Migration notes
+
+- **CI consumers** (Linux + macOS GitHub Actions per `.github/workflows/validate.yml`) — no action required; the workflow already installs mikefarah/yq explicitly. The detection logic is a no-op when the Go binary is on `PATH`.
+- **Local contributors with kislyuk/yq on `PATH`** — selftests now skip cleanly with an instructive remediation pointer instead of failing. To exercise the full suite, install mikefarah/yq from `https://github.com/mikefarah/yq/releases` and ensure it precedes the Python variant on `PATH`. The hooks themselves were and remain affected by the variant; the patch only fixes the harness's reporting precision.
+- **Forks that customised `selftest.sh`** — the variant detection block adds ~12 lines after the existing `command -v yq` check. If your fork replaced the harness, port the detection by adding a `yq --version | grep -q mikefarah` gate; the hook surface itself is unchanged.
+- **Forks that added new hooks using mikefarah-only yq syntax** — add the hook's fixture directory to `yq_dependent_dirs` in the same change, per the inline comment in `selftest.sh`. Forgetting is exactly the gap that produced the 1.31.1 false-FAILs (`cckn-canonical-sync-check` was added in 1.27.0, never registered).
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. The two yq distributions are named because the deviation IS the distribution mismatch — the same command name, different implementations. Per `CLAUDE.md §2`, capability categories remain the normative surface; the `yq` dependency is reference-implementation glue (the bundle is called `hooks-claude-code`, deliberately runtime-bridge-scoped), and naming the two distributions is correct in that scope.
+
+### Out of scope (deferred)
+
+- **Install-time variant probe.** A `yq --version | grep -q mikefarah` check at the start of every hook would catch the wrong variant before any silent fail-open / fail-closed — at the cost of 5–10 ms of detection overhead on every hook invocation. The harness-side check is cheaper because it runs once per selftest, not once per hook-fire. Tracked for a future audit.
+- **Variant-detection in adapter selftests.** The four adapter bundles (`hooks-cursor`, `hooks-gemini-cli`, `hooks-windsurf`, `hooks-codex`) use a portable yq subset (`yq '.phase' <file>`) that works under both variants, so they pass under kislyuk/yq today. If a future hook addition introduces mikefarah-only syntax to an adapter, the same detection will need to be ported there.
+- **CCKN drift-signal symmetry.** The `cckn-canonical-sync-check` hook has three drift signals (mtime, methodology_version, mirrored-section); the variant fix does not change the signal set. The 1.30.0 deferred "section-level diff" item remains deferred.
+
+## [1.31.0] - 2026-04-28
+
+Methodology alignment release closing the gaps between agent-protocol and the *harness engineering* article (OpenAI, 2026-02). The 1.30.0 release covered six of the article's twelve dimensions; this release closes the remaining four (autonomy progression, observability legibility, throughput-first merge posture, agent-to-agent review loop) plus the AGENTS.md table-of-contents lift-out that 1.30.0 deferred. Every change is **tool-agnostic** per `CLAUDE.md §2`; the schema is unchanged.
+
+### Added
+
+- **`docs/autonomy-ladder-discipline.md` (new)** — *Five-rung autonomy ladder.* L0 (hand-written) → L1 (draft-assist) → L2 (in-loop agent) → L3 (cross-Phase delegation) → L4 (end-to-end self-driven). Each rung names its scope, role-separation requirement, minimum evidence shape, HITL trigger, and forced-upgrade signal. Indexes existing rules in `multi-agent-handoff.md`, `decision-trees.md` Tree D, `runtime-hook-contract.md`, and `evidence-quality-per-type.md` by autonomy level; introduces no new permission tier. Per-rung × per-surface table for application-driven and observability-stack evidence requirements. Closes the gap that auto-progression to L4 was inferable but not enumerated.
+
+- **`docs/observability-legibility-discipline.md` (new)** — *Three rules keeping the running system's operational evidence reachable by an agent in-loop.* (1) Structured-by-default emission (logs/metrics/traces in parseable shape; an agent that reads source fluently and runtime output crudely has half the loop missing). (2) Per-change isolation (a change being verified runs against its own observability surface, not shared staging). (3) Query-by-capability (log query / metric query / trace query as capability categories — never a specific backend). The operational-surface counterpart of `repo-as-context-discipline.md`. Defaults to advisory severity per `automation-contract.md` Rule 2.13 posture; runtime bridges may promote to block.
+
+- **`docs/throughput-first-merge-philosophy.md` (new)** — *Three rules for the merge-gate posture when agent throughput exceeds human attention.* (1) Default-advisory (block reserved for the risky-action interception list, breaking changes at L2+, rollback-mode-3, auth/PII/secrets paths, canonical methodology edits at L1+). (2) Short-lived PRs (a PR that does not close in one work-cycle is mis-scoped, not a quality bar). (3) Follow-up over indefinite blocking (real-but-non-blocking findings issue follow-up tickets, not holds on the in-flight PR). The strict gate (Tree D leaves) overrides the philosophy unconditionally; the philosophy is a posture, not a permission.
+
+- **`docs/file-role-map.md` (new)** — Lifted from `AGENTS.md §File role map`. The full per-file role classification (SoT / thin-bridge / runtime role-spec / reference wrapper) and the "where a new rule belongs" routing now live here. `AGENTS.md` carries a one-paragraph pointer. Updated to include the new disciplines (autonomy-ladder, observability-legibility, throughput-first-merge) and the new examples (consumer-docs-scaffolding, quality-score-template).
+
+- **`skills/engineering-workflow/references/application-driven-loop.md` (new)** — Non-normative reference walk-through of the L4 evidence shape: select target + clear console → snapshot BEFORE → trigger UI path → collect runtime events → snapshot AFTER → diff → apply fix + restart (loop until clean, capped at 5 iterations) → persist artefacts as evidence rows. Step-by-step evidence mapping onto existing `evidence_plan[*].type` enum values. Pairs with `cross-cutting-concerns.md §Application-driven verification` (the binding shape) the same way `back-pressure-loop.md` pairs with `runtime-hook-contract.md §Back-pressure pattern`.
+
+- **`skills/engineering-workflow/references/review-loop-pattern.md` (new)** — Non-normative reference walk-through of the agent-to-agent review iteration. Three terminal states (approved / continuation / escalation); five-iteration cap with diagnostic rationale; local self-review + cross-identity Reviewer + specialist sub-agent reviewer composition; anti-patterns covering self-approval, cap-raise-to-escape, findings-as-conversation, and Reviewer-as-author. Pairs with `multi-agent-handoff.md` (binding role contract) and `decision-trees.md §Tree D` (HITL leaves).
+
+- **`docs/examples/consumer-docs-scaffolding.md` (new, non-normative)** — Reference layout for a consumer project's repo (AGENTS.md as table of contents, ARCHITECTURE.md as top-level domain map, docs/design-docs / exec-plans / generated / product-specs / references; top-level DESIGN/FRONTEND/PLANS/PRODUCT_SENSE/QUALITY_SCORE/RELIABILITY/SECURITY policy files). Maps the scaffolding's slots onto agent-protocol concepts (surfaces, SoT Pattern 4a, Change Manifest, repo-as-context-discipline). Adoption procedure recommends "map first, rename second."
+
+- **`docs/examples/quality-score-template.md` (new, non-normative)** — Fillable template for a consumer project's `docs/QUALITY_SCORE.md`. Per-domain × per-surface grading on a three-tier scale (good/partial/weak); open and recently-closed gap-finding tables; trend metrics. Anti-patterns covering grade inflation, sweep-as-ceremony, grading-by-counting, quality-score-as-performance-review. Activates `anti-entropy-discipline.md §Quality score (optional, non-mandatory)` for consumers that want it.
+
+### Changed
+
+- **`AGENTS.md` size and shape** — slimmed from 311 lines to 210 lines per the 1.30.0 changelog's deferred-upgrade note. Lifted §File role map's full table to `docs/file-role-map.md`; compressed §Recommended reading order from a 80-line bibliography into a 12-line shortest-paths-in pointer that defers to `docs/README.md`'s 4-tier index. The 10 core operating-contract rules remain verbatim; no normative content was lost. The article's "AGENTS.md is a table of contents, not an encyclopedia" framing is now reflected in shape, not just in claim.
+
+- **`docs/runtime-hook-contract.md`** — added §*Remediation-injection contract* extending the existing §Output contract. The three-segment shape every non-zero-exit hook's stderr must carry: (1) failure statement, (2) `filepath:line` location pointer, (3) one-line remediation hint or deep link into a SoT document. Optional fourth segment for the rule identifier when the hook participates in `automation-contract.md`'s rule registry. Anti-patterns reject one-word `"failed"`, full-stack-trace stderr, vendor-named hints, and hints that point at non-repo wikis. Closes the gap that error-code stability (`tool-design-principles.md` Principle 3) had a stable signal but no stable content.
+
+- **`docs/README.md`** (4-tier index) — added `autonomy-ladder-discipline.md`, `observability-legibility-discipline.md`, `throughput-first-merge-philosophy.md`, and `file-role-map.md` to Tier 2 with one-line descriptions matching the tier's existing shape. Examples (`consumer-docs-scaffolding.md`, `quality-score-template.md`) ride in `docs/examples/` and are discoverable via the existing Tier-4 `examples/` row.
+
+### Migration notes
+
+- **No schema changes.** Every new rule resolves onto fields already present in `schemas/change-manifest.schema.yaml` (`escalations[*].trigger`, `sot_map[*].extension_fields`, `evidence_plan[*].type`, `breaking_change.level`, `rollback_mode`). Existing manifests validate without modification.
+- **AGENTS.md slim-down is non-breaking.** The 10 core operating-contract rules remain verbatim at the same section anchor numbers. Consumers that linked to specific anchors in §File role map should now link to `docs/file-role-map.md` (the new SoT for that content); the §Recommended reading order anchor still exists with a redirected pointer set.
+- **Mirror-CCKN consumers** that maintain a methodology-version-pinned mirror against any 1.30.x docs file — refresh `updated` date, set `methodology_version: "1.31.0"`, re-anchor any consumer-internal section pointers as needed. The `cckn-canonical-sync-check` hook will emit the third drift signal (methodology_version mismatch) until refreshed; SoT-mtime drift signal will fire on consumers with mirrors against `runtime-hook-contract.md` (one new section), `AGENTS.md` (slim-down), or `docs/README.md` (four new rows).
+- **Autonomy-ladder is descriptive, not novel.** The five rungs index existing rules; pre-1.31 manifests are not retroactively non-conformant. A team's adoption record may declare a rung at any time; the rung's evidence shape applies forward.
+- **Observability-legibility default-advisory** — pre-1.31 changes lacking structured emission, per-change isolation, or query-by-capability evidence surface as advisory findings under `phase_log`, not blocking. Promoting to block is per-bridge, recorded in the bridge's `DEVIATIONS.md`.
+- **Throughput-first is opt-in.** Teams in regulated environments, safety-critical software, or early adoption stages may reasonably reject the philosophy; the rejection is recorded in `adoption-strategy.md` under the team's adoption entry. An unrecorded rejection is silent abdication per the philosophy's anti-pattern list.
+
+### Why minor, not major
+
+Minor per `VERSIONING.md`: new normative content added (three new disciplines, one extension to `runtime-hook-contract.md`), no removals, no contract shape changes. Existing manifests, validators, hooks, and bridges remain conformant. The AGENTS.md slim-down preserves all 10 core rules verbatim; the §File role map content moved unchanged into `docs/file-role-map.md` with a pointer left behind. The new disciplines route through existing schema fields and existing escalation enums; no new schema is introduced. Default-advisory severity preserves backward compatibility on the new rules.
+
+### Tool-agnostic discipline
+
+Every new doc names capabilities by category (file read, code search, shell execution, sub-agent delegation, browser interaction, log query, metric query, trace query) rather than by vendor. The harness-engineering article is cited only in *Why this release* (this section); no specific tool, model, product, or backend name is introduced into normative content. Query-language categories (LogQL, PromQL, TraceQL) are named as language categories, not as backend products. The reference layout in `docs/examples/consumer-docs-scaffolding.md` uses category-shaped slot names (`design-docs/`, `references/`); teams map their existing tool-shaped layouts onto the slots without renaming.
+
+### Out of scope (deferred)
+
+- **Schema-side acceptance criteria for autonomy rungs.** `autonomy-ladder-discipline.md` ships as discipline-tier; promoting any rung's per-surface evidence shape into a schema field (`autonomy_rung: L0 | L1 | L2 | L3 | L4` with conditional minima) is a future minor.
+- **Quality-score automation.** `docs/examples/quality-score-template.md` is a template, not an automated artefact. A `quality-score-sweep.sh` reference hook that produces `QUALITY_SCORE.md` from a `cross-cutting-concerns.md` checklist run is left to runtime bridges.
+- **Hook-output remediation lint.** A CI lint that reads every reference hook bundle's stderr-on-failure path and asserts the three-segment shape (failure / location / remediation) is preventive infrastructure deferred to a future patch alongside the broader hook-wiring-consistency lint flagged in 1.29.1.
+- **Per-worktree environment infrastructure.** The `observability-legibility-discipline.md` Rule 2 (per-change isolation) presupposes the runtime can spin up isolated environments. The methodology says *what* the contract requires; the *how* (Dockerfiles, namespaces, process trees) is bridge-local infrastructure-as-code, not methodology content.
 
 ## [1.30.1] - 2026-04-28
 
