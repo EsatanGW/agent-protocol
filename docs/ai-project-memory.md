@@ -149,6 +149,48 @@ In one line: **if the next person (human or AI) taking over would get something 
 
 ---
 
+## User-supplied reference materials
+
+A specific subclass of memory-worthy content deserves its own discipline because it is the most common silent-drift trigger across sessions: **external reference materials the user provides during the change** — design files (Figma, Canva, Sketch, or equivalents), prototype links, requirement documents, mockup screenshots, transcripts, PDFs, and any URL or file the change must conform to.
+
+These references pass the §The test for memory-worthiness ("the next person taking over would get something wrong by not knowing this"). They differ from other memory-worthy content along two axes:
+
+- **They originate outside the repo.** Decisions, scope boundaries, and red lines accumulate inside the workflow; reference materials arrive from external tools (design platforms, document hosts, the user's clipboard) and are not automatically captured by the AI's normal artifacts (manifest, plan, completion report).
+- **They live in volatile media.** A design URL is a Tier 1 fact unless persisted; an inline PDF the user pasted is a context-window string that vanishes on compression. Without explicit capture, the reference is gone the moment the session ends.
+
+### Mandatory capture protocol
+
+When the user provides any external reference material, **before acting on it**, the AI must:
+
+1. **For URL-based references** — record the URL, fetch date, accessing identity, and a substantive summary of the contents (frames / pages / sections relevant to the change, not the URL string alone). Save under a tracked path in the project's project-memory layout (e.g. a `docs/references/<topic>.md` file, or the equivalent location chosen per §Recommended on-disk layout).
+2. **For file-based references** (PDFs, screenshots, design exports, transcripts, mockups pasted inline) — persist the file under a tracked path. Cite it from the active manifest's appropriate field.
+3. **For inline design intent stated in chat** — extract the constraints and intent into a written reference note. The conversation will compress; the note will not.
+4. **Cite the captured reference** from the active manifest, plan, or ROADMAP row so downstream roles (Reviewer, takeover sessions) discover it through the artifact, not through scrollback.
+
+The summary is not optional. A bare URL with no extracted contents is functionally a citation-by-link to a moving target — design files are reorganised, access is revoked, hosting providers expire links. The captured summary survives all three failure modes.
+
+### Why this is a discipline-level rule
+
+- A Reviewer cannot verify a change against a reference it cannot see (`ai-operating-contract.md` §3 evidence quality requires the reference to be inspectable).
+- A downstream session resuming the change cannot re-verify against a URL that exists only in a previous AI's compressed context — the reference becomes an invisible source of silent drift, and the symptoms surface as "the second AI ignored the design."
+- Asking the user to re-paste the same material across sessions is itself a §Anti-patterns violation (*Conversation treated as SoT*) and an `ai-operating-contract.md` §7 communication-style failure (asking the user to do work the AI was supposed to do).
+
+### Forbidden patterns
+
+- **Act-then-capture.** Beginning implementation against a Figma / Canva / prototype URL before persisting it. Capture is a precondition, not a follow-up.
+- **Citation-by-URL-only.** Recording only the URL with no summary. URLs rot and access-control changes; a captured summary survives both.
+- **Conversation-as-archive.** Treating "the user pasted the design earlier in the chat" as the persistent record. The conversation is Tier 1 memory.
+- **Re-prompting for the same material.** Asking the user to re-paste a reference they already provided in a previous session because the AI did not persist it the first time.
+
+### Relationship to other rules
+
+- [`AGENTS.md`](../AGENTS.md) §11 — the operating-contract summary; this section is its source of truth.
+- [`ai-operating-contract.md`](ai-operating-contract.md) §4 Context hygiene — captures the general rule that important facts must be written to files; this section names the specific class of facts that fail the discipline most often.
+- [`ai-operating-contract.md`](ai-operating-contract.md) §1 Honest uncertainty reporting + §9 Non-fabrication list — without the captured reference, every later citation of "the design says X" becomes a fabrication or an uncited assumption.
+- [`multi-agent-handoff.md`](multi-agent-handoff.md) §Reviewer — the Reviewer's right to verify references is contingent on capture; an unpersisted reference is not reviewable.
+
+---
+
 ## Minimum write-to-disk at session end
 
 Before the session ends, or before compression hits, the AI must ensure the following have been written to files:

@@ -4,6 +4,12 @@
       "version": "Unreleased",
       "date": null,
       "sections": {
+        "added": [
+          {
+            "title": "`AGENTS.md §11` + `docs/ai-project-memory.md §User-supplied reference materials` — capture-before-act rule for externally provided references",
+            "body": "new operating-contract rule mandating that any external reference material the user supplies during a change (design files in Figma / Canva / Sketch / equivalents, prototype links, requirement documents, mockup screenshots, transcripts, PDFs, or any URL / file the change must conform to) is **persisted to project memory before implementation begins**, not held in conversation scrollback. Capture protocol: URL references record URL + fetch date + accessing identity + a substantive summary (not the URL alone) under a tracked project-memory path (e.g. `docs/references/<topic>.md` or the layout chosen per `docs/ai-project-memory.md §Recommended on-disk layout`); file references are persisted under a tracked path and cited from the active manifest; inline design intent stated in chat is extracted to a written reference note before compression. Closes a recurring failure mode where the second session on a change \"ignores the design\" because the original reference was Tier 1 (session) memory only and was lost to compression or session break — the symptom is functionally a §1 / §9 fabrication, since no Reviewer or takeover session can re-verify \"the design says X\" against a URL that exists only in a previous AI's compressed context. AGENTS.md §11 carries the operating-contract summary; the SoT detail (mandatory capture protocol, forbidden patterns *Act-then-capture* / *Citation-by-URL-only* / *Conversation-as-archive* / *Re-prompting for the same material*, cross-references to `ai-operating-contract.md §4` context hygiene + `§3` evidence quality + `multi-agent-handoff.md §Reviewer`) lives in `docs/ai-project-memory.md` between §What is memory-worthy and §Minimum write-to-disk at session end. Thin-bridges (`CLAUDE.md`, `GEMINI.md`, `.windsurfrules`, `.cursor/rules/*.mdc`, `agents/*.md`) inherit automatically per `docs/file-role-map.md` and carry no new normative content."
+          }
+        ],
         "fixed": [
           {
             "title": "`AGENTS.md §6` Phase-gate discipline summary aligned with SoT",
