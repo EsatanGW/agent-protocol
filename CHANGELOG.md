@@ -8,6 +8,32 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.31.4] - 2026-04-28
+
+Patch release fixing one CI flake surfaced after the 1.31.3 release, by replacing `wget` with `curl --retry-all-errors` in the `Install yq` step. No new normative content; no schema changes; no methodology rule additions. Same shape as the 1.31.x patch series (post-release CI hardening).
+
+### Fixed
+
+- **`.github/workflows/validate.yml` `hooks-selftest` `Install yq` — Linux yq download resilience** — the install step used `wget -q` to fetch `https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64`; `wget`'s default `--tries` setting only retries connection errors, not HTTP error responses. The GitHub Releases CDN occasionally returns 5xx (or its signed-URL JWT briefly races on `release-assets.githubusercontent.com`), and any single such transient surfaces as `wget` exit 8 ("Server issued an error response") with no retry attempt — failing the entire `hooks-selftest` job and, by extension, `hooks-selftest-macos`'s sibling on the dependency chain. Resolved by switching to `curl -fsSL --retry 4 --retry-delay 5 --retry-all-errors`. `--retry-all-errors` (curl 7.71+, available on ubuntu-latest) retries on every error class with backoff. Same source URL, same `chmod +x` and `yq --version` verify shape; macOS path (`brew install yq`) unchanged.
+
+### Why patch, not minor
+
+The fix converges to existing intent (the `Install yq` step is supposed to be reliable) without introducing new normative content. No methodology rule changes, no schema changes, no public surface changes outside the workflow file. Matches `VERSIONING.md` patch category and continues the 1.31.1–1.31.3 post-release CI hotfix cadence.
+
+### Migration notes
+
+- **External consumers of `validate.yml`** — the `wget` → `curl` swap is internal to the workflow's Linux yq install step. Forks that copied the workflow and observe similar Releases-CDN flakes should apply the same swap.
+- **Release authors** — no behaviour change in the version-bumping or release-tagging procedure.
+
+### Tool-agnostic discipline
+
+No new vendor / model / framework names introduced. Both `wget` and `curl` are POSIX-typical capability categories (HTTP client); the swap names neither tool in normative content. The workflow file (`.github/workflows/validate.yml`) is the canonical place where CI-tooling specifics live.
+
+### Out of scope (deferred)
+
+- **Pin yq to a specific version.** `latest` introduces a small drift risk: a future mikefarah/yq release with breaking syntax changes (e.g. `--front-matter=extract` removal) would silently break the cckn-canonical-sync-check hook. Pinning to `v4.45.x` or similar would close that risk but introduce a manual upgrade burden. Tracked for a future audit; the current fix only addresses transient network resilience.
+- **macOS install hardening.** The macOS path uses `brew install yq` which has its own retry semantics and has not flaked in the recent CI history. If a similar flake surfaces, the same `curl` pattern can be ported.
+
 ## [1.31.3] - 2026-04-28
 
 Patch release fixing two CI failures surfaced after the 1.31.2 release. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.30.1 and 1.31.1 (post-release CI hotfix in a patch release).

@@ -168,9 +168,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install yq
+        # Use curl instead of wget so HTTP-error retries actually fire on
+        # GitHub Releases CDN flakes. wget's --tries default does not retry
+        # on 4xx/5xx (only on connection errors), so a transient 503 from
+        # the release-asset CDN exits 8 immediately and fails CI. curl's
+        # --retry-all-errors (curl 7.71+, available on ubuntu-latest)
+        # retries on every error class with backoff. Same source URL as
+        # before; same chmod+verify shape.
         run: |
-          sudo wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
-            -O /usr/local/bin/yq
+          sudo curl -fsSL --retry 4 --retry-delay 5 --retry-all-errors \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+            -o /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
           yq --version
       - name: Run Claude Code hook selftest
