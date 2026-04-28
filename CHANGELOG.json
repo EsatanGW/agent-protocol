@@ -1,6 +1,49 @@
 {
   "releases": [
     {
+      "version": "1.31.2",
+      "date": "2026-04-28",
+      "sections": {
+        "added": [
+          {
+            "title": "`docs/surfaces.md` §Common confusion — surface vs layer",
+            "body": "new sub-section between §Using the model and §See also. Distinguishes the layer model (vertical, code-structure, within one codebase, stack-flavoured) from the surface model (horizontal, change-perception, across products, stack-neutral). Three reasons agent-protocol does not promote layered architecture to normative: (1) stack-flavoured names violate `principles.md` Principle 9 + `CLAUDE.md §2`; (2) most worked examples in this repo (data pipeline / firmware OTA / ML retrain / live-ops gacha) do not split into Service/Runtime/UI; (3) `principles.md` Principle 2 is derived from a named failure mode and replacing it would re-introduce that failure without offsetting evidence. Coexistence table showing methodology-level (surface-first, mandatory) and consumer-product-level (free architectural choice — layered, hexagonal, clean, etc.). Anti-pattern list rejects \"we use layers so we don't need surface analysis\" and the symmetric error."
+          },
+          {
+            "title": "`docs/product-engineering-operating-system.md §2`",
+            "body": "one-paragraph callout pointing readers at the new surfaces.md FAQ. The §2 claim (\"we do not slice the world by stack\") is unchanged; the callout clarifies that this rejects layer-first as a *methodology axis*, not as a *consumer-product architecture choice*. The two are orthogonal."
+          }
+        ],
+        "notes": [
+          {
+            "title": "Consumers that already use a layered architecture",
+            "body": "no change required. The new FAQ explicitly states layered architectures are a legitimate consumer-product choice; the methodology continues to require surface-first verification regardless of code-organisation style. Existing `ARCHITECTURE.md` files do not need to be rewritten.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Mirror-CCKN consumers tracking `surfaces.md`",
+            "body": "the SoT-mtime drift signal will fire at next push; refresh `updated` date and bump `methodology_version` to `1.31.2`. Section anchors above the new §Common confusion sub-section are unchanged; consumer-internal pointers into `surfaces.md` continue to resolve.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "External documentation that compares surface and layer models",
+            "body": "may now link to `surfaces.md#common-confusion--surface-vs-layer` as the canonical agent-protocol position, replacing prior workarounds that paraphrased Principle 2.",
+            "subsection": "migration notes"
+          },
+          {
+            "title": "Per-bridge layer-mapping templates.",
+            "body": "The new sub-section lists a generic layer-to-surface mapping; per-bridge templates (e.g. how the React/Next.js bridge maps Server Action / RSC / Middleware onto User / System interface / Information / Operational) would be a useful expansion but would multiply per-stack entries. Tracked for a future minor where each bridge file carries its own layer mapping.",
+            "subsection": "out of scope (deferred)"
+          },
+          {
+            "title": "`mode-decision-tree.md` cross-reference.",
+            "body": "The new sub-section's \"consumer-product architecture is a free choice\" framing intersects with the mode-decision-tree's \"canonical methodology content edit (L1+) forces Full\" rule — a future patch may add a one-line note clarifying that a consumer's architectural choice is *not* a canonical methodology content edit, so consumer-side ARCHITECTURE.md changes do not force Full mode upstream.",
+            "subsection": "out of scope (deferred)"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.31.1",
       "date": "2026-04-28",
       "sections": {

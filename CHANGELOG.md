@@ -8,6 +8,35 @@ Format inspired by Keep a Changelog; versioning policy in `VERSIONING.md`.
 
 _(No entries yet — next change adds them here.)_
 
+## [1.31.2] - 2026-04-28
+
+Patch release adding a clarifying §FAQ to `docs/surfaces.md` answering the recurring "isn't a surface just a layer?" question that 1.31.0's harness-engineering alignment surfaces. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.31.1, 1.30.1, and 1.29.1 (post-release wording / drift cleanup in a patch release).
+
+### Added
+
+- **`docs/surfaces.md` §Common confusion — surface vs layer** — new sub-section between §Using the model and §See also. Distinguishes the layer model (vertical, code-structure, within one codebase, stack-flavoured) from the surface model (horizontal, change-perception, across products, stack-neutral). Three reasons agent-protocol does not promote layered architecture to normative: (1) stack-flavoured names violate `principles.md` Principle 9 + `CLAUDE.md §2`; (2) most worked examples in this repo (data pipeline / firmware OTA / ML retrain / live-ops gacha) do not split into Service/Runtime/UI; (3) `principles.md` Principle 2 is derived from a named failure mode and replacing it would re-introduce that failure without offsetting evidence. Coexistence table showing methodology-level (surface-first, mandatory) and consumer-product-level (free architectural choice — layered, hexagonal, clean, etc.). Anti-pattern list rejects "we use layers so we don't need surface analysis" and the symmetric error.
+
+- **`docs/product-engineering-operating-system.md §2`** — one-paragraph callout pointing readers at the new surfaces.md FAQ. The §2 claim ("we do not slice the world by stack") is unchanged; the callout clarifies that this rejects layer-first as a *methodology axis*, not as a *consumer-product architecture choice*. The two are orthogonal.
+
+### Why patch, not minor
+
+The addition clarifies an existing derived principle (`principles.md` Principle 2) by answering a question that pre-existed but was answered only implicitly across `principles.md`, `surfaces.md`, and `product-engineering-operating-system.md §2`. No new normative claim is introduced — the surface model remains the canonical methodology axis; the layer model remains a consumer-product architecture choice (already supported by `docs/examples/consumer-docs-scaffolding.md`'s ARCHITECTURE.md slot). Matches `VERSIONING.md` patch category — "wording clarifications" — with the same shape as 1.31.1 (`README.md §Why mikefarah/yq specifically` clarification).
+
+### Migration notes
+
+- **Consumers that already use a layered architecture** — no change required. The new FAQ explicitly states layered architectures are a legitimate consumer-product choice; the methodology continues to require surface-first verification regardless of code-organisation style. Existing `ARCHITECTURE.md` files do not need to be rewritten.
+- **Mirror-CCKN consumers tracking `surfaces.md`** — the SoT-mtime drift signal will fire at next push; refresh `updated` date and bump `methodology_version` to `1.31.2`. Section anchors above the new §Common confusion sub-section are unchanged; consumer-internal pointers into `surfaces.md` continue to resolve.
+- **External documentation that compares surface and layer models** — may now link to `surfaces.md#common-confusion--surface-vs-layer` as the canonical agent-protocol position, replacing prior workarounds that paraphrased Principle 2.
+
+### Tool-agnostic discipline
+
+The new sub-section names layered architectures by their generic shape (`Types → Config → Repo → Service → Runtime → UI; Providers; Utils`) without crediting any specific stack or external write-up; the "common confusion" framing covers the family of layered models, not one product's instance. Surface model labels remain as before (User / System interface / Information / Operational). No vendor / model / framework names introduced.
+
+### Out of scope (deferred)
+
+- **Per-bridge layer-mapping templates.** The new sub-section lists a generic layer-to-surface mapping; per-bridge templates (e.g. how the React/Next.js bridge maps Server Action / RSC / Middleware onto User / System interface / Information / Operational) would be a useful expansion but would multiply per-stack entries. Tracked for a future minor where each bridge file carries its own layer mapping.
+- **`mode-decision-tree.md` cross-reference.** The new sub-section's "consumer-product architecture is a free choice" framing intersects with the mode-decision-tree's "canonical methodology content edit (L1+) forces Full" rule — a future patch may add a one-line note clarifying that a consumer's architectural choice is *not* a canonical methodology content edit, so consumer-side ARCHITECTURE.md changes do not force Full mode upstream.
+
 ## [1.31.1] - 2026-04-28
 
 Patch release fixing a selftest false-FAIL surfaced when contributors run the Claude Code hook bundle locally with the wrong `yq` distribution on `PATH`. No new normative content; no schema changes; no methodology rule additions. Same shape as 1.30.1 and 1.29.1 (post-release CI / drift hardening in a patch release).

@@ -27,6 +27,8 @@ Slicing the world by stack tends to produce:
 
 This plugin slices the world by **capability and surface** instead.
 
+> **Surface vs layer — common confusion.** A consumer-product architecture may legitimately use a layered model (Types → Config → Repo → Service → Runtime → UI; Providers; Utils) inside its own codebase. That choice does **not** replace surface-first analysis; the two operate on different axes (code structure vs change perception) and prevent different failure modes. Full discussion: [`docs/surfaces.md` §Common confusion — surface vs layer](./surfaces.md#common-confusion--surface-vs-layer).
+
 ## 3. The four surfaces of a mature change
 
 > Full definitions, the composable-surface system, and extension rules live in [`docs/surfaces.md`](./surfaces.md).
