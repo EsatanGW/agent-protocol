@@ -140,6 +140,23 @@ The rules are stated as principles, not as exhaustive trope lists, so they remai
 
 Full contract: `docs/output-craft-discipline.md`
 
+### 11. User-supplied reference materials must be captured to project memory
+
+When the user provides external reference materials — design files (Figma / Canva / Sketch / equivalents), prototype links, requirement documents, mockup screenshots, transcripts, PDFs, or any URL or file the change must conform to — the AI **must persist them to project memory before acting on them**. The conversation is Tier 1 (session) memory; URLs and inline file contents that exist only there are lost to context compression and to session break, and a Reviewer or downstream session cannot verify a change against a reference it cannot see.
+
+Mandatory capture, before implementation begins:
+
+- **URL-based references** (Figma, Canva, prototype links, externally hosted specs) — record URL + fetch date + accessing identity + a substantive summary of the contents (frames / pages / sections relevant to the change, not just the URL string) into a tracked file under the project's project-memory layout (e.g. `docs/references/<topic>.md`, or the equivalent location chosen per `docs/ai-project-memory.md` §Recommended on-disk layout).
+- **File-based references** (PDFs, screenshots, design exports, transcripts pasted inline) — persist the file under a tracked path. Cite it from the active manifest's appropriate field.
+- **Inline design intent stated in chat** — extract the constraints into a written reference note before the conversation compresses; the chat is not project memory.
+- **Cite every captured reference** from the active manifest, plan, or ROADMAP row so downstream roles (Reviewer, takeover sessions) discover it through the artifact, not through scrollback.
+
+Forbidden: acting on a Figma / Canva / prototype URL the user mentioned without first persisting URL + summary; recording only the URL with no summary (URLs rot and access-control changes — a captured summary survives both); treating "the user pasted the design earlier in the chat" as the persistent record (`docs/ai-project-memory.md` §Anti-patterns — *Conversation treated as SoT*); asking the user to re-paste the same material across sessions because the AI did not persist it the first time.
+
+This rule has the same severity as the §1 non-fabrication rules: a later citation of "the design says X" against an unpersisted reference is functionally a fabrication, because no one — Reviewer, takeover session, or human auditor — can re-verify it.
+
+Full contract: `docs/ai-project-memory.md` §User-supplied reference materials.
+
 ---
 
 ## Recommended reading order
