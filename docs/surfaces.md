@@ -232,6 +232,68 @@ If your domain genuinely doesn't fit any extension, declare a `custom` surface i
 
 ---
 
+## Common confusion — surface vs layer
+
+A recurring question after reading external write-ups about agent-driven engineering (e.g. layered domain architectures of the form *Types → Config → Repo → Service → Runtime → UI; Providers; Utils*): **isn't a surface just a layer?** No — they sit on different axes, regulate different things, and prevent different failure modes. Conflating them collapses the methodology.
+
+### The two are orthogonal, not interchangeable
+
+| Dimension | Layer | Surface |
+|---|---|---|
+| What it slices | Code structure inside one codebase | A change's perception by external parties |
+| Direction of cut | Vertical — abstraction altitude | Horizontal — who experiences the change |
+| Question it answers | "Which layer does this code belong in?" | "Who sees this change? Who depends on it?" |
+| Typical members | Types / Config / Repo / Service / Runtime / UI; Providers; Utils | User / System interface / Information / Operational |
+| Lives in | A single product's codebase | Every change in any product, including non-code traces |
+| Owned by | The product's architect | The methodology — applies regardless of stack |
+| Failure mode it prevents | Cyclic dependencies, cross-layer leaks, inverted import direction | "Code is done but docs / consumers / contracts / alerts are not" |
+| Survives stack swap | No — layer names are stack-flavoured | Yes — perception axes are stack-neutral |
+
+A layer rule like "Service must not import UI" is a **within-codebase static dependency invariant**. A surface rule like "every change identifies which surfaces it touches and collects evidence per surface" is an **across-change verification invariant**. They do not address the same problem.
+
+### Why agent-protocol does not promote layered architecture to normative
+
+Three reasons, drawn directly from existing rules:
+
+1. **Stack-flavoured names violate `principles.md` Principle 9 + `CLAUDE.md §2`.** The labels `Service`, `Repo`, `Provider`, `Runtime` are JS/TS/Node-flavoured; the same concepts go by different names in JVM, Rust, Go, Python, embedded, ML, and data-pipeline stacks. Promoting them into normative content would bind the methodology to one ecosystem.
+2. **Most change types in this repo's worked examples do not fit the layer template.** A data pipeline (`docs/examples/data-pipeline-example.md`), an OTA firmware rollout (`docs/examples/embedded-firmware-example.md`), an ML retrain (`docs/examples/ml-model-training-example.md`), and a live-ops gacha event (`docs/examples/game-liveops-example.md`) each have rich operational and information surfaces, but their codebases do not split into a Service / Runtime / UI hierarchy. Surface-first analysis covers all four; layer-first forces them into a shape that does not exist.
+3. **`principles.md` Principle 2 is derived, not preferred.** The Derivation section ("Cross-layer seams end up with no owner, which turns them into desync hotspots by default. End users, partners, and operators do not care about your layering — they perceive the system through their own surfaces.") names the failure mode that surface-first prevents. Replacing it with layer-first as the primary axis would re-introduce that failure mode without offsetting evidence.
+
+### How the two coexist (in different layers of the system)
+
+The layer model is **not wrong** — it is wrong as a *methodology-level* normative claim. It can legitimately live one level down:
+
+| Level | Discipline | Mechanism |
+|---|---|---|
+| Methodology (this repo) | How a change is verified | Surface-first (mandatory) |
+| Consumer-product architecture | How that product's code is organised | Free choice — layered, hexagonal, clean, port-and-adapter, etc. |
+
+A consumer adopting agent-protocol may write `ARCHITECTURE.md` (per `docs/examples/consumer-docs-scaffolding.md`) declaring its own layered architecture. The methodology does not object — it only asks that *every change* go through the four-surface verification regardless of which architecture style the codebase uses internally. Layer rules become invariants the consumer's own custom lints enforce (per `docs/mechanical-enforcement-discipline.md`'s architecture-invariants axis), not invariants the methodology mandates.
+
+### When a consumer's layer model "maps onto" surfaces
+
+Common mappings consumers find useful when documenting in their `ARCHITECTURE.md`:
+
+| Layer (e.g. of the Types→…→UI shape) | Surfaces typically touched |
+|---|---|
+| Types | Information surface (data shape, validation, enums) |
+| Config | Information surface + Operational surface (feature flags, env wiring) |
+| Repo | Information surface + System interface surface (data access boundary) |
+| Service | System interface surface + Operational surface (business rules + side effects) |
+| Runtime | Operational surface (startup, lifecycle, bootstrapping) |
+| UI | User surface |
+| Providers / Utils | Cross-cutting (any surface the consumer of the provider touches) |
+
+The mapping is **descriptive, not prescriptive** — different consumer architectures map differently, and the four surfaces stay invariant across all of them. This is exactly why surfaces, not layers, are the methodology-level slice.
+
+### Anti-patterns this section rejects
+
+- *"We use a layered architecture so we don't need surface analysis."* The two are orthogonal; declaring one does not satisfy the other. A change that respects all layer rules can still ship with broken consumer contracts, missing migration evidence, or undisclosed operational impact.
+- *"We do surface analysis so we don't need layer rules."* A consumer's codebase still benefits from layer rules to keep its internal structure clean. Surface analysis governs change discipline; layer rules govern code organisation. Both can hold.
+- *Reading the layer model as a methodology recommendation from this repo.* The layer model is a popular consumer-side architecture pattern; it is documented here only to clarify the surface / layer distinction. The methodology's only normative claim about code organisation is "decisions live in the consumer's `ARCHITECTURE.md`, governed by mechanical-enforcement-discipline." See `docs/examples/consumer-docs-scaffolding.md`.
+
+---
+
 ## See also
 
 - `docs/source-of-truth-patterns.md` — where the authoritative version of each informational asset lives

@@ -24,16 +24,48 @@ if [ ! -x "$runner" ]; then
 fi
 
 have_yq=1
+yq_skip_reason="yq not on PATH"
 if ! command -v yq >/dev/null 2>&1; then
   have_yq=0
+else
+  # Hook scripts use mikefarah/yq (Go) syntax — `--front-matter=extract`,
+  # `.. | select(has(...))`, `-p json`. The other yq on PATH is the Python
+  # `kislyuk/yq` wrapper around jq, which has different semantics: `has()` errors
+  # on primitives during recursive descent, and `--front-matter=extract` is not
+  # a recognised option. Treat that variant as "yq absent" for selftest purposes
+  # so a contributor running locally with the wrong yq sees a clean SKIP plus a
+  # remediation pointer rather than spurious FAILs.
+  #
+  # mikefarah/yq prints `mikefarah/yq` or `version v4.x.x` (older builds print
+  # `yq (https://github.com/mikefarah/yq/) version 4.x.x`); kislyuk/yq prints
+  # `yq <version>` followed by its jq dependency. Match the former cheaply via
+  # the substring `mikefarah` — it appears in every mikefarah variant's version
+  # string and never in kislyuk's.
+  yq_version_line=$(yq --version 2>/dev/null || true)
+  case "$yq_version_line" in
+    *mikefarah*)
+      ;;
+    *)
+      have_yq=0
+      yq_skip_reason="yq is not mikefarah/yq (Go); see reference-implementations/hooks-claude-code/README.md §Dependencies"
+      ;;
+  esac
 fi
 
-# Hook directories whose fixtures exercise yq-parsed manifest queries.
-# When yq is absent the hooks correctly degrade to TOOL_ERROR/exit=2, but
-# fixtures assert specific exit codes (0 or 1) that assume yq is present —
-# so we skip them cleanly rather than emit spurious FAILs. Mirrors the
-# adapter selftests' `# SKIP yq not on PATH` pattern.
-yq_dependent_dirs="completion-audit consumer-registry-check evidence-artifact-exists sot-drift-check"
+# Hook directories whose fixtures exercise mikefarah/yq-specific manifest
+# queries. When the right yq is absent the hooks correctly degrade to
+# TOOL_ERROR/exit=2 (or silently mis-classify, in the case of frontmatter
+# parsing); fixtures assert the success path which assumes the right yq is
+# present — so we skip them cleanly rather than emit spurious FAILs. Mirrors
+# the adapter selftests' `# SKIP yq not on PATH` pattern.
+#
+# The list must be kept in sync with the set of hooks that use mikefarah-only
+# yq syntax. As of 1.31.1: cckn-canonical-sync-check uses `--front-matter=extract`;
+# consumer-registry-check uses `.. | select(has(...))`. Other yq-using hooks
+# (drift-doc-refresh, manifest-required, evidence-artifact-exists, etc.) use
+# the dialect-portable subset and pass under either variant — but they remain
+# in the list as a precaution against future syntax additions.
+yq_dependent_dirs="cckn-canonical-sync-check completion-audit consumer-registry-check evidence-artifact-exists sot-drift-check"
 
 # Ensure stub and hooks are executable even on a fresh clone.
 chmod +x "$selftests_dir/stubs"/* 2>/dev/null || true
@@ -63,7 +95,7 @@ for hook_case_dir in "$fixtures_dir"/*/; do
 
     if [ "$needs_yq" = 1 ] && [ "$have_yq" = 0 ]; then
       skipped=$((skipped + 1))
-      printf 'ok %s - %s # SKIP yq not on PATH\n' "$index" "$label"
+      printf 'ok %s - %s # SKIP %s\n' "$index" "$label" "$yq_skip_reason"
       continue
     fi
 
